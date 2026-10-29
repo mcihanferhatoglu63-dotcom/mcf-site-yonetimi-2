@@ -47,10 +47,10 @@ export default function SiteLayout() {
           
           <form onSubmit={(e) => {
             e.preventDefault();
-            if (adminPassword === '1453') { // Buradaki şifreyi dilediğin gibi değiştirebilirsin abicim
+            if (adminPassword === 'asdf') { // Buradaki şifreyi dilediğin gibi değiştirebilirsin abicim
               setIsAdminLoggedIn(true);
             } else {
-              alert('Hatalı şifre! (İpucu: 1453)');
+              alert('Hatalı şifre!');
             }
           }} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             <input
