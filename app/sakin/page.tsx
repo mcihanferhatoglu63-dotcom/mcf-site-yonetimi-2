@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { db } from '../firebase';
-import { collection, onSnapshot, doc, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, onSnapshot, doc, updateDoc, addDoc, serverTimestamp } from 'firebase/firestore';
 
 interface Unit {
   id: string;
@@ -23,12 +23,12 @@ interface Complaint {
   date: string;
 }
 
-export default function SakinLoginPage() {
+export default function SakinPortalPage() {
   const [units, setUnits] = useState<Unit[]>([]);
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Giriş Aşamaları State'leri
+  // Giriş State'leri
   const [phoneInput, setPhoneInput] = useState('');
   const [smsCodeInput, setSmsCodeInput] = useState('');
   const [step, setStep] = useState<'phone' | 'sms' | 'dashboard'>('phone');
@@ -37,6 +37,10 @@ export default function SakinLoginPage() {
   // Şikayet Formu
   const [title, setTitle] = useState('');
   const [desc, setDesc] = useState('');
+
+  // Ödeme Bildirim Modalı State'leri
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentNoticeSent, setPaymentNoticeSent] = useState(false);
 
   const masters = [
     { name: 'Ahmet Usta', service: 'Elektrikçi', phone: '05321112233', icon: '⚡', desc: 'Sigorta, avize, priz ve genel elektrik arızaları.' },
@@ -60,29 +64,51 @@ export default function SakinLoginPage() {
     return () => { unsubUnits(); unsubComp(); };
   }, []);
 
-  // 1. Aşama: Telefon Numarası Kontrolü
+  // Telefon Doğrulama
   const handleVerifyPhone = (e: React.FormEvent) => {
     e.preventDefault();
     const cleanPhone = phoneInput.replace(/\D/g, '');
     const found = units.find(u => u.phone && u.phone.replace(/\D/g, '') === cleanPhone);
 
     if (!found) {
-      alert('Bu telefon numarasına ait kayıtlı daire bulunamadı! Lütfen yöneticiye başvurun.');
+      alert('Bu telefon numarasına ait kayıtlı daire bulunamadı! Lütfen yöneticinizle görüşün.');
       return;
     }
 
     setLoggedInUnit(found);
-    setStep('sms'); // SMS kod ekranına geçiş
-    alert('SMS Doğrulama Kodu simüle edildi: Sakinler için test kodu -> 1234');
+    setStep('sms');
   };
 
-  // 2. Aşama: SMS Kod Doğrulama
+  // SMS Kod Doğrulama (1234 sabit test kodu veya otomatik yönlendirme)
   const handleVerifySms = (e: React.FormEvent) => {
     e.preventDefault();
-    if (smsCodeInput === '1234') { // Test için sabit 1234 kodu
+    if (smsCodeInput === '1234') {
       setStep('dashboard');
     } else {
-      alert('Hatalı SMS kodu! (Test için 1234 yazınız)');
+      alert('Hatalı kod! (Test için ekranda belirtilen 1234 kodunu giriniz)');
+    }
+  };
+
+  // Yönetime Ödeme Bildirimi Gönderme
+  const handleSendPaymentNotice = async () => {
+    if (!loggedInUnit) return;
+    const unitLabel = loggedInUnit.block === 'A' ? `A Blok Dükkan ${loggedInUnit.unitNumber}` : `${loggedInUnit.block} Blok No: ${loggedInUnit.unitNumber}`;
+
+    try {
+      await addDoc(collection(db, 'complaints'), {
+        unitInfo: unitLabel,
+        title: '💳 Ödeme Yapıldı / Dekont Bildirimi',
+        description: `${loggedInUnit.residentName} (${unitLabel}) tarafından ${loggedInUnit.debt.toLocaleString('tr-TR')} ₺ tutarındaki aidat borcu için banka ödemesi gerçekleştirildi ve bildirim yapıldı.`,
+        status: 'pending',
+        date: new Date().toLocaleDateString('tr-TR'),
+        createdAt: serverTimestamp()
+      });
+      setPaymentNoticeSent(true);
+      alert('Ödeme bildiriminiz yönetime başarıyla iletildi! Yönetici onayından sonra borcunuz düşürülecektir.');
+      setShowPaymentModal(false);
+    } catch (err) {
+      console.error(err);
+      alert('Bildirim gönderilirken bir hata oluştu.');
     }
   };
 
@@ -107,12 +133,22 @@ export default function SakinLoginPage() {
     } catch (err) { console.error(err); }
   };
 
-  // --- EKRAN 1: TELEFON GİRİŞ EKRANI ---
+  // --- 1. TELEFON GİRİŞ EKRANI ---
   if (step === 'phone') {
     return (
       <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #059669 0%, #047857 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, sans-serif', padding: '20px' }}>
         <div style={{ backgroundColor: '#ffffff', padding: '40px', borderRadius: '20px', maxWidth: '420px', width: '100%', boxShadow: '0 15px 30px rgba(0,0,0,0.2)', textAlign: 'center' }}>
-          <div style={{ fontSize: '38px', marginBottom: '10px' }}>📱</div>
+          
+          {/* MCF LOGO */}
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '15px' }}>
+            <img 
+              src="/mcf-logo.png" 
+              alt="MCF Logo" 
+              style={{ height: '54px', width: 'auto', objectFit: 'contain', background: '#ecfdf5', padding: '8px', borderRadius: '10px', border: '1px solid #10b981' }} 
+              onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+            />
+          </div>
+
           <h2 style={{ color: '#064e3b', fontSize: '22px', fontWeight: '800', margin: '0 0 8px 0' }}>Sakin Giriş Portalı</h2>
           <p style={{ color: '#4b5563', fontSize: '13px', margin: '0 0 24px 0' }}>Sisteme kayıtlı telefon numaranızı girerek giriş yapın.</p>
           
@@ -125,7 +161,7 @@ export default function SakinLoginPage() {
               style={{ padding: '14px', borderRadius: '10px', border: '1px solid #d1d5db', fontSize: '16px', outline: 'none', textAlign: 'center', fontWeight: 'bold' }}
             />
             <button type="submit" style={{ backgroundColor: '#059669', color: '#fff', border: 'none', padding: '14px', borderRadius: '10px', fontWeight: '800', cursor: 'pointer', fontSize: '15px' }}>
-              SMS Kodu Gönder
+              Devam Et / Kod Gönder
             </button>
             <a href="/" style={{ fontSize: '13px', color: '#6b7280', textDecoration: 'none', marginTop: '10px' }}>← Ana Sayfaya Dön</a>
           </form>
@@ -134,14 +170,26 @@ export default function SakinLoginPage() {
     );
   }
 
-  // --- EKRAN 2: SMS DOĞRULAMA KODU EKRANI ---
+  // --- 2. SMS / DOĞRULAMA EKRANI ---
   if (step === 'sms') {
     return (
       <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #059669 0%, #047857 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, sans-serif', padding: '20px' }}>
         <div style={{ backgroundColor: '#ffffff', padding: '40px', borderRadius: '20px', maxWidth: '420px', width: '100%', boxShadow: '0 15px 30px rgba(0,0,0,0.2)', textAlign: 'center' }}>
-          <div style={{ fontSize: '38px', marginBottom: '10px' }}>💬</div>
-          <h2 style={{ color: '#064e3b', fontSize: '22px', fontWeight: '800', margin: '0 0 8px 0' }}>SMS Doğrulama</h2>
-          <p style={{ color: '#4b5563', fontSize: '13px', margin: '0 0 24px 0' }}>Telefonunuza gönderilen 4 haneli kodu giriniz.<br/><strong style={{color:'#059669'}}>(Test Şifresi: 1234)</strong></p>
+          
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '15px' }}>
+            <img 
+              src="/mcf-logo.png" 
+              alt="MCF Logo" 
+              style={{ height: '54px', width: 'auto', objectFit: 'contain', background: '#ecfdf5', padding: '8px', borderRadius: '10px', border: '1px solid #10b981' }} 
+              onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+            />
+          </div>
+
+          <h2 style={{ color: '#064e3b', fontSize: '22px', fontWeight: '800', margin: '0 0 8px 0' }}>Güvenlik Doğrulaması</h2>
+          <p style={{ color: '#4b5563', fontSize: '13px', margin: '0 0 20px 0' }}>
+            Operatör gecikmelerini önlemek ve test kolaylığı için doğrulama kodunuz:<br/>
+            <strong style={{ color: '#059669', fontSize: '16px', background: '#dcfce7', padding: '4px 10px', borderRadius: '6px', display: 'inline-block', marginTop: '6px' }}>1234</strong>
+          </p>
           
           <form onSubmit={handleVerifySms} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             <input
@@ -164,15 +212,27 @@ export default function SakinLoginPage() {
     );
   }
 
-  // --- EKRAN 3: SAKİN ANA PANELİ (Giriş Başarılı) ---
+  // --- 3. SAKİN PORTALI ANA EKRANI ---
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#ecfdf5', fontFamily: 'Inter, system-ui, sans-serif', color: '#065f46' }}>
-      <header style={{ background: 'linear-gradient(135deg, #059669 0%, #047857 100%)', color: '#fff', padding: '20px 24px', boxShadow: '0 4px 20px rgba(5, 150, 105, 0.2)' }}>
+      
+      {/* HEADER */}
+      <header style={{ background: 'linear-gradient(135deg, #059669 0%, #047857 100%)', color: '#fff', padding: '18px 24px', boxShadow: '0 4px 20px rgba(5, 150, 105, 0.2)' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-          <div>
-            <h1 style={{ fontSize: '22px', fontWeight: '800', margin: 0 }}>🏠 MCF Site Sakin Portalı</h1>
-            <p style={{ fontSize: '13px', margin: '4px 0 0 0', opacity: 0.9 }}>Hoş geldiniz, {loggedInUnit?.residentName}</p>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <img 
+              src="/mcf-logo.png" 
+              alt="MCF Logo" 
+              style={{ height: '46px', width: 'auto', objectFit: 'contain', borderRadius: '8px', background: 'rgba(255, 255, 255, 0.15)', padding: '6px', border: '1px solid #34d399' }} 
+              onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+            />
+            <div>
+              <h1 style={{ fontSize: '20px', fontWeight: '800', margin: 0 }}>MCF <span style={{ color: '#d1fae5' }}>Site Sakin Portalı</span></h1>
+              <p style={{ fontSize: '12px', margin: '2px 0 0 0', opacity: 0.9 }}>Hoş geldiniz, {loggedInUnit?.residentName}</p>
+            </div>
           </div>
+
           <button onClick={() => { setLoggedInUnit(null); setStep('phone'); }} style={{ backgroundColor: '#ffffff', color: '#047857', padding: '8px 16px', borderRadius: '8px', border: 'none', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}>
             Çıkış Yap
           </button>
@@ -181,22 +241,41 @@ export default function SakinLoginPage() {
 
       <main style={{ maxWidth: '1200px', margin: '24px auto', padding: '0 20px' }}>
         
-        {/* DAİRE ÖZET KARTI */}
+        {/* DAİRE BİLGİSİ VE BORCUMU ÖDE BUTONU */}
         {loggedInUnit && (
-          <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '24px', marginBottom: '24px', border: '1px solid #a7f3d0', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
-            <h2 style={{ margin: '0 0 16px 0', fontSize: '18px', color: '#064e3b', fontWeight: '800' }}>Daire Bilgileriniz ve Finansal Durum</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
-              <div style={{ backgroundColor: '#f0fdf4', padding: '16px', borderRadius: '12px', border: '1px solid #bbf7d0' }}>
-                <div style={{ fontSize: '12px', color: '#166534', fontWeight: '700' }}>Birim</div>
-                <div style={{ fontSize: '16px', fontWeight: '800', color: '#14532d', marginTop: '4px' }}>{loggedInUnit.block} Blok - No: {loggedInUnit.unitNumber}</div>
+          <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '24px', marginBottom: '24px', border: '1px solid #a7f3d0', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '20px' }}>
+            <div>
+              <div style={{ fontSize: '13px', color: '#166534', fontWeight: '700' }}>Kayıtlı Biriminiz</div>
+              <div style={{ fontSize: '18px', fontWeight: '800', color: '#14532d', marginTop: '4px' }}>
+                {loggedInUnit.block} Blok - No: {loggedInUnit.unitNumber} ({loggedInUnit.residentName})
               </div>
-              <div style={{ backgroundColor: loggedInUnit.status === 'unpaid' ? '#fef2f2' : '#f0fdf4', padding: '16px', borderRadius: '12px', border: '1px solid ' + (loggedInUnit.status === 'unpaid' ? '#fecaca' : '#bbf7d0') }}>
-                <div style={{ fontSize: '12px', color: loggedInUnit.status === 'unpaid' ? '#991b1b' : '#166534', fontWeight: '700' }}>Aidat / Borç Durumu</div>
-                <div style={{ fontSize: '16px', fontWeight: '800', color: loggedInUnit.status === 'unpaid' ? '#7f1d1d' : '#14532d', marginTop: '4px' }}>
-                  {loggedInUnit.status === 'unpaid' ? `⚠️ ${loggedInUnit.debt.toLocaleString('tr-TR')} ₺ Borcunuz Var` : '✅ Borcunuz Bulunmuyor'}
-                </div>
+              <div style={{ marginTop: '8px', fontSize: '14px', fontWeight: 'bold', color: loggedInUnit.status === 'unpaid' ? '#dc2626' : '#059669' }}>
+                {loggedInUnit.status === 'unpaid' ? `⚠️ Güncel Borç: ${loggedInUnit.debt.toLocaleString('tr-TR')} ₺` : '✅ Borcunuz Bulunmuyor'}
               </div>
             </div>
+
+            {/* BORCUMU ÖDE / BİLDİR BUTONU */}
+            {loggedInUnit.status === 'unpaid' && (
+              <button
+                onClick={() => setShowPaymentModal(true)}
+                style={{
+                  backgroundColor: '#059669',
+                  color: '#ffffff',
+                  border: 'none',
+                  padding: '14px 24px',
+                  borderRadius: '12px',
+                  fontWeight: '800',
+                  fontSize: '15px',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(5, 150, 105, 0.3)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}
+              >
+                💳 Borcumu Öde / Dekont Bildir
+              </button>
+            )}
           </div>
         )}
 
@@ -205,7 +284,7 @@ export default function SakinLoginPage() {
           <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '24px', border: '1px solid #a7f3d0' }}>
             <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', color: '#064e3b', fontWeight: '800' }}>✍️ Yönetime Şikayet / Talep İlet</h3>
             <form onSubmit={handleAddComplaint} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <input type="text" placeholder="Konu" value={title} onChange={(e) => setTitle(e.target.value)} style={{ padding: '12px', borderRadius: '10px', border: '1px solid #d1d5db', fontSize: '14px' }} />
+              <input type="text" placeholder="Konu (Örn: Aydınlatma Arızası)" value={title} onChange={(e) => setTitle(e.target.value)} style={{ padding: '12px', borderRadius: '10px', border: '1px solid #d1d5db', fontSize: '14px' }} />
               <textarea placeholder="Şikayet veya talebinizi detaylı yazınız..." value={desc} onChange={(e) => setDesc(e.target.value)} rows={4} style={{ padding: '12px', borderRadius: '10px', border: '1px solid #d1d5db', fontSize: '14px', resize: 'vertical' }} />
               <button type="submit" style={{ backgroundColor: '#059669', color: '#fff', border: 'none', padding: '12px', borderRadius: '10px', fontWeight: '800', cursor: 'pointer' }}>Gönder</button>
             </form>
@@ -258,6 +337,43 @@ export default function SakinLoginPage() {
         </div>
 
       </main>
+
+      {/* ÖDEME / DEKONT BİLDİRİM MODALI */}
+      {showPaymentModal && loggedInUnit && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }}>
+          <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '30px', width: '100%', maxWidth: '480px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
+            <h3 style={{ margin: '0 0 10px 0', fontSize: '20px', color: '#064e3b', fontWeight: '800' }}>💳 Borç Ödeme ve Havale Bilgileri</h3>
+            <p style={{ fontSize: '13px', color: '#4b5563', margin: '0 0 20px 0', lineHeight: '1.5' }}>
+              Aşağıdaki site banka hesabımıza ödemenizi yaptıktan sonra <strong>"Ödemeyi Yaptım / Bildir"</strong> butonuna basabilirsiniz. Yönetici kontrol edip onaylayacaktır.
+            </p>
+
+            <div style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '12px', padding: '16px', marginBottom: '20px', fontSize: '14px', color: '#14532d', lineHeight: '1.6' }}>
+              <div><strong>Banka:</strong> Ziraat Bankası - MCF Tesis Yönetimi</div>
+              <div><strong>IBAN:</strong> TR12 0001 0000 5555 1234 5678 90</div>
+              <div><strong>Ödenecek Tutar:</strong> <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#059669' }}>{loggedInUnit.debt.toLocaleString('tr-TR')} ₺</span></div>
+              <div style={{ marginTop: '6px', fontSize: '12px', color: '#166534' }}><strong>Açıklama:</strong> {loggedInUnit.block} Blok No: {loggedInUnit.unitNumber} Aidat Ödemesi</div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button
+                type="button"
+                onClick={() => setShowPaymentModal(false)}
+                style={{ flex: 1, backgroundColor: '#e5e7eb', color: '#374151', border: 'none', padding: '12px', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}
+              >
+                İptal
+              </button>
+              <button
+                type="button"
+                onClick={handleSendPaymentNotice}
+                style={{ flex: 2, backgroundColor: '#059669', color: '#ffffff', border: 'none', padding: '12px', borderRadius: '8px', fontWeight: '800', cursor: 'pointer' }}
+              >
+                ✅ Ödemeyi Yaptım / Yönetime Bildir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
