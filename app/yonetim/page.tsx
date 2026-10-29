@@ -57,7 +57,6 @@ export default function YonetimPanelPage() {
   const [txAmount, setTxAmount] = useState('');
   const [txCategory, setTxCategory] = useState('Aidat Tahsilatı');
 
-  // Sayfa yenilendiğinde (F5) oturumun uçmaması için güvenli kontrol
   useEffect(() => {
     const sessionAuth = sessionStorage.getItem('mcf_admin_logged');
     if (sessionAuth === 'true') {
@@ -114,17 +113,25 @@ export default function YonetimPanelPage() {
     return (
       <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #4a1535 0%, #6b2d5c 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, sans-serif', padding: '20px' }}>
         <div style={{ backgroundColor: '#ffffff', padding: '40px', borderRadius: '20px', maxWidth: '400px', width: '100%', boxShadow: '0 15px 30px rgba(0,0,0,0.3)', textAlign: 'center' }}>
-          <div style={{ fontSize: '36px', marginBottom: '10px' }}>🔐</div>
+          
+          {/* GİRİŞ EKRANI LOGO */}
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '15px' }}>
+            <div style={{ background: '#fcf8fa', padding: '10px 16px', borderRadius: '12px', border: '1px solid #d8b8c5', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '24px', fontWeight: '900', color: '#6b2d5c', letterSpacing: '1px' }}>MCF</span>
+              <span style={{ fontSize: '12px', fontWeight: '700', color: '#4a1535', borderLeft: '2px solid #d8b8c5', paddingLeft: '8px', textAlign: 'left' }}>Yönetim<br/>Paneli</span>
+            </div>
+          </div>
+
           <h2 style={{ color: '#4a1535', fontSize: '20px', fontWeight: '800', margin: '0 0 10px 0' }}>Yönetici Paneli Girişi</h2>
           <p style={{ color: '#6b7280', fontSize: '13px', margin: '0 0 20px 0' }}>Devam etmek için yönetici şifrenizi giriniz.</p>
           
           <form onSubmit={(e) => {
             e.preventDefault();
-            if (adminPassword === 'asdf') {
+            if (adminPassword === '1453') {
               setIsAdminLoggedIn(true);
               sessionStorage.setItem('mcf_admin_logged', 'true');
             } else {
-              alert('Hatalı şifre!');
+              alert('Hatalı şifre! (Varsayılan: 1453)');
             }
           }} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             <input
@@ -281,14 +288,20 @@ Site Yönetimi`;
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#fcf8fa', fontFamily: 'Inter, system-ui, sans-serif', color: '#4a2833' }}>
       
-      {/* HEADER NAVBAR */}
+      {/* HEADER NAVBAR (LOGOLU) */}
       <header style={{ background: 'linear-gradient(135deg, #6b2d5c 0%, #4a1535 100%)', color: '#ffffff', padding: '18px 24px', boxShadow: '0 4px 20px rgba(74, 21, 53, 0.25)', borderBottom: '3px solid #d4a5b8' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
-          <div>
-            <h1 style={{ fontSize: '20px', fontWeight: '800', margin: 0, color: '#ffffff' }}>
-              MCF <span style={{ color: '#f3d1df' }}>Yönetim Paneli</span>
-            </h1>
-            <p style={{ fontSize: '12px', color: '#e8c5d3', margin: '2px 0 0 0', fontWeight: '500' }}>Yetkili Yönetici Oturumu</p>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            {/* MCF LOGO (HEADER) */}
+            <div style={{ background: 'rgba(255, 255, 255, 0.15)', padding: '6px 12px', borderRadius: '8px', border: '1px solid #d4a5b8', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '20px', fontWeight: '900', color: '#ffffff', letterSpacing: '1px' }}>MCF</span>
+              <span style={{ fontSize: '10px', fontWeight: '700', color: '#f3d1df', borderLeft: '2px solid #d4a5b8', paddingLeft: '6px', lineHeight: '1.2' }}>Yönetim<br/>Paneli</span>
+            </div>
+            <div>
+              <h1 style={{ fontSize: '18px', fontWeight: '800', margin: 0, color: '#ffffff' }}>MCF Tesis Yönetim Sistemi</h1>
+              <p style={{ fontSize: '12px', color: '#e8c5d3', margin: '2px 0 0 0', fontWeight: '500' }}>Yetkili Yönetici Oturumu</p>
+            </div>
           </div>
 
           <nav style={{ display: 'flex', gap: '6px', background: '#381028', padding: '5px', borderRadius: '12px', border: '1px solid #5c2345', flexWrap: 'wrap' }}>
@@ -393,7 +406,7 @@ Site Yönetimi`;
                         <p style={{ margin: '0 0 4px 0', fontSize: '13px', color: '#78350f' }}>📞 {unit.phone || 'Tel Yok'}</p>
                       </div>
 
-                      {/* BORÇ / ÖDENDİ DURUMU (DAHA BÜYÜK YAZI VE WHATSAPP BUTONU YOK) */}
+                      {/* BORÇ / ÖDENDİ DURUMU (BÜYÜK YAZI) */}
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #fef08a', paddingTop: '10px' }}>
                         <div 
                           onClick={() => togglePaymentStatus(unit)} 
