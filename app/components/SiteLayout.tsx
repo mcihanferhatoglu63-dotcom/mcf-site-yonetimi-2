@@ -28,7 +28,6 @@ interface Transaction {
 export default function SiteLayout() {
   const [activeTab, setActiveTab] = useState<'units' | 'directory' | 'accounting' | 'reports'>('units');
   const [selectedBlock, setSelectedBlock] = useState('A');
-  // AİDAT MİKTARI 2000 TL OLARak GÜNCELLENDİ
   const [dueAmount, setDueAmount] = useState('2000');
   const [units, setUnits] = useState<Unit[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -289,43 +288,139 @@ Site Yönetimi`;
     printWindow.document.close();
   };
 
-  // Excel'e Sakin Listesi Aktarma (.CSV Formatında)
+  // EXCEL RAPORUNU GENİŞ VE DÜZENLİ HTML TABLO OLARAK İNDİRME (.XLS FORMATI)
+  // Bu yöntem Excel'de sütunların sıkışmasını engeller ve tam oturmasını sağlar.
   const exportUnitsToExcel = () => {
-    let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
-    csvContent += "Blok,Daire/Dükkan No,Sakin Adı,Telefon,Mülkiyet Durumu,Ev Sahibi,Borç (TL),Ödeme Durumu\n";
+    let htmlContent = `
+      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+      <head>
+        <meta charset="utf-8">
+        <style>
+          table { border-collapse: collapse; width: 100%; font-family: Arial, sans-serif; }
+          th { background-color: #6b2d5c; color: #ffffff; font-weight: bold; text-align: center; padding: 12px; border: 1px solid #4a1535; font-size: 14px; }
+          td { padding: 10px 14px; border: 1px solid #d8b8c5; text-align: left; font-size: 13px; vertical-align: middle; }
+          .center { text-align: center; }
+          .right { text-align: right; }
+          .paid { color: #059669; font-weight: bold; background-color: #d1fae5; text-align: center; }
+          .unpaid { color: #dc2626; font-weight: bold; background-color: #fee2e2; text-align: center; }
+          .title { font-size: 18px; font-weight: bold; color: #4a1535; margin-bottom: 15px; }
+        </style>
+      </head>
+      <body>
+        <div class="title">MCF Site Yönetimi - Bina Sakinleri ve Ödeme Durum Raporu</div>
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 80px;">Blok</th>
+              <th style="width: 100px;">Daire / No</th>
+              <th style="width: 200px;">Sakin / İşletmeci Adı</th>
+              <th style="width: 140px;">Telefon Numarası</th>
+              <th style="width: 180px;">Mülkiyet Durumu</th>
+              <th style="width: 200px;">Mülk / Ev Sahibi</th>
+              <th style="width: 130px;">Borç / Bakiye (₺)</th>
+              <th style="width: 130px;">Ödeme Durumu</th>
+            </tr>
+          </thead>
+          <tbody>
+    `;
 
     sortedAllUnits.forEach(u => {
       const ownerLabel = getOwnerLabel(u.block);
       const statusText = u.status === 'paid' ? 'Ödendi' : 'Borçlu';
+      const statusClass = u.status === 'paid' ? 'paid' : 'unpaid';
       const tenantText = u.isTenant ? `Kiracı (${ownerLabel}: ${u.landlordName || '-'})` : ownerLabel;
-      const row = [u.block, u.unitNumber, `"${u.residentName}"`, `"${u.phone}"`, `"${tenantText}"`, `"${u.debt}"`, statusText];
-      csvContent += row.join(",") + "\n";
+      const landlordVal = u.isTenant ? (u.landlordName || '-') : (u.residentName || '-');
+
+      htmlContent += `
+        <tr>
+          <td class="center"><b>${u.block} Blok</b></td>
+          <td class="center">${u.unitNumber}</td>
+          <td><b>${u.residentName || '-'}</b></td>
+          <td class="center">${u.phone || '-'}</td>
+          <td>${tenantText}</td>
+          <td>${landlordVal}</td>
+          <td class="right">${u.debt ? u.debt.toLocaleString('tr-TR') + ' ₺' : '0 ₺'}</td>
+          <td class="${statusClass}">${statusText}</td>
+        </tr>
+      `;
     });
 
-    const encodedUri = encodeURI(csvContent);
+    htmlContent += `
+          </tbody>
+        </table>
+      </body>
+      </html>
+    `;
+
+    const blob = new Blob([htmlContent], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `MCF_Site_Sakinleri_Raporu_${new Date().toLocaleDateString('tr-TR')}.csv`);
+    link.href = url;
+    link.download = `MCF_Site_Sakinleri_Raporu_${new Date().toLocaleDateString('tr-TR')}.xls`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
-  // Kasa Raporunu Excel'e Aktarma
+  // Kasa Raporunu Geniş Tablo Olarak İndirme
   const exportTransactionsToExcel = () => {
-    let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
-    csvContent += "Tarih,İşlem Türü,Kategori,Açıklama,Tutar (TL)\n";
+    let htmlContent = `
+      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+      <head>
+        <meta charset="utf-8">
+        <style>
+          table { border-collapse: collapse; width: 100%; font-family: Arial, sans-serif; }
+          th { background-color: #6b2d5c; color: #ffffff; font-weight: bold; text-align: center; padding: 12px; border: 1px solid #4a1535; font-size: 14px; }
+          td { padding: 10px 14px; border: 1px solid #d8b8c5; text-align: left; font-size: 13px; vertical-align: middle; }
+          .center { text-align: center; }
+          .right { text-align: right; }
+          .income { color: #059669; font-weight: bold; }
+          .expense { color: #dc2626; font-weight: bold; }
+          .title { font-size: 18px; font-weight: bold; color: #4a1535; margin-bottom: 15px; }
+        </style>
+      </head>
+      <body>
+        <div class="title">MCF Site Yönetimi - Kasa Gelir / Gider Raporu</div>
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 120px;">Tarih</th>
+              <th style="width: 130px;">İşlem Türü</th>
+              <th style="width: 180px;">Kategori</th>
+              <th style="width: 300px;">Açıklama / Başlık</th>
+              <th style="width: 150px;">Tutar (₺)</th>
+            </tr>
+          </thead>
+          <tbody>
+    `;
 
     transactions.forEach(t => {
       const typeText = t.type === 'income' ? 'Gelir' : 'Gider';
-      const row = [t.date || 'Bugün', typeText, `"${t.category}"`, `"${t.title}"`, t.amount];
-      csvContent += row.join(",") + "\n";
+      const typeClass = t.type === 'income' ? 'income' : 'expense';
+
+      htmlContent += `
+        <tr>
+          <td class="center">${t.date || 'Bugün'}</td>
+          <td class="center ${typeClass}">${typeText}</td>
+          <td>${t.category}</td>
+          <td><b>${t.title}</b></td>
+          <td class="right ${typeClass}">${t.type === 'income' ? '+' : '-'}${Number(t.amount).toLocaleString('tr-TR')} ₺</td>
+        </tr>
+      `;
     });
 
-    const encodedUri = encodeURI(csvContent);
+    htmlContent += `
+          </tbody>
+        </table>
+      </body>
+      </html>
+    `;
+
+    const blob = new Blob([htmlContent], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `MCF_Kasa_Raporu_${new Date().toLocaleDateString('tr-TR')}.csv`);
+    link.href = url;
+    link.download = `MCF_Kasa_Raporu_${new Date().toLocaleDateString('tr-TR')}.xls`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -532,7 +627,7 @@ Site Yönetimi`;
               </div>
             </div>
 
-            {/* KARTLAR (ARKA PLANI SARI) */}
+            {/* KARTLAR */}
             {loading ? (
               <div style={{ textAlign: 'center', padding: '60px', color: '#6b2d5c' }}>Yükleniyor...</div>
             ) : (
@@ -560,7 +655,6 @@ Site Yönetimi`;
                       <div style={{ position: 'absolute', top: 0, left: 0, width: '6px', height: '100%', backgroundColor: isDebtor ? '#dc2626' : '#10b981' }} />
                       
                       <div>
-                        {/* KART BAŞLIĞI VE BORÇLU İSE ÜNLEM İKONU */}
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                           <h3 style={{ margin: 0, fontSize: '16px', color: '#713f12', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '6px' }}>
                             {selectedBlock === 'A' ? `Dükkan ${unit.unitNumber}` : `${selectedBlock} Blok - No: ${unit.unitNumber}`}
@@ -625,7 +719,6 @@ Site Yönetimi`;
                         </div>
 
                         <div style={{ display: 'flex', gap: '6px' }}>
-                          {/* WHATSAPP İKONU (YEŞİL WHATSAPP SİMGESİ İLE) */}
                           {unit.phone && (
                             <button
                               onClick={() => openWhatsApp(unit.phone, unit.residentName, unit.debt)}
@@ -636,7 +729,6 @@ Site Yönetimi`;
                             </button>
                           )}
                           
-                          {/* NET GÖRÜNEN KALEM (DÜZENLE) BUTONU */}
                           <button
                             onClick={() => setEditingUnit(unit)}
                             title="Bilgileri Düzenle"
@@ -818,11 +910,11 @@ Site Yönetimi`;
           </div>
         )}
 
-        {/* 4. RAPORLAR */}
+        {/* 4. RAPORLAR (PROFESYONEL EXCEL MERKEZİ) */}
         {activeTab === 'reports' && (
           <div style={{ backgroundColor: '#ffffff', padding: '40px', borderRadius: '16px', textAlign: 'center', border: '1px solid #ebd2dc', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
-            <h2 style={{ fontSize: '22px', fontWeight: '800', color: '#4a1535', margin: '0 0 10px 0' }}>📊 Raporlama ve Excel Dışa Aktarım Merkezi</h2>
-            <p style={{ color: '#6b2d5c', margin: '0 0 30px 0', fontSize: '14px' }}>Bina sakinlerinin ödeme durumlarını ve kasa hareketlerini tek tuşla Excel (CSV) olarak indirebilirsiniz.</p>
+            <h2 style={{ fontSize: '22px', fontWeight: '800', color: '#4a1535', margin: '0 0 10px 0' }}>📊 Profesyonel Raporlama ve Excel Aktarım Merkezi</h2>
+            <p style={{ color: '#6b2d5c', margin: '0 0 30px 0', fontSize: '14px' }}>Sütun genişlikleri optimize edilmiş, başlıkları şık ve renkli biçimlendirilmiş Excel raporlarını buradan indirebilirsiniz.</p>
             
             <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', flexWrap: 'wrap' }}>
               <button
@@ -842,7 +934,7 @@ Site Yönetimi`;
                   gap: '8px'
                 }}
               >
-                📥 Sakinler ve Ödeme Durumunu Excel&apos;e Aktar
+                📥 Sakinler ve Ödeme Raporunu Excel&apos;e Aktar (Geniş Sütun)
               </button>
 
               <button
@@ -862,7 +954,7 @@ Site Yönetimi`;
                   gap: '8px'
                 }}
               >
-                📥 Gelir / Gider Kasa Raporunu Excel&apos;e Aktar
+                📥 Kasa Gelir/Gider Raporunu Excel&apos;e Aktar (Geniş Sütun)
               </button>
             </div>
           </div>
