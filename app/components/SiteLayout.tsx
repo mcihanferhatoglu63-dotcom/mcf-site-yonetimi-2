@@ -28,7 +28,8 @@ interface Transaction {
 export default function SiteLayout() {
   const [activeTab, setActiveTab] = useState<'units' | 'directory' | 'accounting' | 'reports'>('units');
   const [selectedBlock, setSelectedBlock] = useState('A');
-  const [dueAmount, setDueAmount] = useState('1500');
+  // AİDAT MİKTARI 2000 TL OLARak GÜNCELLENDİ
+  const [dueAmount, setDueAmount] = useState('2000');
   const [units, setUnits] = useState<Unit[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
@@ -149,7 +150,7 @@ export default function SiteLayout() {
     try {
       const unitRef = doc(db, 'units', unit.id);
       if (unit.status === 'paid') {
-        await updateDoc(unitRef, { status: 'unpaid', debt: Number(dueAmount) || 1500 });
+        await updateDoc(unitRef, { status: 'unpaid', debt: Number(dueAmount) || 2000 });
       } else {
         await updateDoc(unitRef, { status: 'paid', debt: 0 });
       }
@@ -564,7 +565,6 @@ Site Yönetimi`;
                           <h3 style={{ margin: 0, fontSize: '16px', color: '#713f12', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '6px' }}>
                             {selectedBlock === 'A' ? `Dükkan ${unit.unitNumber}` : `${selectedBlock} Blok - No: ${unit.unitNumber}`}
                             
-                            {/* YALNIZCA BORÇLU OLANLARIN BAŞLIĞININ YANINDA ÜNLEM ÇIKAR */}
                             {isDebtor && (
                               <button
                                 onClick={() => setWarningModalUnit(unit)}
@@ -625,18 +625,22 @@ Site Yönetimi`;
                         </div>
 
                         <div style={{ display: 'flex', gap: '6px' }}>
+                          {/* WHATSAPP İKONU (YEŞİL WHATSAPP SİMGESİ İLE) */}
                           {unit.phone && (
                             <button
                               onClick={() => openWhatsApp(unit.phone, unit.residentName, unit.debt)}
                               title="WhatsApp Mesaj Gönder"
-                              style={{ backgroundColor: '#059669', color: '#ffffff', border: 'none', padding: '6px 10px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: '700' }}
+                              style={{ backgroundColor: '#22c55e', color: '#ffffff', border: 'none', padding: '6px 10px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 4px rgba(34, 197, 94, 0.3)' }}
                             >
-                              💬 WA
+                              💬
                             </button>
                           )}
+                          
+                          {/* NET GÖRÜNEN KALEM (DÜZENLE) BUTONU */}
                           <button
                             onClick={() => setEditingUnit(unit)}
-                            style={{ backgroundColor: '#ca8a04', color: '#ffffff', border: 'none', padding: '6px 10px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: '700' }}
+                            title="Bilgileri Düzenle"
+                            style={{ backgroundColor: '#4a1535', color: '#f3d1df', border: '1px solid #6b2d5c', padding: '6px 10px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 4px rgba(74, 21, 53, 0.2)' }}
                           >
                             ✏️
                           </button>
@@ -682,9 +686,9 @@ Site Yönetimi`;
                           {u.phone ? (
                             <button
                               onClick={() => openWhatsApp(u.phone, u.residentName, u.debt)}
-                              style={{ backgroundColor: '#059669', color: '#ffffff', border: 'none', padding: '6px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: '700' }}
+                              style={{ backgroundColor: '#22c55e', color: '#ffffff', border: 'none', padding: '6px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: '700', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                             >
-                              💬 WhatsApp Mesaj Gönder
+                              💬 WhatsApp Gönder
                             </button>
                           ) : (
                             <span style={{ fontSize: '12px', color: '#a08591' }}>Tel Yok</span>
@@ -814,7 +818,7 @@ Site Yönetimi`;
           </div>
         )}
 
-        {/* 4. RAPORLAR (EXCEL AKTARIM MERKEZİ) */}
+        {/* 4. RAPORLAR */}
         {activeTab === 'reports' && (
           <div style={{ backgroundColor: '#ffffff', padding: '40px', borderRadius: '16px', textAlign: 'center', border: '1px solid #ebd2dc', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
             <h2 style={{ fontSize: '22px', fontWeight: '800', color: '#4a1535', margin: '0 0 10px 0' }}>📊 Raporlama ve Excel Dışa Aktarım Merkezi</h2>
@@ -989,7 +993,7 @@ Site Yönetimi`;
                 type="button"
                 onClick={() => {
                   printOfficialWarning(warningModalUnit);
-                    setWarningModalUnit(null);
+                  setWarningModalUnit(null);
                 }}
                 style={{ flex: 1, backgroundColor: '#4b5563', color: '#ffffff', border: 'none', padding: '12px', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}
               >
