@@ -53,14 +53,15 @@ export default function YonetimPanelPage() {
   const [editingUnit, setEditingUnit] = useState<Unit | null>(null);
   const [warningModalUnit, setWarningModalUnit] = useState<Unit | null>(null);
 
-  const [currentPackage, setCurrentPackage] = useState<'trial' | 'basic' | 'pro'>('pro');
+  // Paket state'i (trial, basic, pro)
+  const [currentPackage, setCurrentPackage] = useState<'trial' | 'basic' | 'pro'>('trial');
 
   const [txType, setTxType] = useState<'income' | 'expense'>('income');
   const [txTitle, setTxTitle] = useState('');
   const [txAmount, setTxAmount] = useState('');
   const [txCategory, setTxCategory] = useState('Aidat Tahsilatı');
 
-  // URL'den site adını alma ve Süperadmin'den gelen paket bilgisini anlık dinleme
+  // URL'den site adını alma ve Süperadmin/Demo'dan gelen paket bilgisini anlık dinleme
   useEffect(() => {
     const sessionAuth = sessionStorage.getItem('mcf_admin_logged');
     if (sessionAuth === 'true') {
@@ -73,9 +74,15 @@ export default function YonetimPanelPage() {
       setCurrentSiteName(siteParam);
     }
 
+    // Eğer tarayıcıda demo için set edilmiş bir paket varsa öncelik ver
+    const savedDemoPkg = sessionStorage.getItem('mcf_site_package');
+    if (savedDemoPkg === 'trial' || savedDemoPkg === 'pro') {
+      setCurrentPackage(savedDemoPkg as any);
+    }
+
     // Firestore'daki tenants tablosundan bu sitenin güncel paketini anlık dinle
     const unsubscribeTenants = onSnapshot(collection(db, 'tenants'), (snapshot) => {
-      const matchedTenant = snapshot.docs.find(doc => doc.data().siteName === (siteParam || 'Bulvar City'));
+      const matchedTenant = snapshot.docs.find(doc => doc.data().siteName === (siteParam || 'Demo-Site'));
       if (matchedTenant) {
         const tenantData = matchedTenant.data();
         if (tenantData.packageType) {
@@ -137,6 +144,13 @@ export default function YonetimPanelPage() {
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!adminPassword) return alert('Lütfen şifre giriniz.');
+
+    // Demo site için direkt giriş
+    if (currentSiteName === 'Demo-Site') {
+      setIsAdminLoggedIn(true);
+      sessionStorage.setItem('mcf_admin_logged', 'true');
+      return;
+    }
 
     try {
       const q = query(collection(db, 'tenants'), where('siteName', '==', currentSiteName));
@@ -324,6 +338,7 @@ ${currentSiteName} Yönetimi`;
 
   const getOwnerLabel = (block: string) => block === 'A' ? 'Mülk Sahibi' : 'Ev Sahibi';
 
+  // Kısıtlama Kuralı: Sadece 'basic' paketinde Kasa, Raporlar ve Bildirimler kilitlidir. Trial ve Pro'da serbesttir.
   const isFeatureRestricted = (tab: string) => {
     if (currentPackage === 'basic' && (tab === 'accounting' || tab === 'reports' || tab === 'complaints')) {
       return true;
@@ -340,8 +355,8 @@ ${currentSiteName} Yönetimi`;
           <div>
             <h1 style={{ fontSize: '18px', fontWeight: '800', margin: 0, color: '#f59e0b', display: 'flex', alignItems: 'center', gap: '8px' }}>
               {currentSiteName} Yönetim Ekranı
-              <span style={{ fontSize: '10px', backgroundColor: currentPackage === 'pro' ? '#0369a1' : currentPackage === 'basic' ? '#b45309' : '#374151', color: '#fff', padding: '2px 8px', borderRadius: '10px', textTransform: 'uppercase', fontWeight: '900' }}>
-                {currentPackage === 'pro' ? 'Pro Paket' : currentPackage === 'basic' ? 'Basic Paket' : 'Trial'}
+              <span style={{ fontSize: '10px', backgroundColor: currentPackage === 'pro' ? '#0369a1' : currentPackage === 'basic' ? '#b45309' : '#3b82f6', color: '#fff', padding: '2px 8px', borderRadius: '10px', textTransform: 'uppercase', fontWeight: '900' }}>
+                {currentPackage === 'pro' ? 'Pro Paket' : currentPackage === 'basic' ? 'Basic Paket' : '14 Gün Trial (Demo)'}
               </span>
             </h1>
             <p style={{ fontSize: '12px', color: '#94a3b8', margin: '2px 0 0 0', fontWeight: '500' }}>Yetkili Yönetici Oturumu</p>
@@ -387,9 +402,9 @@ ${currentSiteName} Yönetimi`;
         {isFeatureRestricted(activeTab) ? (
           <div style={{ backgroundColor: '#111827', borderRadius: '16px', padding: '60px 20px', textAlign: 'center', border: '2px dashed #f59e0b', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
             <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔒</div>
-            <h2 style={{ color: '#ffffff', fontSize: '22px', fontWeight: '800', margin: '0 0 10px 0' }}>Pro Paket Özelliği</h2>
+            <h2 style={{ color: '#ffffff', fontSize: '22px', fontWeight: '800', margin: '0 0 10px 0' }}>Pro / Trial Paket Özelliği</h2>
             <p style={{ color: '#94a3b8', fontSize: '14px', maxWidth: '500px', margin: '0 auto 24px auto', lineHeight: '1.6' }}>
-              Şu anda Basic paketi kullanıyorsunuz. Kasa, Raporlar ve Bildirimler yalnızca Pro pakete özeldir.
+              Şu anda Basic paketi kullanıyorsunuz. Kasa, Raporlar ve Bildirimler yalnızca Pro ve Trial (Demo) paketlere özeldir.
             </p>
           </div>
         ) : (
