@@ -57,7 +57,7 @@ export default function SuperAdminPage() {
           
           <form onSubmit={(e) => {
             e.preventDefault();
-            if (password === '1923') {
+            if (password === 'asdf') {
               setIsSuperLoggedIn(true);
               sessionStorage.setItem('mcf_super_logged', 'true');
             } else {
@@ -66,7 +66,7 @@ export default function SuperAdminPage() {
           }} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             <input
               type="password"
-              placeholder="Süperadmin Şifresi (1923)"
+              placeholder="Şifre"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               style={{ padding: '14px', borderRadius: '10px', backgroundColor: '#0b0f19', border: '1px solid #374151', color: '#fff', fontSize: '15px', outline: 'none', textAlign: 'center', fontWeight: 'bold' }}

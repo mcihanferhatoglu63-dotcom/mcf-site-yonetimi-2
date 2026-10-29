@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { db } from '../firebase';
-import { collection, onSnapshot, doc, updateDoc, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, serverTimestamp } from 'firebase/firestore';
 
 interface Unit {
   id: string;
@@ -14,385 +14,175 @@ interface Unit {
   status: 'paid' | 'unpaid';
 }
 
-interface Complaint {
-  id: string;
-  unitInfo: string;
-  title: string;
-  description: string;
-  status: 'pending' | 'resolved';
-  date: string;
-}
-
 export default function SakinPortalPage() {
+  const [block, setBlock] = useState('B');
+  const [unitNumber, setUnitNumber] = useState('');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [currentUnit, setCurrentUnit] = useState<Unit | null>(null);
   const [units, setUnits] = useState<Unit[]>([]);
-  const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Oturum ve Giriş State'leri
-  const [phoneInput, setPhoneInput] = useState('');
-  const [smsCodeInput, setSmsCodeInput] = useState('');
-  const [generatedOtp, setGeneratedOtp] = useState(''); // Rastgele üretilen şifre
-  const [step, setStep] = useState<'phone' | 'sms' | 'dashboard'>('phone');
-  const [loggedInUnit, setLoggedInUnit] = useState<Unit | null>(null);
-  const [isAuthChecked, setIsAuthChecked] = useState(false);
-
-  // Şikayet Formu
+  // Şikayet / Bildirim Formu
   const [title, setTitle] = useState('');
-  const [desc, setDesc] = useState('');
-
-  // Ödeme Bildirim Modalı
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-
-  const masters = [
-    { name: 'Ahmet Usta', service: 'Elektrikçi', phone: '05321112233', icon: '⚡', desc: 'Sigorta, avize, priz ve genel elektrik arızaları.' },
-    { name: 'Mehmet Usta', service: 'Su Tesisatçısı', phone: '05332223344', icon: '🚰', desc: 'Musluk değişimi, tıkanıklık açma, su kaçağı tespiti.' },
-    { name: 'Klima Servisi (Serkan)', service: 'Klimacı', phone: '05353334455', icon: '❄️', desc: 'Klima bakım, montaj, gaz dolumu ve arıza onarımı.' },
-    { name: 'Temizlik Ekibi (Fatma Hanım)', service: 'Temizlikçi', phone: '05364445566', icon: '🧹', desc: 'Ev temizliği, merdiven ve detaylı iç temizlik hizmeti.' },
-    { name: 'Mobilya Montaj (Caner Usta)', service: 'Mobilyacı', phone: '05375556677', icon: '🪑', desc: 'Dolap kurulumu, ray dolap tamiri ve mobilya montajı.' },
-    { name: 'Boya & Badana (Ali Usta)', service: 'Boyacı', phone: '05386667788', icon: '🎨', desc: 'İç cephe boyama, alçı sıva ve duvar kağıdı uygulamaları.' },
-  ];
-
-  // Sayfa yenilendiğinde (F5) oturumun kalıcı olması
-  useEffect(() => {
-    const savedUnitId = sessionStorage.getItem('mcf_sakin_unit_id');
-    if (savedUnitId && units.length > 0) {
-      const found = units.find(u => u.id === savedUnitId);
-      if (found) {
-        setLoggedInUnit(found);
-        setStep('dashboard');
-      }
-    }
-    setIsAuthChecked(true);
-  }, [units]);
+  const [description, setDescription] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    const unsubUnits = onSnapshot(collection(db, 'units'), (snapshot) => {
-      setUnits(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Unit[]);
+    const unsubscribe = onSnapshot(collection(db, 'units'), (snapshot) => {
+      const fetched = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Unit[];
+      setUnits(fetched);
       setLoading(false);
     });
-
-    const unsubComp = onSnapshot(collection(db, 'complaints'), (snapshot) => {
-      setComplaints(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Complaint[]);
-    });
-
-    return () => { unsubUnits(); unsubComp(); };
+    return () => unsubscribe();
   }, []);
 
-  // TELEFON DOĞRULAMA (BAŞINDA 0 OLSUN VEYA OLMASIN ESLEŞTİRME)
-  const handleVerifyPhone = (e: React.FormEvent) => {
+  const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Girilen telefon numarasının başındaki 0'ı ve boşlukları temizle
-    const cleanInputPhone = phoneInput.replace(/\D/g, '').replace(/^0+/, '');
+    if (!unitNumber) return alert('Lütfen daire/dükkan numaranızı giriniz.');
 
-    if (!cleanInputPhone) {
-      alert('Lütfen geçerli bir telefon numarası giriniz.');
-      return;
-    }
-
-    const found = units.find(u => {
-      if (!u.phone) return false;
-      const cleanDbPhone = u.phone.replace(/\D/g, '').replace(/^0+/, '');
-      return cleanDbPhone === cleanInputPhone;
-    });
-
-    if (!found) {
-      alert('Bu telefon numarasına ait kayıtlı daire bulunamadı! Lütfen yöneticinizle görüşün.');
-      return;
-    }
-
-    // Rastgele 4 haneli şifre (OTP) üret
-    const randomOtp = Math.floor(1000 + Math.random() * 9000).toString();
-    setGeneratedOtp(randomOtp);
-    setLoggedInUnit(found);
-    setStep('sms');
-  };
-
-  // SMS / RASTGELE ŞİFRE DOĞRULAMA
-  const handleVerifySms = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Üretilen rastgele şifre veya test için her zaman geçerli olan 1234 kabul edilir
-    if (smsCodeInput === generatedOtp || smsCodeInput === '1234') {
-      setStep('dashboard');
-      if (loggedInUnit) {
-        sessionStorage.setItem('mcf_sakin_unit_id', loggedInUnit.id);
-      }
+    const found = units.find(u => u.block === block && Number(u.unitNumber) === Number(unitNumber));
+    if (found) {
+      setCurrentUnit(found);
+      setIsLoggedIn(true);
     } else {
-      alert(`Hatalı şifre! (Test için ekranda yazan ${generatedOtp} kodunu giriniz)`);
+      alert('Girilen bilgilere ait birim bulunamadı. Lütfen yöneticiye başvurun.');
     }
   };
 
-  // ÖDEME BİLDİRİMİ GÖNDERME
-  const handleSendPaymentNotice = async () => {
-    if (!loggedInUnit) return;
-    const unitLabel = loggedInUnit.block === 'A' ? `A Blok Dükkan ${loggedInUnit.unitNumber}` : `${loggedInUnit.block} Blok No: ${loggedInUnit.unitNumber}`;
-
-    try {
-      await addDoc(collection(db, 'complaints'), {
-        unitInfo: unitLabel,
-        title: '💳 Ödeme Yapıldı / Dekont Bildirimi',
-        description: `${loggedInUnit.residentName} (${unitLabel}) tarafından ${loggedInUnit.debt.toLocaleString('tr-TR')} ₺ aidat borcu için ödeme yapıldı bildirimi gönderildi.`,
-        status: 'pending',
-        date: new Date().toLocaleDateString('tr-TR'),
-        createdAt: serverTimestamp()
-      });
-      alert('Ödeme bildiriminiz yönetime iletildi! Yönetici onayından sonra borcunuz güncellenecektir.');
-      setShowPaymentModal(false);
-    } catch (err) {
-      console.error(err);
-      alert('Bildirim gönderilirken bir hata oluştu.');
-    }
-  };
-
-  const handleAddComplaint = async (e: React.FormEvent) => {
+  const handleSendComplaint = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title || !desc || !loggedInUnit) return alert('Lütfen başlık ve açıklama yazınız.');
+    if (!title || !description || !currentUnit) return alert('Lütfen başlık ve açıklama giriniz.');
 
-    const unitLabel = loggedInUnit.block === 'A' ? `A Blok Dükkan ${loggedInUnit.unitNumber}` : `${loggedInUnit.block} Blok No: ${loggedInUnit.unitNumber}`;
-
+    setSubmitting(true);
     try {
+      const unitInfo = currentUnit.block === 'A' ? `Dükkan ${currentUnit.unitNumber}` : `${currentUnit.block} Blok No: ${currentUnit.unitNumber}`;
       await addDoc(collection(db, 'complaints'), {
-        unitInfo: unitLabel,
+        unitInfo,
         title,
-        description: desc,
+        description,
         status: 'pending',
         date: new Date().toLocaleDateString('tr-TR'),
         createdAt: serverTimestamp()
       });
       setTitle('');
-      setDesc('');
-      alert('Şikayet veya talebiniz yönetime iletildi!');
-    } catch (err) { console.error(err); }
+      setDescription('');
+      alert('Bildiriminiz / Talebiniz yönetime başarıyla iletildi!');
+    } catch (err) {
+      console.error(err);
+      alert('Gönderilirken bir hata oluştu.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  if (!isAuthChecked && loading) {
-    return <div style={{ minHeight: '100vh', backgroundColor: '#ecfdf5', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#059669', fontWeight: 'bold' }}>Yükleniyor...</div>;
-  }
+  // ACİL USTALAR LİSTESİ
+  const emergencyContacts = [
+    { name: 'Ahmet Usta (Elektrikçi)', phone: '05321112233', icon: '⚡' },
+    { name: 'Mehmet Tesisat (Su & Sıhhi Tesisat)', phone: '05334445566', icon: '🔧' },
+    { name: 'Çilingir Servisi', phone: '05357778899', icon: '🔑' },
+    { name: 'Site Güvenlik / Danışma', phone: '03245554433', icon: '🛡️' },
+    { name: 'Site Yönetim Ofisi', phone: '03243332211', icon: '🏢' }
+  ];
 
-  // --- 1. EKRAN: TELEFON GİRİŞİ ---
-  if (step === 'phone') {
+  if (!isLoggedIn) {
     return (
-      <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #059669 0%, #047857 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, sans-serif', padding: '20px' }}>
-        <div style={{ backgroundColor: '#ffffff', padding: '40px', borderRadius: '20px', maxWidth: '420px', width: '100%', boxShadow: '0 15px 30px rgba(0,0,0,0.2)', textAlign: 'center' }}>
-          
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '15px' }}>
-            <img 
-              src="/mcf-logo.png" 
-              alt="MCF Logo" 
-              style={{ height: '54px', width: 'auto', objectFit: 'contain', background: '#ecfdf5', padding: '8px', borderRadius: '10px', border: '1px solid #10b981' }} 
-              onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
-            />
-          </div>
+      <div style={{ minHeight: '100vh', backgroundColor: '#0b0f19', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, system-ui, sans-serif', padding: '20px', color: '#fff' }}>
+        <div style={{ backgroundColor: '#111827', border: '1px solid #1f2937', padding: '40px', borderRadius: '20px', maxWidth: '400px', width: '100%', boxShadow: '0 20px 40px rgba(0,0,0,0.6)', textAlign: 'center' }}>
+          <h2 style={{ color: '#f59e0b', fontSize: '22px', fontWeight: '800', margin: '0 0 8px 0' }}>Sakin Portali Girişi</h2>
+          <p style={{ color: '#94a3b8', fontSize: '13px', margin: '0 0 24px 0' }}>Aidat durumunuzu görmek ve yönetime bildirim iletmek için giriş yapın.</p>
 
-          <h2 style={{ color: '#064e3b', fontSize: '22px', fontWeight: '800', margin: '0 0 8px 0' }}>Sakin Giriş Portalı</h2>
-          <p style={{ color: '#4b5563', fontSize: '13px', margin: '0 0 24px 0' }}>Telefon numaranızı başında 0 olsun veya olmasın yazabilirsiniz.</p>
-          
-          <form onSubmit={handleVerifyPhone} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            <input
-              type="text"
-              placeholder="Örn: 532 000 00 00 veya 0532..."
-              value={phoneInput}
-              onChange={(e) => setPhoneInput(e.target.value)}
-              style={{ padding: '14px', borderRadius: '10px', border: '1px solid #d1d5db', fontSize: '16px', outline: 'none', textAlign: 'center', fontWeight: 'bold' }}
-            />
-            <button type="submit" style={{ backgroundColor: '#059669', color: '#fff', border: 'none', padding: '14px', borderRadius: '10px', fontWeight: '800', cursor: 'pointer', fontSize: '15px' }}>
-              Doğrulama Kodu Üret
+          <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '16px', textAlign: 'left' }}>
+            <div>
+              <label style={{ fontSize: '12px', color: '#94a3b8', fontWeight: '600', display: 'block', marginBottom: '6px' }}>Blok Seçimi</label>
+              <select value={block} onChange={(e) => setBlock(e.target.value)} style={{ width: '100%', padding: '12px', backgroundColor: '#0b0f19', border: '1px solid #374151', borderRadius: '10px', color: '#fff', outline: 'none', fontWeight: 'bold' }}>
+                <option value="A">A Blok (Dükkanlar)</option>
+                <option value="B">B Blok</option>
+                <option value="C">C Blok</option>
+              </select>
+            </div>
+
+            <div>
+              <label style={{ fontSize: '12px', color: '#94a3b8', fontWeight: '600', display: 'block', marginBottom: '6px' }}>Daire / Dükkan Numarası</label>
+              <input type="number" placeholder="Örn: 12" value={unitNumber} onChange={(e) => setUnitNumber(e.target.value)} style={{ width: '100%', padding: '12px', backgroundColor: '#0b0f19', border: '1px solid #374151', borderRadius: '10px', color: '#fff', outline: 'none', boxSizing: 'border-box' }} />
+            </div>
+
+            <button type="submit" style={{ backgroundColor: '#f59e0b', color: '#111827', border: 'none', padding: '14px', borderRadius: '10px', fontWeight: '800', cursor: 'pointer', fontSize: '15px', marginTop: '6px' }}>
+              Portale Giriş Yap
             </button>
-            <a href="/" style={{ fontSize: '13px', color: '#6b7280', textDecoration: 'none', marginTop: '10px' }}>← Ana Sayfaya Dön</a>
+            <a href="/" style={{ fontSize: '13px', color: '#94a3b8', textDecoration: 'none', textAlign: 'center', marginTop: '4px' }}>← Ana Sayfaya Dön</a>
           </form>
         </div>
       </div>
     );
   }
 
-  // --- 2. EKRAN: RASTGELE ŞİFRE (OTP) GİRİŞİ ---
-  if (step === 'sms') {
-    return (
-      <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #059669 0%, #047857 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, sans-serif', padding: '20px' }}>
-        <div style={{ backgroundColor: '#ffffff', padding: '40px', borderRadius: '20px', maxWidth: '420px', width: '100%', boxShadow: '0 15px 30px rgba(0,0,0,0.2)', textAlign: 'center' }}>
-          
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '15px' }}>
-            <img 
-              src="/mcf-logo.png" 
-              alt="MCF Logo" 
-              style={{ height: '54px', width: 'auto', objectFit: 'contain', background: '#ecfdf5', padding: '8px', borderRadius: '10px', border: '1px solid #10b981' }} 
-              onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
-            />
-          </div>
-
-          <h2 style={{ color: '#064e3b', fontSize: '22px', fontWeight: '800', margin: '0 0 8px 0' }}>Güvenlik Doğrulaması</h2>
-          <p style={{ color: '#4b5563', fontSize: '13px', margin: '0 0 20px 0' }}>
-            Sizin için anlık üretilen rastgele şifre:<br/>
-            <strong style={{ color: '#059669', fontSize: '18px', background: '#dcfce7', padding: '6px 14px', borderRadius: '8px', display: 'inline-block', marginTop: '8px', letterSpacing: '2px' }}>{generatedOtp}</strong>
-          </p>
-          
-          <form onSubmit={handleVerifySms} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            <input
-              type="text"
-              maxLength={4}
-              placeholder="- - - -"
-              value={smsCodeInput}
-              onChange={(e) => setSmsCodeInput(e.target.value)}
-              style={{ padding: '14px', borderRadius: '10px', border: '1px solid #d1d5db', fontSize: '22px', outline: 'none', textAlign: 'center', letterSpacing: '8px', fontWeight: 'bold' }}
-            />
-            <button type="submit" style={{ backgroundColor: '#059669', color: '#fff', border: 'none', padding: '14px', borderRadius: '10px', fontWeight: '800', cursor: 'pointer', fontSize: '15px' }}>
-              Doğrula ve Giriş Yap
-            </button>
-            <button type="button" onClick={() => setStep('phone')} style={{ background: 'none', border: 'none', color: '#6b7280', fontSize: '13px', cursor: 'pointer' }}>
-              ← Telefon Numarasını Değiştir
-            </button>
-          </form>
-        </div>
-      </div>
-    );
-  }
-
-  // --- 3. EKRAN: SAKİN PORTALI ANA PANELİ ---
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#ecfdf5', fontFamily: 'Inter, system-ui, sans-serif', color: '#065f46' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#0b0f19', fontFamily: 'Inter, system-ui, sans-serif', color: '#ffffff', paddingBottom: '40px' }}>
       
       {/* HEADER */}
-      <header style={{ background: 'linear-gradient(135deg, #059669 0%, #047857 100%)', color: '#fff', padding: '18px 24px', boxShadow: '0 4px 20px rgba(5, 150, 105, 0.2)' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-          
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <img 
-              src="/mcf-logo.png" 
-              alt="MCF Logo" 
-              style={{ height: '46px', width: 'auto', objectFit: 'contain', borderRadius: '8px', background: 'rgba(255, 255, 255, 0.15)', padding: '6px', border: '1px solid #34d399' }} 
-              onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
-            />
-            <div>
-              <h1 style={{ fontSize: '20px', fontWeight: '800', margin: 0 }}>MCF <span style={{ color: '#d1fae5' }}>Site Sakin Portalı</span></h1>
-              <p style={{ fontSize: '12px', margin: '2px 0 0 0', opacity: 0.9 }}>Hoş geldiniz, {loggedInUnit?.residentName}</p>
-            </div>
+      <header style={{ backgroundColor: '#111827', borderBottom: '1px solid #1f2937', padding: '18px 24px', boxShadow: '0 4px 20px rgba(0,0,0,0.4)' }}>
+        <div style={{ maxWidth: '1000px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <h1 style={{ fontSize: '18px', fontWeight: '800', margin: 0, color: '#f59e0b' }}>Sakin Portali</h1>
+            <p style={{ fontSize: '12px', margin: '2px 0 0 0', color: '#94a3b8' }}>{currentUnit?.block} Blok - No: {currentUnit?.unitNumber} ({currentUnit?.residentName})</p>
           </div>
-
-          <button 
-            onClick={() => {
-              sessionStorage.removeItem('mcf_sakin_unit_id');
-              setLoggedInUnit(null);
-              setStep('phone');
-            }} 
-            style={{ backgroundColor: '#ffffff', color: '#047857', padding: '8px 16px', borderRadius: '8px', border: 'none', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}
-          >
+          <button onClick={() => setIsLoggedIn(false)} style={{ backgroundColor: '#ef4444', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '13px' }}>
             Çıkış Yap
           </button>
         </div>
       </header>
 
-      <main style={{ maxWidth: '1200px', margin: '24px auto', padding: '0 20px' }}>
+      <main style={{ maxWidth: '1000px', margin: '24px auto', padding: '0 20px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
         
-        {/* DAİRE BİLGİSİ VE BORCUMU ÖDE BUTONU */}
-        {loggedInUnit && (
-          <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '24px', marginBottom: '24px', border: '1px solid #a7f3d0', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '20px' }}>
-            <div>
-              <div style={{ fontSize: '13px', color: '#166534', fontWeight: '700' }}>Kayıtlı Biriminiz</div>
-              <div style={{ fontSize: '18px', fontWeight: '800', color: '#14532d', marginTop: '4px' }}>
-                {loggedInUnit.block} Blok - No: {loggedInUnit.unitNumber} ({loggedInUnit.residentName})
-              </div>
-              <div style={{ marginTop: '8px', fontSize: '14px', fontWeight: 'bold', color: loggedInUnit.status === 'unpaid' ? '#dc2626' : '#059669' }}>
-                {loggedInUnit.status === 'unpaid' ? `⚠️ Güncel Borç: ${loggedInUnit.debt.toLocaleString('tr-TR')} ₺` : '✅ Borcunuz Bulunmuyor'}
-              </div>
+        {/* BORÇ DURUM KARTI */}
+        <div style={{ backgroundColor: '#111827', borderRadius: '16px', padding: '24px', border: '1px solid #1f2937', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+          <div>
+            <h3 style={{ margin: '0 0 6px 0', fontSize: '16px', color: '#94a3b8' }}>Güncel Aidat / Borç Durumunuz</h3>
+            <div style={{ fontSize: '28px', fontWeight: '800', color: currentUnit?.status === 'unpaid' ? '#ef4444' : '#10b981' }}>
+              {currentUnit?.status === 'unpaid' ? `${currentUnit.debt.toLocaleString('tr-TR')} ₺ Borcunuz Var` : '✅ Borcunuz Bulunmuyor (Ödendi)'}
             </div>
-
-            {loggedInUnit.status === 'unpaid' && (
-              <button
-                onClick={() => setShowPaymentModal(true)}
-                style={{
-                  backgroundColor: '#059669', color: '#ffffff', border: 'none', padding: '14px 24px', borderRadius: '12px',
-                  fontWeight: '800', fontSize: '15px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(5, 150, 105, 0.3)',
-                  display: 'flex', alignItems: 'center', gap: '8px'
-                }}
-              >
-                💳 Borcumu Öde / Dekont Bildir
-              </button>
-            )}
           </div>
-        )}
-
-        {/* ŞİKAYET VE TALEP */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px', marginBottom: '28px' }}>
-          <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '24px', border: '1px solid #a7f3d0' }}>
-            <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', color: '#064e3b', fontWeight: '800' }}>✍️ Yönetime Şikayet / Talep İlet</h3>
-            <form onSubmit={handleAddComplaint} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <input type="text" placeholder="Konu" value={title} onChange={(e) => setTitle(e.target.value)} style={{ padding: '12px', borderRadius: '10px', border: '1px solid #d1d5db', fontSize: '14px' }} />
-              <textarea placeholder="Şikayet veya talebinizi detaylı yazınız..." value={desc} onChange={(e) => setDesc(e.target.value)} rows={4} style={{ padding: '12px', borderRadius: '10px', border: '1px solid #d1d5db', fontSize: '14px', resize: 'vertical' }} />
-              <button type="submit" style={{ backgroundColor: '#059669', color: '#fff', border: 'none', padding: '12px', borderRadius: '10px', fontWeight: '800', cursor: 'pointer' }}>Gönder</button>
-            </form>
-          </div>
-
-          <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '24px', border: '1px solid #a7f3d0' }}>
-            <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', color: '#064e3b', fontWeight: '800' }}>📢 İlettiğiniz Talepler</h3>
-            {complaints.length === 0 ? <p style={{ color: '#6b7280', fontSize: '13px' }}>Henüz kayıtlı talep yok.</p> : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '250px', overflowY: 'auto' }}>
-                {complaints.map(c => (
-                  <div key={c.id} style={{ backgroundColor: '#f9fafb', padding: '12px', borderRadius: '10px', border: '1px solid #e5e7eb' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: 'bold', color: '#4b5563' }}>
-                      <span>{c.unitInfo}</span>
-                      <span style={{ color: c.status === 'resolved' ? '#059669' : '#d97706' }}>{c.status === 'resolved' ? '✅ Çözüldü' : '⏳ İnceleniyor'}</span>
-                    </div>
-                    <div style={{ fontWeight: '700', fontSize: '14px', color: '#1f2937', margin: '4px 0' }}>{c.title}</div>
-                    <div style={{ fontSize: '13px', color: '#4b5563' }}>{c.description}</div>
-                  </div>
-                ))}
-              </div>
-            )}
+          <div style={{ padding: '12px 20px', borderRadius: '10px', backgroundColor: currentUnit?.status === 'unpaid' ? '#fee2e2' : '#d1fae5', color: currentUnit?.status === 'unpaid' ? '#dc2626' : '#059669', fontWeight: '800', fontSize: '14px' }}>
+            {currentUnit?.status === 'unpaid' ? 'Ödeme Bekleniyor' : 'Hesap Temiz'}
           </div>
         </div>
 
-        {/* USTA REHBERİ */}
-        <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '24px', border: '1px solid #a7f3d0', marginBottom: '40px' }}>
-          <h2 style={{ fontSize: '18px', fontWeight: '800', color: '#064e3b', margin: '0 0 6px 0' }}>🛠️ Site Anlaşmalı Usta Rehberi</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px', marginTop: '16px' }}>
-            {masters.map((m, idx) => (
-              <div key={idx} style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '14px', padding: '18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '12px' }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '24px', background: '#dcfce7', padding: '8px', borderRadius: '10px' }}>{m.icon}</span>
-                    <div>
-                      <div style={{ fontSize: '15px', fontWeight: '800', color: '#14532d' }}>{m.name}</div>
-                      <div style={{ fontSize: '12px', fontWeight: '700', color: '#059669', background: '#d1fae5', padding: '2px 6px', borderRadius: '4px', display: 'inline-block', marginTop: '2px' }}>{m.service}</div>
-                    </div>
+        {/* BİLDİRİM / ŞİKAYET GÖNDERME */}
+        <div style={{ backgroundColor: '#111827', borderRadius: '16px', padding: '24px', border: '1px solid #1f2937' }}>
+          <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', color: '#f59e0b', fontWeight: '800' }}>✉️ Yönetime Bildirim / Dekont Gönder</h3>
+          <p style={{ fontSize: '13px', color: '#94a3b8', margin: '0 0 20px 0' }}>Yaptığınız aidat ödemesinin dekontunu veya siteyle ilgili taleplerinizi buraya yazabilirsiniz.</p>
+
+          <form onSubmit={handleSendComplaint} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <input type="text" placeholder="Konu / Başlık (Örn: Kasım Ayı Aidat Dekont Bildirimi)" value={title} onChange={(e) => setTitle(e.target.value)} style={{ padding: '12px', borderRadius: '10px', backgroundColor: '#0b0f19', border: '1px solid #374151', color: '#fff', outline: 'none' }} />
+            <textarea placeholder="Açıklamanızı buraya yazınız..." rows={4} value={description} onChange={(e) => setDescription(e.target.value)} style={{ padding: '12px', borderRadius: '10px', backgroundColor: '#0b0f19', border: '1px solid #374151', color: '#fff', outline: 'none', resize: 'vertical' }} />
+            <button type="submit" disabled={submitting} style={{ backgroundColor: '#f59e0b', color: '#111827', border: 'none', padding: '12px 20px', borderRadius: '10px', fontWeight: '800', cursor: 'pointer', alignSelf: 'flex-start' }}>
+              {submitting ? 'Gönderiliyor...' : 'Yönetime Gönder'}
+            </button>
+          </form>
+        </div>
+
+        {/* ACİL USTALAR VE REHBER */}
+        <div style={{ backgroundColor: '#111827', borderRadius: '16px', padding: '24px', border: '1px solid #1f2937' }}>
+          <h3 style={{ margin: '0 0 16px 0', fontSize: '18px', color: '#f59e0b', fontWeight: '800' }}>🔧 Acil Ustalar & Site Rehberi</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
+            {emergencyContacts.map((c, index) => (
+              <div key={index} style={{ backgroundColor: '#0b0f19', border: '1px solid #374151', borderRadius: '12px', padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <span style={{ fontSize: '24px' }}>{c.icon}</span>
+                  <div>
+                    <div style={{ fontSize: '14px', fontWeight: '700', color: '#fff' }}>{c.name}</div>
+                    <div style={{ fontSize: '13px', color: '#94a3b8' }}>{c.phone}</div>
                   </div>
-                  <p style={{ fontSize: '13px', color: '#4b5563', margin: 0 }}>{m.desc}</p>
                 </div>
-                <div style={{ borderTop: '1px solid #bbf7d0', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#166534' }}>📞 {m.phone}</span>
-                  <button onClick={() => window.open(`https://wa.me/${m.phone.replace(/\D/g, '')}?text=Merhaba%20${m.name},%20site%20sakiniyim.`, '_blank')} style={{ backgroundColor: '#22c55e', color: '#fff', border: 'none', padding: '8px 12px', borderRadius: '8px', fontWeight: 'bold', fontSize: '12px', cursor: 'pointer' }}>
-                    💬 WhatsApp
-                  </button>
-                </div>
+                <a href={`tel:${c.phone}`} style={{ backgroundColor: '#0284c7', color: '#fff', textDecoration: 'none', padding: '8px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: '700' }}>
+                  📞 Ara
+                </a>
               </div>
             ))}
           </div>
         </div>
 
       </main>
-
-      {/* ÖDEME MODALI */}
-      {showPaymentModal && loggedInUnit && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }}>
-          <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '30px', width: '100%', maxWidth: '480px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
-            <h3 style={{ margin: '0 0 10px 0', fontSize: '20px', color: '#064e3b', fontWeight: '800' }}>💳 Borç Ödeme ve Havale Bilgileri</h3>
-            <p style={{ fontSize: '13px', color: '#4b5563', margin: '0 0 20px 0', lineHeight: '1.5' }}>
-              Banka hesabımıza ödemenizi yaptıktan sonra aşağıdaki butona basarak yönetime bildirim gönderebilirsiniz.
-            </p>
-
-            <div style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '12px', padding: '16px', marginBottom: '20px', fontSize: '14px', color: '#14532d', lineHeight: '1.6' }}>
-              <div><strong>Banka:</strong> Ziraat Bankası - MCF Tesis Yönetimi</div>
-              <div><strong>IBAN:</strong> TR12 0001 0000 5555 1234 5678 90</div>
-              <div><strong>Ödenecek Tutar:</strong> <span style={{ fontSize: '18px', fontWeight: 'bold', color: '#059669' }}>{loggedInUnit.debt.toLocaleString('tr-TR')} ₺</span></div>
-            </div>
-
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <button type="button" onClick={() => setShowPaymentModal(false)} style={{ flex: 1, backgroundColor: '#e5e7eb', color: '#374151', border: 'none', padding: '12px', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}>İptal</button>
-              <button type="button" onClick={handleSendPaymentNotice} style={{ flex: 2, backgroundColor: '#059669', color: '#ffffff', border: 'none', padding: '12px', borderRadius: '8px', fontWeight: '800', cursor: 'pointer' }}>✅ Ödemeyi Yaptım / Bildir</button>
-            </div>
-          </div>
-        </div>
-      )}
-
     </div>
   );
 }
