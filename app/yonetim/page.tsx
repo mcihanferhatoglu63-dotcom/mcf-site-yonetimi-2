@@ -106,10 +106,10 @@ export default function YonetimPanelPage() {
           
           <form onSubmit={(e) => {
             e.preventDefault();
-            if (adminPassword === '1453') {
+            if (adminPassword === 'asdf') {
               setIsAdminLoggedIn(true);
             } else {
-              alert('Hatalı şifre! (Varsayılan: 1453)');
+              alert('Hatalı şifre!');
             }
           }} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             <input
