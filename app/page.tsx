@@ -1,11 +1,20 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { db } from './firebase';
+import { collection, onSnapshot } from 'firebase/firestore';
+
+interface Tenant {
+  id: string;
+  siteName: string;
+  packageType?: string;
+}
 
 export default function HomePage() {
   const router = useRouter();
-  const [siteCode, setSiteCode] = useState('');
+  const [tenants, setTenants] = useState<Tenant[]>([]);
+  const [loadingTenants, setLoadingTenants] = useState(true);
   
   // Seçim Modalı (Yönetim mi, Sakin mi?)
   const [showPortalModal, setShowPortalModal] = useState(false);
@@ -15,18 +24,27 @@ export default function HomePage() {
   const [showSuperModal, setShowSuperModal] = useState(false);
   const [superPassword, setSuperPassword] = useState('');
 
-  // Site Adı Girilip Devam Et Butonuna Basıldığında
-  const handleProceed = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!siteCode.trim()) {
-      alert('Lütfen site/işletme adı giriniz.');
-      return;
-    }
-    setSelectedSite(siteCode.trim());
+  // Firestore'dan kayıtlı siteleri anlık çek
+  useEffect(() => {
+    const unsubscribe = onSnapshot(collection(db, 'tenants'), (snapshot) => {
+      const fetchedTenants = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Tenant[];
+      setTenants(fetchedTenants);
+      setLoadingTenants(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Listeden bir siteye tıklandığında
+  const handleSiteClick = (siteName: string) => {
+    setSelectedSite(siteName);
     setShowPortalModal(true);
   };
 
-  // Tek Tıkla Demo Site Girişi (Doğrudan Seçim Modalını Açar)
+  // Tek Tıkla Demo Site Girişi
   const handleDemoClick = () => {
     sessionStorage.setItem('mcf_site_package', 'pro');
     setSelectedSite('Demo-Site');
@@ -102,71 +120,67 @@ export default function HomePage() {
           MCF Teknoloji & Site Yönetim Sistemi
         </h1>
         <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0 }}>
-          Site sakini ve yönetim portali giriş ekranı
+          Lütfen giriş yapmak istediğiniz siteyi seçiniz
         </p>
       </div>
 
-      {/* GİRİŞ KARTI (SADECE SİTE ADI) */}
+      {/* KAYITLI SİTELER LİSTESİ (KUTU) */}
       <div style={{ 
         backgroundColor: '#111827', 
         border: '1px solid #1f2937', 
         borderRadius: '16px', 
-        padding: '36px', 
+        padding: '28px', 
         width: '100%', 
         maxWidth: '440px', 
         boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)',
-        textAlign: 'center'
+        textAlign: 'center',
+        maxHeight: '320px',
+        overflowY: 'auto'
       }}>
         
-        <form onSubmit={handleProceed} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          
-          <div style={{ textAlign: 'left' }}>
-            <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px', fontWeight: '600' }}>
-              Site / İşletme Adı
-            </label>
-            <input 
-              type="text" 
-              placeholder="Örn: bulvar-city" 
-              value={siteCode}
-              onChange={(e) => setSiteCode(e.target.value)}
-              style={{ 
-                width: '100%', 
-                padding: '14px 16px', 
-                backgroundColor: '#0b0f19', 
-                border: '1px solid #374151', 
-                borderRadius: '10px', 
-                color: '#fff', 
-                fontSize: '15px',
-                outline: 'none',
-                boxSizing: 'border-box'
-              }} 
-            />
+        <h3 style={{ fontSize: '14px', color: '#94a3b8', margin: '0 0 16px 0', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          🏢 Kayıtlı Siteler / İşletmeler
+        </h3>
+
+        {loadingTenants ? (
+          <p style={{ color: '#94a3b8', fontSize: '14px', padding: '20px 0' }}>Siteler yükleniyor...</p>
+        ) : tenants.length === 0 ? (
+          <p style={{ color: '#94a3b8', fontSize: '14px', padding: '20px 0' }}>Henüz kayıtlı site bulunmuyor.</p>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {tenants.map((tenant) => (
+              <button
+                key={tenant.id}
+                onClick={() => handleSiteClick(tenant.siteName)}
+                style={{
+                  width: '100%',
+                  padding: '14px 16px',
+                  backgroundColor: '#0b0f19',
+                  border: '1px solid #374151',
+                  borderRadius: '10px',
+                  color: '#ffffff',
+                  fontSize: '15px',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  transition: 'all 0.2s'
+                }}
+              >
+                <span>🏢 {tenant.siteName}</span>
+                <span style={{ fontSize: '12px', color: '#f59e0b', background: '#1f2937', padding: '4px 8px', borderRadius: '6px', textTransform: 'uppercase' }}>
+                  {tenant.packageType || 'Pro'}
+                </span>
+              </button>
+            ))}
           </div>
-
-          <button 
-            type="submit"
-            style={{ 
-              backgroundColor: '#f59e0b', 
-              color: '#111827', 
-              border: 'none', 
-              padding: '14px', 
-              borderRadius: '10px', 
-              fontWeight: '800', 
-              fontSize: '15px', 
-              cursor: 'pointer',
-              boxShadow: '0 4px 14px rgba(245, 158, 11, 0.3)',
-              marginTop: '4px'
-            }}
-          >
-            Devam Et
-          </button>
-
-        </form>
+        )}
 
       </div>
 
       {/* TEK TIKLA DEMO SİTE BUTONU */}
-      <div style={{ marginTop: '24px', width: '100%', maxWidth: '440px' }}>
+      <div style={{ marginTop: '20px', width: '100%', maxWidth: '440px' }}>
         <button 
           onClick={handleDemoClick}
           style={{ 
@@ -182,7 +196,7 @@ export default function HomePage() {
             boxShadow: '0 4px 15px rgba(37, 99, 235, 0.4)'
           }}
         >
-          Tek Tıkla Demo Site İle İncele (14 Gün Pro)
+          ✨ Tek Tıkla Demo Site İle İncele (14 Gün Pro)
         </button>
       </div>
 
