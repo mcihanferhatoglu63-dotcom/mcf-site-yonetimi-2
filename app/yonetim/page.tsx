@@ -371,14 +371,27 @@ Site Yönetimi`;
                         <p style={{ margin: '0 0 4px 0', fontSize: '14px', color: '#451a03', fontWeight: '600' }}>👤 {unit.residentName || 'İsim Yok'}</p>
                         <p style={{ margin: '0 0 4px 0', fontSize: '13px', color: '#78350f' }}>📞 {unit.phone || 'Tel Yok'}</p>
                       </div>
+
+                      {/* BORÇ / ÖDENDİ DURUMU (DAHA BÜYÜK YAZI) */}
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #fef08a', paddingTop: '10px' }}>
-                        <div onClick={() => togglePaymentStatus(unit)} style={{ cursor: 'pointer', padding: '6px 10px', borderRadius: '8px', fontSize: '12px', fontWeight: '700', backgroundColor: isDebtor ? '#fee2e2' : '#d1fae5', color: isDebtor ? '#dc2626' : '#059669' }}>
+                        <div 
+                          onClick={() => togglePaymentStatus(unit)} 
+                          style={{ 
+                            cursor: 'pointer', 
+                            padding: '8px 12px', 
+                            borderRadius: '10px', 
+                            fontSize: '15px', 
+                            fontWeight: '800', 
+                            backgroundColor: isDebtor ? '#fee2e2' : '#d1fae5', 
+                            color: isDebtor ? '#dc2626' : '#059669',
+                            boxShadow: '0 2px 5px rgba(0,0,0,0.05)',
+                            flex: 1,
+                            textAlign: 'center'
+                          }}
+                        >
                           {isDebtor ? `⚠️ ${unit.debt.toLocaleString('tr-TR')} ₺` : '✅ Ödendi'}
                         </div>
-                        <div style={{ display: 'flex', gap: '6px' }}>
-                          {unit.phone && <button onClick={() => openWhatsApp(unit.phone, unit.residentName, unit.debt)} style={{ backgroundColor: '#22c55e', color: '#fff', border: 'none', padding: '6px 10px', borderRadius: '8px', cursor: 'pointer' }}>💬</button>}
-                          <button onClick={() => setEditingUnit(unit)} style={{ backgroundColor: '#4a1535', color: '#f3d1df', border: 'none', padding: '6px 10px', borderRadius: '8px', cursor: 'pointer' }}>✏️</button>
-                        </div>
+                        <button onClick={() => setEditingUnit(unit)} style={{ backgroundColor: '#4a1535', color: '#f3d1df', border: 'none', padding: '8px 12px', borderRadius: '10px', cursor: 'pointer', marginLeft: '8px', fontWeight: 'bold' }}>✏️</button>
                       </div>
                     </div>
                   );
