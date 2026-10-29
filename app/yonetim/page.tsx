@@ -114,12 +114,13 @@ export default function YonetimPanelPage() {
       <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #4a1535 0%, #6b2d5c 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, sans-serif', padding: '20px' }}>
         <div style={{ backgroundColor: '#ffffff', padding: '40px', borderRadius: '20px', maxWidth: '400px', width: '100%', boxShadow: '0 15px 30px rgba(0,0,0,0.3)', textAlign: 'center' }}>
           
-          {/* GİRİŞ EKRANI LOGO */}
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '15px' }}>
-            <div style={{ background: '#fcf8fa', padding: '10px 16px', borderRadius: '12px', border: '1px solid #d8b8c5', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '24px', fontWeight: '900', color: '#6b2d5c', letterSpacing: '1px' }}>MCF</span>
-              <span style={{ fontSize: '12px', fontWeight: '700', color: '#4a1535', borderLeft: '2px solid #d8b8c5', paddingLeft: '8px', textAlign: 'left' }}>Yönetim<br/>Paneli</span>
-            </div>
+            <img 
+              src="/mcf-logo.png" 
+              alt="MCF Logo" 
+              style={{ height: '54px', width: 'auto', objectFit: 'contain', background: '#fcf8fa', padding: '6px', borderRadius: '10px', border: '1px solid #d8b8c5' }} 
+              onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+            />
           </div>
 
           <h2 style={{ color: '#4a1535', fontSize: '20px', fontWeight: '800', margin: '0 0 10px 0' }}>Yönetici Paneli Girişi</h2>
@@ -288,16 +289,17 @@ Site Yönetimi`;
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#fcf8fa', fontFamily: 'Inter, system-ui, sans-serif', color: '#4a2833' }}>
       
-      {/* HEADER NAVBAR (LOGOLU) */}
-      <header style={{ background: 'linear-gradient(135deg, #6b2d5c 0%, #4a1535 100%)', color: '#ffffff', padding: '18px 24px', boxShadow: '0 4px 20px rgba(74, 21, 53, 0.25)', borderBottom: '3px solid #d4a5b8' }}>
+      {/* HEADER NAVBAR (GERÇEK LOGOLU) */}
+      <header style={{ background: 'linear-gradient(135deg, #6b2d5c 0%, #4a1535 100%)', color: '#ffffff', padding: '16px 24px', boxShadow: '0 4px 20px rgba(74, 21, 53, 0.25)', borderBottom: '3px solid #d4a5b8' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
           
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            {/* MCF LOGO (HEADER) */}
-            <div style={{ background: 'rgba(255, 255, 255, 0.15)', padding: '6px 12px', borderRadius: '8px', border: '1px solid #d4a5b8', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '20px', fontWeight: '900', color: '#ffffff', letterSpacing: '1px' }}>MCF</span>
-              <span style={{ fontSize: '10px', fontWeight: '700', color: '#f3d1df', borderLeft: '2px solid #d4a5b8', paddingLeft: '6px', lineHeight: '1.2' }}>Yönetim<br/>Paneli</span>
-            </div>
+            <img 
+              src="/mcf-logo.png" 
+              alt="MCF Logo" 
+              style={{ height: '46px', width: 'auto', objectFit: 'contain', background: 'rgba(255, 255, 255, 0.15)', padding: '6px', borderRadius: '8px', border: '1px solid #d4a5b8' }} 
+              onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+            />
             <div>
               <h1 style={{ fontSize: '18px', fontWeight: '800', margin: 0, color: '#ffffff' }}>MCF Tesis Yönetim Sistemi</h1>
               <p style={{ fontSize: '12px', color: '#e8c5d3', margin: '2px 0 0 0', fontWeight: '500' }}>Yetkili Yönetici Oturumu</p>
@@ -318,7 +320,6 @@ Site Yönetimi`;
               📊 Raporlar
             </button>
             
-            {/* ÜST MENÜDE YENİ MAİL / BİLDİRİM İKONU VE SAYACI */}
             <button onClick={() => setActiveTab('complaints')} style={{ padding: '10px 14px', borderRadius: '8px', border: 'none', fontWeight: '700', fontSize: '13px', cursor: 'pointer', backgroundColor: activeTab === 'complaints' ? '#d4a5b8' : 'transparent', color: activeTab === 'complaints' ? '#381028' : '#f3d1df', position: 'relative', display: 'flex', alignItems: 'center', gap: '6px' }}>
               ✉️ Bildirimler
               {pendingComplaintsCount > 0 && (
