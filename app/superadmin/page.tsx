@@ -9,6 +9,7 @@ interface Tenant {
   siteName: string;
   adminName: string;
   phone: string;
+  sitePassword: string; // Siteye özel giriş şifresi
   packageType: 'trial' | 'basic' | 'pro';
   expireDate: string;
   createdAt?: any;
@@ -21,11 +22,15 @@ export default function SuperAdminPage() {
   const [loading, setLoading] = useState(true);
 
   // Yeni Site Ekleme Form State'leri
-  const [siteName, setSiteName] = useState('Bulvar City');
+  const [siteName, setSiteName] = useState('');
   const [adminName, setAdminName] = useState('');
   const [phone, setPhone] = useState('');
+  const [sitePassword, setSitePassword] = useState(''); // Şifre atama alanı
   const [packageType, setPackageType] = useState<'trial' | 'basic' | 'pro'>('pro');
   const [expireDate, setExpireDate] = useState('Süresiz');
+
+  // Düzenleme (Güncelleme) Modu için State
+  const [editingTenant, setEditingTenant] = useState<Tenant | null>(null);
 
   useEffect(() => {
     const auth = sessionStorage.getItem('mcf_super_logged');
@@ -51,15 +56,6 @@ export default function SuperAdminPage() {
       <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #0b0f19 0%, #111827 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, sans-serif', padding: '20px' }}>
         <div style={{ backgroundColor: '#111827', border: '1px solid #1f2937', padding: '40px', borderRadius: '20px', maxWidth: '420px', width: '100%', boxShadow: '0 20px 40px rgba(0,0,0,0.6)', textAlign: 'center' }}>
           
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '15px' }}>
-            <img 
-              src="/mcf-logo.png" 
-              alt="MCF Logo" 
-              style={{ height: '56px', width: 'auto', objectFit: 'contain', background: '#0b0f19', padding: '8px', borderRadius: '12px', border: '1px solid #374151' }} 
-              onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
-            />
-          </div>
-
           <h2 style={{ color: '#ffffff', fontSize: '20px', fontWeight: '800', margin: '0 0 6px 0' }}>MCF Technology</h2>
           <p style={{ color: '#f59e0b', fontSize: '13px', fontWeight: '700', margin: '0 0 20px 0' }}>Site Takip Yönetim Sistemi (Süperadmin)</p>
           
@@ -89,16 +85,19 @@ export default function SuperAdminPage() {
     );
   }
 
-  // YENİ SİTE EKLEME
+  // YENİ SİTE EKLEME (Şifre Alanı Dahil)
   const handleAddTenant = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!siteName || !adminName) return alert('Lütfen site adı ve yönetici bilgilerini giriniz.');
+    if (!siteName || !adminName || !sitePassword) {
+      return alert('Lütfen site adı, yönetici adı ve site erişim şifresini doldurunuz.');
+    }
 
     try {
       await addDoc(collection(db, 'tenants'), {
         siteName,
         adminName,
         phone: phone || '-',
+        sitePassword, // Atanan şifre
         packageType,
         expireDate: expireDate || 'Süresiz',
         createdAt: serverTimestamp()
@@ -106,17 +105,34 @@ export default function SuperAdminPage() {
       setSiteName('');
       setAdminName('');
       setPhone('');
-      alert('Yeni site başarıyla eklendi!');
+      setSitePassword('');
+      alert('Yeni site ve şifresi başarıyla kaydedildi!');
     } catch (err) {
       console.error(err);
       alert('Eklenirken hata oluştu.');
     }
   };
 
-  const handlePackageChange = async (id: string, newPkg: 'trial' | 'basic' | 'pro') => {
+  // MEVCUT SİTEDE DÜZENLEME KAYDETME
+  const handleUpdateTenant = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTenant) return;
+
     try {
-      await updateDoc(doc(db, 'tenants', id), { packageType: newPkg });
-    } catch (err) { console.error(err); }
+      await updateDoc(doc(db, 'tenants', editingTenant.id), {
+        siteName: editingTenant.siteName,
+        adminName: editingTenant.adminName,
+        phone: editingTenant.phone,
+        sitePassword: editingTenant.sitePassword,
+        packageType: editingTenant.packageType,
+        expireDate: editingTenant.expireDate
+      });
+      setEditingTenant(null);
+      alert('Site bilgileri güncellendi!');
+    } catch (err) {
+      console.error(err);
+      alert('Güncellenirken hata oluştu.');
+    }
   };
 
   const handleDeleteTenant = async (id: string) => {
@@ -130,17 +146,9 @@ export default function SuperAdminPage() {
       {/* HEADER */}
       <header style={{ backgroundColor: '#111827', borderBottom: '1px solid #1f2937', padding: '18px 24px', boxShadow: '0 4px 20px rgba(0,0,0,0.4)' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <img 
-              src="/mcf-logo.png" 
-              alt="MCF Logo" 
-              style={{ height: '42px', width: 'auto', objectFit: 'contain', background: '#0b0f19', padding: '6px', borderRadius: '8px', border: '1px solid #374151' }} 
-              onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
-            />
-            <div>
-              <h1 style={{ fontSize: '18px', fontWeight: '800', margin: 0, color: '#f59e0b' }}>MCF Technology</h1>
-              <p style={{ fontSize: '12px', margin: '2px 0 0 0', color: '#94a3b8' }}>Site Takip Yönetim Sistemi - Süperadmin Paneli</p>
-            </div>
+          <div>
+            <h1 style={{ fontSize: '18px', fontWeight: '800', margin: 0, color: '#f59e0b' }}>MCF Technology</h1>
+            <p style={{ fontSize: '12px', margin: '2px 0 0 0', color: '#94a3b8' }}>Site Takip Yönetim Sistemi - Süperadmin Paneli</p>
           </div>
           <button 
             onClick={() => {
@@ -156,20 +164,21 @@ export default function SuperAdminPage() {
 
       <main style={{ maxWidth: '1280px', margin: '24px auto', padding: '0 20px' }}>
         
-        {/* YENİ SİTE EKLEME FORMU */}
+        {/* YENİ SİTE EKLEME FORMU (ŞİFRE ALANI İLE) */}
         <div style={{ backgroundColor: '#111827', borderRadius: '16px', padding: '24px', marginBottom: '28px', border: '1px solid #1f2937', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
-          <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', color: '#f59e0b', fontWeight: '800' }}>➕ Yeni Site / Apartman Ekle</h3>
-          <form onSubmit={handleAddTenant} style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
-            <input type="text" placeholder="Site Adı (Örn: Bulvar City)" value={siteName} onChange={(e) => setSiteName(e.target.value)} style={{ padding: '12px', borderRadius: '10px', backgroundColor: '#0b0f19', border: '1px solid #374151', color: '#fff', flex: 2, minWidth: '200px', outline: 'none' }} />
-            <input type="text" placeholder="Yönetici Adı" value={adminName} onChange={(e) => setAdminName(e.target.value)} style={{ padding: '12px', borderRadius: '10px', backgroundColor: '#0b0f19', border: '1px solid #374151', color: '#fff', flex: 1, minWidth: '150px', outline: 'none' }} />
-            <input type="text" placeholder="Telefon" value={phone} onChange={(e) => setPhone(e.target.value)} style={{ padding: '12px', borderRadius: '10px', backgroundColor: '#0b0f19', border: '1px solid #374151', color: '#fff', flex: 1, minWidth: '140px', outline: 'none' }} />
+          <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', color: '#f59e0b', fontWeight: '800' }}>➕ Yeni Site / Apartman Ekle (Şifre Atama Dahil)</h3>
+          <form onSubmit={handleAddTenant} style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+            <input type="text" placeholder="Site Adı (Örn: Palmiye Rezidans)" value={siteName} onChange={(e) => setSiteName(e.target.value)} style={{ padding: '12px', borderRadius: '10px', backgroundColor: '#0b0f19', border: '1px solid #374151', color: '#fff', flex: 2, minWidth: '180px', outline: 'none' }} />
+            <input type="text" placeholder="Yönetici Adı" value={adminName} onChange={(e) => setAdminName(e.target.value)} style={{ padding: '12px', borderRadius: '10px', backgroundColor: '#0b0f19', border: '1px solid #374151', color: '#fff', flex: 1, minWidth: '130px', outline: 'none' }} />
+            <input type="text" placeholder="Telefon" value={phone} onChange={(e) => setPhone(e.target.value)} style={{ padding: '12px', borderRadius: '10px', backgroundColor: '#0b0f19', border: '1px solid #374151', color: '#fff', flex: 1, minWidth: '130px', outline: 'none' }} />
+            <input type="text" placeholder="Site Giriş Şifresi" value={sitePassword} onChange={(e) => setSitePassword(e.target.value)} style={{ padding: '12px', borderRadius: '10px', backgroundColor: '#0b0f19', border: '1px solid #f59e0b', color: '#fff', flex: 1, minWidth: '130px', outline: 'none', fontWeight: 'bold' }} />
             <select value={packageType} onChange={(e) => setPackageType(e.target.value as any)} style={{ padding: '12px', borderRadius: '10px', backgroundColor: '#0b0f19', border: '1px solid #374151', color: '#fff', fontWeight: 'bold', outline: 'none' }}>
-              <option value="trial">🚀 Trial (14 Gün)</option>
-              <option value="basic">📦 Basic (1000₺/Ay)</option>
-              <option value="pro">💎 Pro (2000₺/Ay)</option>
+              <option value="trial">🚀 Trial</option>
+              <option value="basic">📦 Basic (1000₺)</option>
+              <option value="pro">💎 Pro (2000₺)</option>
             </select>
-            <input type="text" placeholder="Bitiş Tarihi" value={expireDate} onChange={(e) => setExpireDate(e.target.value)} style={{ padding: '12px', borderRadius: '10px', backgroundColor: '#0b0f19', border: '1px solid #374151', color: '#fff', flex: 1, minWidth: '140px', outline: 'none' }} />
-            <button type="submit" style={{ backgroundColor: '#f59e0b', color: '#111827', border: 'none', padding: '12px 24px', borderRadius: '10px', fontWeight: '800', cursor: 'pointer' }}>Siteyi Kaydet</button>
+            <input type="text" placeholder="Bitiş Tarihi" value={expireDate} onChange={(e) => setExpireDate(e.target.value)} style={{ padding: '12px', borderRadius: '10px', backgroundColor: '#0b0f19', border: '1px solid #374151', color: '#fff', flex: 1, minWidth: '120px', outline: 'none' }} />
+            <button type="submit" style={{ backgroundColor: '#f59e0b', color: '#111827', border: 'none', padding: '12px 20px', borderRadius: '10px', fontWeight: '800', cursor: 'pointer' }}>Kaydet</button>
           </form>
         </div>
 
@@ -186,13 +195,13 @@ export default function SuperAdminPage() {
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px' }}>
                 <thead>
                   <tr style={{ borderBottom: '2px solid #1f2937', color: '#94a3b8' }}>
-                    <th style={{ padding: '12px' }}>Site / Apartman Adı</th>
+                    <th style={{ padding: '12px' }}>Site Adı</th>
                     <th style={{ padding: '12px' }}>Yönetici</th>
                     <th style={{ padding: '12px' }}>Telefon</th>
+                    <th style={{ padding: '12px' }}>Şifre</th>
                     <th style={{ padding: '12px' }}>Paket Türü</th>
                     <th style={{ padding: '12px' }}>Bitiş Tarihi</th>
-                    <th style={{ padding: '12px', textAlign: 'center' }}>Yönetim Paneli</th>
-                    <th style={{ padding: '12px', textAlign: 'center' }}>İşlem</th>
+                    <th style={{ padding: '12px', textAlign: 'center' }}>Düzenle / İşlem</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -201,10 +210,13 @@ export default function SuperAdminPage() {
                       <td style={{ padding: '12px', fontWeight: '800', color: '#ffffff' }}>{t.siteName}</td>
                       <td style={{ padding: '12px', fontWeight: '600', color: '#cbd5e1' }}>{t.adminName}</td>
                       <td style={{ padding: '12px', color: '#94a3b8' }}>{t.phone}</td>
+                      <td style={{ padding: '12px', fontWeight: 'bold', color: '#f59e0b' }}>{t.sitePassword || '-'}</td>
                       <td style={{ padding: '12px' }}>
                         <select 
                           value={t.packageType} 
-                          onChange={(e) => handlePackageChange(t.id, e.target.value as any)}
+                          onChange={async (e) => {
+                            try { await updateDoc(doc(db, 'tenants', t.id), { packageType: e.target.value }); } catch(err){console.error(err);}
+                          }}
                           style={{
                             padding: '6px 10px', borderRadius: '8px', border: '1px solid #374151', fontWeight: 'bold',
                             backgroundColor: t.packageType === 'pro' ? '#0369a1' : t.packageType === 'basic' ? '#b45309' : '#374151',
@@ -212,22 +224,17 @@ export default function SuperAdminPage() {
                           }}
                         >
                           <option value="trial">🚀 Trial</option>
-                          <option value="basic">📦 Basic (1000₺)</option>
-                          <option value="pro">💎 Pro (2000₺)</option>
+                          <option value="basic">📦 Basic</option>
+                          <option value="pro">💎 Pro</option>
                         </select>
                       </td>
                       <td style={{ padding: '12px', fontSize: '13px', color: '#94a3b8' }}>{t.expireDate}</td>
-                      <td style={{ padding: '12px', textAlign: 'center' }}>
-                        <a 
-                          href={`/yonetim?siteId=${t.id}`}
-                          style={{ backgroundColor: '#0284c7', color: '#fff', textDecoration: 'none', padding: '6px 14px', borderRadius: '8px', fontWeight: '700', fontSize: '13px', display: 'inline-block' }}
-                        >
-                          🔗 Panele Git
-                        </a>
-                      </td>
-                      <td style={{ padding: '12px', textAlign: 'center' }}>
+                      <td style={{ padding: '12px', textAlign: 'center', display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                        <button onClick={() => setEditingTenant(t)} style={{ backgroundColor: '#0284c7', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}>
+                          ✏️ Düzenle
+                        </button>
                         <button onClick={() => handleDeleteTenant(t.id)} style={{ backgroundColor: '#fee2e2', color: '#dc2626', border: 'none', padding: '6px 12px', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}>
-                          Sil
+                          🗑️ Sil
                         </button>
                       </td>
                     </tr>
@@ -239,6 +246,44 @@ export default function SuperAdminPage() {
         </div>
 
       </main>
+
+      {/* DÜZENLEME (GÜNCELLEME) MODALI */}
+      {editingTenant && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, padding: '16px' }}>
+          <div style={{ backgroundColor: '#111827', border: '1px solid #374151', borderRadius: '20px', padding: '30px', maxWidth: '450px', width: '100%', boxShadow: '0 25px 50px rgba(0,0,0,0.8)' }}>
+            <h3 style={{ margin: '0 0 16px 0', color: '#f59e0b', fontSize: '18px', fontWeight: '800' }}>✏️ Site Bilgilerini Düzenle</h3>
+            
+            <form onSubmit={handleUpdateTenant} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div>
+                <label style={{ fontSize: '12px', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>Site Adı</label>
+                <input type="text" value={editingTenant.siteName} onChange={(e) => setEditingTenant({...editingTenant, siteName: e.target.value})} style={{ width: '100%', padding: '10px', backgroundColor: '#0b0f19', border: '1px solid #374151', borderRadius: '8px', color: '#fff', outline: 'none', boxSizing: 'border-box' }} />
+              </div>
+              <div>
+                <label style={{ fontSize: '12px', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>Yönetici Adı</label>
+                <input type="text" value={editingTenant.adminName} onChange={(e) => setEditingTenant({...editingTenant, adminName: e.target.value})} style={{ width: '100%', padding: '10px', backgroundColor: '#0b0f19', border: '1px solid #374151', borderRadius: '8px', color: '#fff', outline: 'none', boxSizing: 'border-box' }} />
+              </div>
+              <div>
+                <label style={{ fontSize: '12px', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>Telefon</label>
+                <input type="text" value={editingTenant.phone} onChange={(e) => setEditingTenant({...editingTenant, phone: e.target.value})} style={{ width: '100%', padding: '10px', backgroundColor: '#0b0f19', border: '1px solid #374151', borderRadius: '8px', color: '#fff', outline: 'none', boxSizing: 'border-box' }} />
+              </div>
+              <div>
+                <label style={{ fontSize: '12px', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>Site Erişim Şifresi</label>
+                <input type="text" value={editingTenant.sitePassword || ''} onChange={(e) => setEditingTenant({...editingTenant, sitePassword: e.target.value})} style={{ width: '100%', padding: '10px', backgroundColor: '#0b0f19', border: '1px solid #f59e0b', borderRadius: '8px', color: '#fff', outline: 'none', fontWeight: 'bold', boxSizing: 'border-box' }} />
+              </div>
+              <div>
+                <label style={{ fontSize: '12px', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>Bitiş Tarihi</label>
+                <input type="text" value={editingTenant.expireDate} onChange={(e) => setEditingTenant({...editingTenant, expireDate: e.target.value})} style={{ width: '100%', padding: '10px', backgroundColor: '#0b0f19', border: '1px solid #374151', borderRadius: '8px', color: '#fff', outline: 'none', boxSizing: 'border-box' }} />
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                <button type="button" onClick={() => setEditingTenant(null)} style={{ flex: 1, padding: '12px', background: '#374151', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '700' }}>İptal</button>
+                <button type="submit" style={{ flex: 1, padding: '12px', background: '#f59e0b', color: '#111827', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '800' }}>Kaydet</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
