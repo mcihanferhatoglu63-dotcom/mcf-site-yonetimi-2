@@ -52,10 +52,6 @@ export default function YonetimPanelPage() {
   const [editingUnit, setEditingUnit] = useState<Unit | null>(null);
   const [warningModalUnit, setWarningModalUnit] = useState<Unit | null>(null);
 
-  // SAAS & SÜPERADMIN MODAL STATE'LERİ
-  const [showSuperModal, setShowSuperModal] = useState(false);
-  const [superPassword, setSuperPassword] = useState('');
-  const [isSuperAuthorized, setIsSuperAuthorized] = useState(false);
   const [currentPackage, setCurrentPackage] = useState<'trial' | 'basic' | 'pro'>('pro');
 
   const [txType, setTxType] = useState<'income' | 'expense'>('income');
@@ -123,16 +119,7 @@ export default function YonetimPanelPage() {
       <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #4a1535 0%, #6b2d5c 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, sans-serif', padding: '20px' }}>
         <div style={{ backgroundColor: '#ffffff', padding: '40px', borderRadius: '20px', maxWidth: '400px', width: '100%', boxShadow: '0 15px 30px rgba(0,0,0,0.3)', textAlign: 'center' }}>
           
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '15px' }}>
-            <img 
-              src="/mcf-logo.png" 
-              alt="MCF Logo" 
-              style={{ height: '54px', width: 'auto', objectFit: 'contain', background: '#fcf8fa', padding: '6px', borderRadius: '10px', border: '1px solid #d8b8c5' }} 
-              onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
-            />
-          </div>
-
-          <h2 style={{ color: '#4a1535', fontSize: '20px', fontWeight: '800', margin: '0 0 10px 0' }}>Yönetici Paneli Girişi</h2>
+          <h2 style={{ color: '#4a1535', fontSize: '20px', fontWeight: '800', margin: '0 0 10px 0' }}>Bulvar City Yönetici Girişi</h2>
           <p style={{ color: '#6b7280', fontSize: '13px', margin: '0 0 20px 0' }}>Devam etmek için yönetici şifrenizi giriniz.</p>
           
           <form onSubmit={(e) => {
@@ -231,7 +218,7 @@ export default function YonetimPanelPage() {
   const openWhatsApp = (phone: string, name: string, debt: number) => {
     if (!phone) return alert('Telefon numarası kayıtlı değil.');
     const cleanPhone = phone.replace(/\D/g, '');
-    const message = encodeURIComponent(`Sayın ${name}, MCF Site Yönetimi bilgilendirmesi: Güncel borç/aidat tutarınız ${debt.toLocaleString('tr-TR')} ₺'dir.`);
+    const message = encodeURIComponent(`Sayın ${name}, Bulvar City Yönetimi bilgilendirmesi: Güncel borç/aidat tutarınız ${debt.toLocaleString('tr-TR')} ₺'dir.`);
     window.open(`https://wa.me/${cleanPhone}?text=${message}`, '_blank');
   };
 
@@ -240,13 +227,13 @@ export default function YonetimPanelPage() {
     return `Sayın ${unit.residentName || 'Sakin'}, (${unitTitle})
 Bu ay itibariyle toplam ${unit.debt.toLocaleString('tr-TR')} ₺ aidat/borç bakiyeniz bulunmaktadır. 
 Ödememeniz halinde yasal takibat başlatılacaktır.
-Site Yönetimi`;
+Bulvar City Yönetimi`;
   };
 
   const printOfficialWarning = (unit: Unit) => {
     const w = window.open('', '_blank');
     if (!w) return;
-    w.document.write(`<html><head><title>İhtar</title></head><body style="font-family:Arial;padding:40px;"><h2>MCF SİTE YÖNETİMİ</h2><p>${getOfficialWarningText(unit)}</p><script>window.print();</script></body></html>`);
+    w.document.write(`<html><head><title>İhtar</title></head><body style="font-family:Arial;padding:40px;"><h2>BULVAR CITY YÖNETİMİ</h2><p>${getOfficialWarningText(unit)}</p><script>window.print();</script></body></html>`);
     w.document.close();
   };
 
@@ -259,7 +246,7 @@ Site Yönetimi`;
     const blob = new Blob([htmlContent], { type: 'application/vnd.ms-excel;charset=utf-8;' });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = `Sakinler_Raporu.xls`;
+    link.download = `Bulvar_City_Sakinler.xls`;
     link.click();
   };
 
@@ -272,7 +259,7 @@ Site Yönetimi`;
     const blob = new Blob([htmlContent], { type: 'application/vnd.ms-excel;charset=utf-8;' });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = `Kasa_Raporu.xls`;
+    link.download = `Bulvar_City_Kasa.xls`;
     link.click();
   };
 
@@ -295,26 +282,6 @@ Site Yönetimi`;
 
   const getOwnerLabel = (block: string) => block === 'A' ? 'Mülk Sahibi' : 'Ev Sahibi';
 
-  // SÜPERADMIN ŞİFRE ONAYLAMA
-  const handleSuperAuth = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (superPassword === '1923') {
-      setIsSuperAuthorized(true);
-      setSuperPassword('');
-    } else {
-      alert('Hatalı Süperadmin Şifresi!');
-    }
-  };
-
-  const handleSelectPackage = (pkg: 'trial' | 'basic' | 'pro') => {
-    setCurrentPackage(pkg);
-    sessionStorage.setItem('mcf_site_package', pkg);
-    alert(`Abonelik paketiniz "${pkg.toUpperCase()}" olarak güncellendi!`);
-    setShowSuperModal(false);
-    setIsSuperAuthorized(false);
-  };
-
-  // KISITLAMA KONTROLÜ (Basic pakette Kasa, Raporlar ve Bildirimler kapalı)
   const isFeatureRestricted = (tab: string) => {
     if (currentPackage === 'basic' && (tab === 'accounting' || tab === 'reports' || tab === 'complaints')) {
       return true;
@@ -325,26 +292,18 @@ Site Yönetimi`;
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#fcf8fa', fontFamily: 'Inter, system-ui, sans-serif', color: '#4a2833' }}>
       
-      {/* HEADER NAVBAR */}
+      {/* HEADER NAVBAR (LOGOSUZ VE SÜPERADMİNSİZ - BULVAR CITY YÖNETİM EKRANI) */}
       <header style={{ background: 'linear-gradient(135deg, #6b2d5c 0%, #4a1535 100%)', color: '#ffffff', padding: '16px 24px', boxShadow: '0 4px 20px rgba(74, 21, 53, 0.25)', borderBottom: '3px solid #d4a5b8' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
           
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <img 
-              src="/mcf-logo.png" 
-              alt="MCF Logo" 
-              style={{ height: '46px', width: 'auto', objectFit: 'contain', background: 'rgba(255, 255, 255, 0.15)', padding: '6px', borderRadius: '8px', border: '1px solid #d4a5b8' }} 
-              onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
-            />
-            <div>
-              <h1 style={{ fontSize: '18px', fontWeight: '800', margin: 0, color: '#ffffff', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                MCF Tesis Yönetimi 
-                <span style={{ fontSize: '10px', backgroundColor: currentPackage === 'pro' ? '#22c55e' : currentPackage === 'basic' ? '#eab308' : '#3b82f6', color: '#fff', padding: '2px 8px', borderRadius: '10px', textTransform: 'uppercase', fontWeight: '900' }}>
-                  {currentPackage === 'pro' ? 'Pro (2000₺/Ay)' : currentPackage === 'basic' ? 'Basic (1000₺/Ay)' : 'Trial (14 Gün)'}
-                </span>
-              </h1>
-              <p style={{ fontSize: '12px', color: '#e8c5d3', margin: '2px 0 0 0', fontWeight: '500' }}>Yetkili Yönetici Oturumu</p>
-            </div>
+          <div>
+            <h1 style={{ fontSize: '20px', fontWeight: '800', margin: 0, color: '#ffffff', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              Bulvar City Yönetim Ekranı
+              <span style={{ fontSize: '10px', backgroundColor: currentPackage === 'pro' ? '#22c55e' : currentPackage === 'basic' ? '#eab308' : '#3b82f6', color: '#fff', padding: '2px 8px', borderRadius: '10px', textTransform: 'uppercase', fontWeight: '900' }}>
+                {currentPackage === 'pro' ? 'Pro Paket' : currentPackage === 'basic' ? 'Basic Paket' : 'Trial'}
+              </span>
+            </h1>
+            <p style={{ fontSize: '12px', color: '#e8c5d3', margin: '2px 0 0 0', fontWeight: '500' }}>Yetkili Yönetici Oturumu</p>
           </div>
 
           <nav style={{ display: 'flex', gap: '6px', background: '#381028', padding: '5px', borderRadius: '12px', border: '1px solid #5c2345', flexWrap: 'wrap', alignItems: 'center' }}>
@@ -354,18 +313,12 @@ Site Yönetimi`;
             <button onClick={() => setActiveTab('directory')} style={{ padding: '10px 14px', borderRadius: '8px', border: 'none', fontWeight: '700', fontSize: '13px', cursor: 'pointer', backgroundColor: activeTab === 'directory' ? '#d4a5b8' : 'transparent', color: activeTab === 'directory' ? '#381028' : '#f3d1df' }}>
               📖 Rehber
             </button>
-            
-            {/* KASA (PRO / TRIAL AÇIK, BASIC KİLİTLİ) */}
             <button onClick={() => setActiveTab('accounting')} style={{ padding: '10px 14px', borderRadius: '8px', border: 'none', fontWeight: '700', fontSize: '13px', cursor: 'pointer', backgroundColor: activeTab === 'accounting' ? '#d4a5b8' : 'transparent', color: activeTab === 'accounting' ? '#381028' : '#f3d1df' }}>
               💰 Kasa {currentPackage === 'basic' && '🔒'}
             </button>
-
-            {/* RAPORLAR (PRO / TRIAL AÇIK, BASIC KİLİTLİ) */}
             <button onClick={() => setActiveTab('reports')} style={{ padding: '10px 14px', borderRadius: '8px', border: 'none', fontWeight: '700', fontSize: '13px', cursor: 'pointer', backgroundColor: activeTab === 'reports' ? '#d4a5b8' : 'transparent', color: activeTab === 'reports' ? '#381028' : '#f3d1df' }}>
               📊 Raporlar {currentPackage === 'basic' && '🔒'}
             </button>
-            
-            {/* BİLDİRİMLER (PRO / TRIAL AÇIK, BASIC KİLİTLİ) */}
             <button onClick={() => setActiveTab('complaints')} style={{ padding: '10px 14px', borderRadius: '8px', border: 'none', fontWeight: '700', fontSize: '13px', cursor: 'pointer', backgroundColor: activeTab === 'complaints' ? '#d4a5b8' : 'transparent', color: activeTab === 'complaints' ? '#381028' : '#f3d1df', position: 'relative' }}>
               ✉️ Bildirimler {currentPackage === 'basic' && '🔒'}
               {pendingComplaintsCount > 0 && currentPackage !== 'basic' && (
@@ -373,13 +326,6 @@ Site Yönetimi`;
                   {pendingComplaintsCount}
                 </span>
               )}
-            </button>
-
-            <button 
-              onClick={() => setShowSuperModal(true)}
-              style={{ padding: '10px 14px', borderRadius: '8px', border: 'none', fontWeight: '800', fontSize: '13px', cursor: 'pointer', backgroundColor: '#eab308', color: '#422006' }}
-            >
-              👑 Süperadmin
             </button>
 
             <button 
@@ -398,24 +344,16 @@ Site Yönetimi`;
       {/* İÇERİK ALANI */}
       <main style={{ padding: '24px', maxWidth: '1280px', margin: '0 auto' }}>
         
-        {/* BASIC PAKET KISITLAMA UYARISI */}
         {isFeatureRestricted(activeTab) ? (
           <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '60px 20px', textAlign: 'center', border: '2px dashed #eab308', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}>
             <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔒</div>
             <h2 style={{ color: '#4a1535', fontSize: '22px', fontWeight: '800', margin: '0 0 10px 0' }}>Pro Paket Özelliği</h2>
             <p style={{ color: '#6b7280', fontSize: '14px', maxWidth: '500px', margin: '0 auto 24px auto', lineHeight: '1.6' }}>
-              Şu anda <strong>Basic (1.000 ₺/Ay)</strong> paketini kullanıyorsunuz. Kasa yönetimi, Excel raporları ve sakin bildirimleri ekranları yalnızca <strong>Pro (2.000 ₺/Ay)</strong> paketine özeldir.
+              Şu anda Basic paketi kullanıyorsunuz. Kasa, Raporlar ve Bildirimler yalnızca Pro pakete özeldir.
             </p>
-            <button 
-              onClick={() => setShowSuperModal(true)}
-              style={{ backgroundColor: '#22c55e', color: '#ffffff', border: 'none', padding: '14px 28px', borderRadius: '12px', fontWeight: '800', fontSize: '15px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(34, 197, 94, 0.3)' }}
-            >
-              💎 Pro Pakete Yükselt (2.000 ₺/Ay)
-            </button>
           </div>
         ) : (
           <>
-            {/* 1. BLOK VE DAİRELER */}
             {activeTab === 'units' && (
               <>
                 <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', overflowX: 'auto', paddingBottom: '4px' }}>
@@ -505,7 +443,6 @@ Site Yönetimi`;
               </>
             )}
 
-            {/* 2. REHBER */}
             {activeTab === 'directory' && (
               <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '24px', border: '1px solid #ebd2dc' }}>
                 <h2 style={{ fontSize: '18px', fontWeight: '800', color: '#4a1535', margin: '0 0 16px 0' }}>📖 Sakinler Rehberi</h2>
@@ -534,7 +471,6 @@ Site Yönetimi`;
               </div>
             )}
 
-            {/* 3. KASA (SADECE PRO / TRIAL) */}
             {activeTab === 'accounting' && (
               <div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px', marginBottom: '28px' }}>
@@ -595,7 +531,6 @@ Site Yönetimi`;
               </div>
             )}
 
-            {/* 4. RAPORLAR (SADECE PRO / TRIAL) */}
             {activeTab === 'reports' && (
               <div style={{ backgroundColor: '#ffffff', padding: '40px', borderRadius: '16px', textAlign: 'center', border: '1px solid #ebd2dc' }}>
                 <h2 style={{ color: '#4a1535', marginBottom: '20px' }}>📊 Raporlar ve Excel Aktarım Merkezi</h2>
@@ -606,7 +541,6 @@ Site Yönetimi`;
               </div>
             )}
 
-            {/* 5. BİLDİRİMLER (SADECE PRO / TRIAL) */}
             {activeTab === 'complaints' && (
               <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '24px', border: '1px solid #ebd2dc' }}>
                 <h2 style={{ fontSize: '18px', fontWeight: '800', color: '#4a1535', margin: '0 0 6px 0' }}>📬 Sakinlerden Gelen Ödeme Bildirimleri & Şikayetler</h2>
@@ -676,73 +610,6 @@ Site Yönetimi`;
         )}
 
       </main>
-
-      {/* SÜPERADMIN SAAS MODALI */}
-      {showSuperModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, padding: '16px' }}>
-          <div style={{ backgroundColor: '#ffffff', borderRadius: '20px', padding: '30px', maxWidth: '480px', width: '100%', boxShadow: '0 25px 50px rgba(0,0,0,0.3)', border: '2px solid #eab308' }}>
-            
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h3 style={{ margin: 0, fontSize: '20px', color: '#422006', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                👑 Süperadmin Paket Yönetimi
-              </h3>
-              <button onClick={() => { setShowSuperModal(false); setIsSuperAuthorized(false); }} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer' }}>❌</button>
-            </div>
-
-            {!isSuperAuthorized ? (
-              <form onSubmit={handleSuperAuth} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                <p style={{ fontSize: '13px', color: '#6b7280', margin: 0 }}>Paket değiştirmek için Süperadmin şifrenizi (1923) giriniz:</p>
-                <input
-                  type="password"
-                  placeholder="Şifre (1923)"
-                  value={superPassword}
-                  onChange={(e) => setSuperPassword(e.target.value)}
-                  style={{ padding: '12px', borderRadius: '10px', border: '1px solid #d8b8c5', fontSize: '16px', textAlign: 'center', fontWeight: 'bold' }}
-                />
-                <button type="submit" style={{ backgroundColor: '#eab308', color: '#422006', border: 'none', padding: '12px', borderRadius: '10px', fontWeight: '800', cursor: 'pointer' }}>
-                  Yetkiyi Doğrula
-                </button>
-              </form>
-            ) : (
-              <div>
-                <p style={{ fontSize: '14px', color: '#374151', marginBottom: '16px', fontWeight: '600' }}>
-                  Bu site için aktif abonelik paketini seçiniz:
-                </p>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
-                  {[
-                    { id: 'trial', title: '🚀 Trial (14 Günlük Ücretsiz)', desc: 'Tüm özellikler açık (Deneme Sürümü).' },
-                    { id: 'basic', title: '📦 Basic (1.000 ₺ / Ay)', desc: 'Sadece Daireler ve Rehber. Kasa ve Raporlar Kilitli.' },
-                    { id: 'pro', title: '💎 Pro (2.000 ₺ / Ay)', desc: 'Tam Sürüm! Kasa, Raporlar, Bildirimler ve Tüm Özellikler.' }
-                  ].map((p) => (
-                    <div 
-                      key={p.id}
-                      onClick={() => handleSelectPackage(p.id as any)}
-                      style={{
-                        padding: '14px', borderRadius: '12px', border: '2px solid',
-                        borderColor: currentPackage === p.id ? '#eab308' : '#e5e7eb',
-                        backgroundColor: currentPackage === p.id ? '#fefce8' : '#f9fafb',
-                        cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '4px'
-                      }}
-                    >
-                      <div style={{ fontWeight: '800', color: '#1f2937', fontSize: '15px' }}>{p.title}</div>
-                      <div style={{ fontSize: '12px', color: '#6b7280' }}>{p.desc}</div>
-                    </div>
-                  ))}
-                </div>
-
-                <button 
-                  onClick={() => { setShowSuperModal(false); setIsSuperAuthorized(false); }}
-                  style={{ width: '100%', padding: '12px', backgroundColor: '#e5e7eb', border: 'none', borderRadius: '10px', fontWeight: '700', cursor: 'pointer' }}
-                >
-                  Kapat
-                </button>
-              </div>
-            )}
-
-          </div>
-        </div>
-      )}
 
       {/* DÜZENLEME MODALI */}
       {editingUnit && (
