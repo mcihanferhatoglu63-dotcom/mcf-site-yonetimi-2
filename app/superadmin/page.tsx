@@ -21,7 +21,6 @@ export default function SuperAdminPage() {
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Yeni Site Ekleme Form State'leri
   const [siteName, setSiteName] = useState('');
   const [adminName, setAdminName] = useState('');
   const [phone, setPhone] = useState('');
@@ -29,7 +28,6 @@ export default function SuperAdminPage() {
   const [packageType, setPackageType] = useState<'trial' | 'basic' | 'pro'>('pro');
   const [expireDate, setExpireDate] = useState('Süresiz');
 
-  // Düzenleme Modu
   const [editingTenant, setEditingTenant] = useState<Tenant | null>(null);
 
   useEffect(() => {
@@ -49,7 +47,6 @@ export default function SuperAdminPage() {
     return () => unsubscribe();
   }, [isSuperLoggedIn]);
 
-  // GİRİŞ EKRANI
   if (!isSuperLoggedIn) {
     return (
       <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #0b0f19 0%, #111827 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, sans-serif', padding: '20px' }}>
@@ -111,24 +108,29 @@ export default function SuperAdminPage() {
     }
   };
 
+  // GÜNCELLENEN DÜZENLEME FONKSİYONU
   const handleUpdateTenant = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingTenant) return;
+    if (!editingTenant || !editingTenant.id) {
+      alert('Düzenlenecek kayıt bulunamadı.');
+      return;
+    }
 
     try {
-      await updateDoc(doc(db, 'tenants', editingTenant.id), {
+      const tenantRef = doc(db, 'tenants', editingTenant.id);
+      await updateDoc(tenantRef, {
         siteName: editingTenant.siteName,
         adminName: editingTenant.adminName,
-        phone: editingTenant.phone,
-        sitePassword: editingTenant.sitePassword,
+        phone: editingTenant.phone || '-',
+        sitePassword: editingTenant.sitePassword || '',
         packageType: editingTenant.packageType,
-        expireDate: editingTenant.expireDate
+        expireDate: editingTenant.expireDate || 'Süresiz'
       });
       setEditingTenant(null);
-      alert('Site bilgileri güncellendi!');
-    } catch (err) {
-      console.error(err);
-      alert('Güncellenirken hata oluştu.');
+      alert('Site bilgileri başarıyla güncellendi!');
+    } catch (err: any) {
+      console.error("Güncelleme hatası:", err);
+      alert('Güncellenirken hata oluştu: ' + (err.message || err));
     }
   };
 
@@ -140,7 +142,6 @@ export default function SuperAdminPage() {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0b0f19', fontFamily: 'Inter, system-ui, sans-serif', color: '#ffffff' }}>
       
-      {/* HEADER */}
       <header style={{ backgroundColor: '#111827', borderBottom: '1px solid #1f2937', padding: '18px 24px', boxShadow: '0 4px 20px rgba(0,0,0,0.4)' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
           <div>
@@ -161,7 +162,6 @@ export default function SuperAdminPage() {
 
       <main style={{ maxWidth: '1280px', margin: '24px auto', padding: '0 20px' }}>
         
-        {/* YENİ SİTE EKLEME FORMU */}
         <div style={{ backgroundColor: '#111827', borderRadius: '16px', padding: '24px', marginBottom: '28px', border: '1px solid #1f2937', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
           <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', color: '#f59e0b', fontWeight: '800' }}>➕ Yeni Site / Apartman Ekle</h3>
           <form onSubmit={handleAddTenant} style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
@@ -179,7 +179,6 @@ export default function SuperAdminPage() {
           </form>
         </div>
 
-        {/* SİTELER LİSTESİ */}
         <div style={{ backgroundColor: '#111827', borderRadius: '16px', padding: '24px', border: '1px solid #1f2937', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
           <h3 style={{ margin: '0 0 16px 0', fontSize: '18px', color: '#f59e0b', fontWeight: '800' }}>🏢 Sistemdeki Kayıtlı Siteler ({tenants.length})</h3>
           
@@ -228,7 +227,6 @@ export default function SuperAdminPage() {
                       </td>
                       <td style={{ padding: '12px', fontSize: '13px', color: '#94a3b8' }}>{t.expireDate}</td>
                       
-                      {/* SİTEYE GİT BUTONU */}
                       <td style={{ padding: '12px', textAlign: 'center' }}>
                         <a 
                           href={`/yonetim?site=${encodeURIComponent(t.siteName)}`}
@@ -270,7 +268,6 @@ export default function SuperAdminPage() {
 
       </main>
 
-      {/* DÜZENLEME MODALI */}
       {editingTenant && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, padding: '16px' }}>
           <div style={{ backgroundColor: '#111827', border: '1px solid #374151', borderRadius: '20px', padding: '30px', maxWidth: '450px', width: '100%', boxShadow: '0 25px 50px rgba(0,0,0,0.8)' }}>
@@ -295,7 +292,7 @@ export default function SuperAdminPage() {
               </div>
               <div>
                 <label style={{ fontSize: '12px', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>Bitiş Tarihi</label>
-                <input type="text" value={editingTenant.expireDate} onChange={(e) => setEditingTenant({...e, expireDate: e.target.value} as any)} style={{ width: '100%', padding: '10px', backgroundColor: '#0b0f19', border: '1px solid #374151', borderRadius: '8px', color: '#fff', outline: 'none', boxSizing: 'border-box' }} />
+                <input type="text" value={editingTenant.expireDate} onChange={(e) => setEditingTenant({...editingTenant, expireDate: e.target.value})} style={{ width: '100%', padding: '10px', backgroundColor: '#0b0f19', border: '1px solid #374151', borderRadius: '8px', color: '#fff', outline: 'none', boxSizing: 'border-box' }} />
               </div>
 
               <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
