@@ -9,8 +9,8 @@ interface Unit {
   block: string;
   unitNumber: number;
   residentName: string;
-  phone: string; // Telefon numarası
-  isTenant: boolean; // true: Kiracı, false: Ev Sahibi
+  phone: string;
+  isTenant: boolean; // true: Kiracı, false: Mülk Sahibi / Ev Sahibi
   landlordName: string;
   debt: number;
   status: 'paid' | 'unpaid';
@@ -119,7 +119,19 @@ export default function SiteLayout() {
     };
   }, []);
 
-  const filteredUnits = units.filter(u => u.block === selectedBlock);
+  // RAKAMSAL SIRALAMA (1, 2, 3 ... 28 şeklinde küçükten büyüğe)
+  const filteredUnits = units
+    .filter(u => u.block === selectedBlock)
+    .sort((a, b) => Number(a.unitNumber) - Number(b.unitNumber));
+
+  // Rehber İçin Tüm Birimleri Rakamsal Sıralama (Blok ve Daire No'ya Göre)
+  const sortedAllUnits = [...units].sort((a, b) => {
+    if (a.block === b.block) {
+      return Number(a.unitNumber) - Number(b.unitNumber);
+    }
+    return a.block.localeCompare(b.block);
+  });
+
   const totalDebtors = units.filter(u => u.status === 'unpaid').length;
   const totalReceivables = units.reduce((sum, u) => sum + (u.debt || 0), 0);
 
@@ -178,13 +190,12 @@ export default function SiteLayout() {
     }
   };
 
-  // WhatsApp Mesajı Gönderme Yardımcısı
+  // WhatsApp Mesajı Gönderme
   const openWhatsApp = (phone: string, name: string, debt: number) => {
     if (!phone) {
       alert('Bu sakine ait telefon numarası kayıtlı değil.');
       return;
     }
-    // Telefon numarasındaki boşluk ve karakterleri temizle
     const cleanPhone = phone.replace(/\D/g, '');
     const message = encodeURIComponent(`Sayın ${name}, MCF Site Yönetim Sistemi'nden bilgilendirme: Güncel borç/aidat tutarınız ${debt.toLocaleString('tr-TR')} ₺'dir. Bilgilerinize sunarız.`);
     window.open(`https://wa.me/${cleanPhone}?text=${message}`, '_blank');
@@ -217,6 +228,11 @@ export default function SiteLayout() {
     } catch (err) {
       console.error(err);
     }
+  };
+
+  // Etiket Yardımcısı (A Blok için Mülk Sahibi, Diğerleri için Ev Sahibi)
+  const getOwnerLabel = (block: string) => {
+    return block === 'A' ? 'Mülk Sahibi' : 'Ev Sahibi';
   };
 
   return (
@@ -376,13 +392,14 @@ export default function SiteLayout() {
               </div>
             </div>
 
-            {/* KARTLAR */}
+            {/* KARTLAR (RAKAMSAL SIRALANMIŞ) */}
             {loading ? (
               <div style={{ textAlign: 'center', padding: '60px', color: '#94a3b8' }}>Yükleniyor...</div>
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '18px' }}>
                 {filteredUnits.map((unit) => {
                   const isDebtor = unit.status === 'unpaid';
+                  const ownerText = getOwnerLabel(unit.block);
                   return (
                     <div
                       key={unit.id}
@@ -405,10 +422,10 @@ export default function SiteLayout() {
                       <div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                           <h3 style={{ margin: 0, fontSize: '16px', color: '#ffffff', fontWeight: '800' }}>
-                            {selectedBlock} Blok - No: {unit.unitNumber}
+                            {selectedBlock === 'A' ? `Dükkan ${unit.unitNumber}` : `${selectedBlock} Blok - No: ${unit.unitNumber}`}
                           </h3>
                           <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '6px', background: unit.isTenant ? '#312e81' : '#064e3b', color: unit.isTenant ? '#c7d2fe' : '#a7f3d0', fontWeight: '700' }}>
-                            {unit.isTenant ? 'Kiracı' : 'Ev Sahibi'}
+                            {unit.isTenant ? 'Kiracı' : ownerText}
                           </span>
                         </div>
 
@@ -420,7 +437,7 @@ export default function SiteLayout() {
                         </p>
                         {unit.isTenant && unit.landlordName && (
                           <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>
-                            🏠 Sahibi: {unit.landlordName}
+                            🏠 {ownerText}: {unit.landlordName}
                           </p>
                         )}
                       </div>
@@ -483,28 +500,33 @@ export default function SiteLayout() {
                   </tr>
                 </thead>
                 <tbody>
-                  {units.map((u) => (
-                    <tr key={u.id} style={{ borderBottom: '1px solid #1e293b' }}>
-                      <td style={{ padding: '14px 12px', fontWeight: '800', color: '#eab308' }}>{u.block} Blok - No: {u.unitNumber}</td>
-                      <td style={{ padding: '14px 12px', fontWeight: '600', color: '#ffffff' }}>{u.residentName}</td>
-                      <td style={{ padding: '14px 12px', color: '#94a3b8' }}>
-                        {u.isTenant ? `Kiracı (Sahibi: ${u.landlordName || '-'})` : 'Ev Sahibi'}
-                      </td>
-                      <td style={{ padding: '14px 12px', color: '#cbd5e1', fontWeight: '600' }}>{u.phone || 'Kayıt Yok'}</td>
-                      <td style={{ padding: '14px 12px', textAlign: 'center' }}>
-                        {u.phone ? (
-                          <button
-                            onClick={() => openWhatsApp(u.phone, u.residentName, u.debt)}
-                            style={{ backgroundColor: '#065f46', color: '#6ee7b7', border: 'none', padding: '6px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: '700' }}
-                          >
-                            💬 WhatsApp Mesaj Gönder
-                          </button>
-                        ) : (
-                          <span style={{ fontSize: '12px', color: '#64748b' }}>Tel Yok</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                  {sortedAllUnits.map((u) => {
+                    const ownerText = getOwnerLabel(u.block);
+                    return (
+                      <tr key={u.id} style={{ borderBottom: '1px solid #1e293b' }}>
+                        <td style={{ padding: '14px 12px', fontWeight: '800', color: '#eab308' }}>
+                          {u.block === 'A' ? `A Blok - Dükkan ${u.unitNumber}` : `${u.block} Blok - No: ${u.unitNumber}`}
+                        </td>
+                        <td style={{ padding: '14px 12px', fontWeight: '600', color: '#ffffff' }}>{u.residentName}</td>
+                        <td style={{ padding: '14px 12px', color: '#94a3b8' }}>
+                          {u.isTenant ? `Kiracı (${ownerText}: ${u.landlordName || '-'})` : ownerText}
+                        </td>
+                        <td style={{ padding: '14px 12px', color: '#cbd5e1', fontWeight: '600' }}>{u.phone || 'Kayıt Yok'}</td>
+                        <td style={{ padding: '14px 12px', textAlign: 'center' }}>
+                          {u.phone ? (
+                            <button
+                              onClick={() => openWhatsApp(u.phone, u.residentName, u.debt)}
+                              style={{ backgroundColor: '#065f46', color: '#6ee7b7', border: 'none', padding: '6px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: '700' }}
+                            >
+                              💬 WhatsApp Mesaj Gönder
+                            </button>
+                          ) : (
+                            <span style={{ fontSize: '12px', color: '#64748b' }}>Tel Yok</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -644,12 +666,12 @@ export default function SiteLayout() {
         }}>
           <div style={{ backgroundColor: '#111827', border: '1px solid #334155', borderRadius: '16px', padding: '24px', width: '100%', maxWidth: '420px', boxShadow: '0 10px 25px rgba(0,0,0,0.5)' }}>
             <h3 style={{ margin: '0 0 16px 0', fontSize: '18px', color: '#ffffff', fontWeight: '800' }}>
-              🏢 {editingUnit.block} Blok - No: {editingUnit.unitNumber} Düzenle
+              🏢 {editingUnit.block === 'A' ? `A Blok - Dükkan ${editingUnit.unitNumber}` : `${editingUnit.block} Blok - No: ${editingUnit.unitNumber}`} Düzenle
             </h3>
             
             <form onSubmit={handleSaveUnitDetails} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '13px', color: '#94a3b8', marginBottom: '6px', fontWeight: '600' }}>Sakin Adı Soyadı:</label>
+                <label style={{ display: 'block', fontSize: '13px', color: '#94a3b8', marginBottom: '6px', fontWeight: '600' }}>Sakin / İşletmeci Adı Soyadı:</label>
                 <input
                   type="text"
                   value={editingUnit.residentName}
@@ -670,20 +692,22 @@ export default function SiteLayout() {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '13px', color: '#94a3b8', marginBottom: '6px', fontWeight: '600' }}>Sakin Durumu:</label>
+                <label style={{ display: 'block', fontSize: '13px', color: '#94a3b8', marginBottom: '6px', fontWeight: '600' }}>Mülkiyet Durumu:</label>
                 <select
                   value={editingUnit.isTenant ? 'tenant' : 'owner'}
                   onChange={(e) => setEditingUnit({ ...editingUnit, isTenant: e.target.value === 'tenant' })}
                   style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #334155', background: '#0b132b', color: '#ffffff', fontSize: '14px', fontWeight: '700' }}
                 >
-                  <option value="owner">🏠 Ev Sahibi (Oturuyor)</option>
+                  <option value="owner">🏠 {getOwnerLabel(editingUnit.block)} (Oturuyor / İşletiyor)</option>
                   <option value="tenant">🔑 Kiracı</option>
                 </select>
               </div>
 
               {editingUnit.isTenant && (
                 <div>
-                  <label style={{ display: 'block', fontSize: '13px', color: '#94a3b8', marginBottom: '6px', fontWeight: '600' }}>Ev Sahibinin Adı:</label>
+                  <label style={{ display: 'block', fontSize: '13px', color: '#94a3b8', marginBottom: '6px', fontWeight: '600' }}>
+                    {getOwnerLabel(editingUnit.block)} Adı Soyadı:
+                  </label>
                   <input
                     type="text"
                     value={editingUnit.landlordName || ''}
