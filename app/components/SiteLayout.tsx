@@ -399,11 +399,11 @@ export default function SiteLayout() {
                   </div>
                 </div>
 
-                <div style={{ flex: '1 1 200px', backgroundColor: '#f9f0f4', border: '1px solid #ebd2dc', borderRadius: '12px', padding: '16px', display: 'flex', alignItems: 'center', gap: '14px' }}>
-                  <div style={{ background: '#6b2d5c', color: '#fff', width: '42px', height: '42px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', fontWeight: 'bold' }}>💳</div>
+                <div style={{ flex: '1 1 200px', backgroundColor: '#fefce8', border: '1px solid #fef08a', borderRadius: '12px', padding: '16px', display: 'flex', alignItems: 'center', gap: '14px' }}>
+                  <div style={{ background: '#ca8a04', color: '#fff', width: '42px', height: '42px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', fontWeight: 'bold' }}>💳</div>
                   <div>
-                    <div style={{ fontSize: '12px', color: '#6b2d5c', fontWeight: '700' }}>Toplam Alacak</div>
-                    <div style={{ fontSize: '20px', fontWeight: '800', color: '#4a1535', marginTop: '2px' }}>{totalReceivables.toLocaleString('tr-TR')} ₺</div>
+                    <div style={{ fontSize: '12px', color: '#854d0e', fontWeight: '700' }}>Toplam Alacak</div>
+                    <div style={{ fontSize: '20px', fontWeight: '800', color: '#713f12', marginTop: '2px' }}>{totalReceivables.toLocaleString('tr-TR')} ₺</div>
                   </div>
                 </div>
               </div>
@@ -415,11 +415,11 @@ export default function SiteLayout() {
                   type="number"
                   value={dueAmount}
                   onChange={(e) => setDueAmount(e.target.value)}
-                  style={{ flex: '1 1 90px', padding: '12px 14px', borderRadius: '10px', border: '1px solid #d8b8c5', fontSize: '15px', fontWeight: 'bold', outline: 'none', background: '#fcf8fa', color: '#4a1535' }}
+                  style={{ flex: '1 1 90px', padding: '12px 14px', borderRadius: '10px', border: '1px solid #fde047', fontSize: '15px', fontWeight: 'bold', outline: 'none', background: '#fefce8', color: '#713f12' }}
                 />
                 <button
                   onClick={handleBulkApplyDue}
-                  style={{ flex: '2 1 160px', backgroundColor: '#6b2d5c', color: '#f3d1df', padding: '12px 16px', borderRadius: '10px', border: 'none', fontWeight: '800', fontSize: '13px', cursor: 'pointer' }}
+                  style={{ flex: '2 1 160px', backgroundColor: '#ca8a04', color: '#ffffff', padding: '12px 16px', borderRadius: '10px', border: 'none', fontWeight: '800', fontSize: '13px', cursor: 'pointer' }}
                 >
                   ⚡ Toplu Yansıt
                 </button>
@@ -436,7 +436,7 @@ export default function SiteLayout() {
               </div>
             </div>
 
-            {/* KARTLAR */}
+            {/* KARTLAR (ARKA PLANI SARI) */}
             {loading ? (
               <div style={{ textAlign: 'center', padding: '60px', color: '#6b2d5c' }}>Yükleniyor...</div>
             ) : (
@@ -448,7 +448,8 @@ export default function SiteLayout() {
                     <div
                       key={unit.id}
                       style={{
-                        backgroundColor: '#ffffff',
+                        // HER BİR DÜKKAN VEYA EVİN ARKA PLANI SARI YAPILDI
+                        backgroundColor: '#fef9c3', // Sıcak pastel sarı tonu
                         border: '1px solid',
                         // BORÇLU İSE KIRMIZI, ÖDEMİŞ İSE YEŞİL KENARLIK
                         borderColor: isDebtor ? '#ef4444' : '#10b981',
@@ -467,28 +468,28 @@ export default function SiteLayout() {
                       
                       <div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                          <h3 style={{ margin: 0, fontSize: '16px', color: '#4a1535', fontWeight: '800' }}>
+                          <h3 style={{ margin: 0, fontSize: '16px', color: '#713f12', fontWeight: '800' }}>
                             {selectedBlock === 'A' ? `Dükkan ${unit.unitNumber}` : `${selectedBlock} Blok - No: ${unit.unitNumber}`}
                           </h3>
-                          <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '6px', background: unit.isTenant ? '#f3e8f3' : '#d1fae5', color: unit.isTenant ? '#6b2d5c' : '#065f46', fontWeight: '700' }}>
+                          <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '6px', background: unit.isTenant ? '#fef08a' : '#d1fae5', color: unit.isTenant ? '#854d0e' : '#065f46', fontWeight: '700' }}>
                             {unit.isTenant ? 'Kiracı' : ownerText}
                           </span>
                         </div>
 
-                        <p style={{ margin: '0 0 4px 0', fontSize: '14px', color: '#2d1521', fontWeight: '600' }}>
+                        <p style={{ margin: '0 0 4px 0', fontSize: '14px', color: '#451a03', fontWeight: '600' }}>
                           👤 {unit.residentName || 'İsim Yok'}
                         </p>
-                        <p style={{ margin: '0 0 4px 0', fontSize: '13px', color: '#8c6b77' }}>
+                        <p style={{ margin: '0 0 4px 0', fontSize: '13px', color: '#78350f' }}>
                           📞 {unit.phone || 'Tel Girilmemiş'}
                         </p>
                         {unit.isTenant && unit.landlordName && (
-                          <p style={{ margin: 0, fontSize: '12px', color: '#6b2d5c' }}>
+                          <p style={{ margin: 0, fontSize: '12px', color: '#854d0e' }}>
                             🏠 {ownerText}: {unit.landlordName}
                           </p>
                         )}
                       </div>
 
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #f9f0f4', paddingTop: '10px', gap: '8px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #fef08a', paddingTop: '10px', gap: '8px' }}>
                         
                         {/* DURUM ROZETİ: BORÇLU İSE KIRMIZI, ÖDEMİŞ İSE YEŞİL */}
                         <div
@@ -518,7 +519,7 @@ export default function SiteLayout() {
                           )}
                           <button
                             onClick={() => setEditingUnit(unit)}
-                            style={{ backgroundColor: '#6b2d5c', color: '#f3d1df', border: 'none', padding: '6px 10px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: '700' }}
+                            style={{ backgroundColor: '#ca8a04', color: '#ffffff', border: 'none', padding: '6px 10px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: '700' }}
                           >
                             ✏️
                           </button>
