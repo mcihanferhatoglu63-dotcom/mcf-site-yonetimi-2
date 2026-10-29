@@ -1,14 +1,16 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 
+// Firebase Proje Yapılandırman
 const firebaseConfig = {
-  apiKey: "BURAYA_KOPYALADIGINIZ_API_KEY",
-  authDomain: "site-yonetim-sistemi.firebaseapp.com",
-  projectId: "site-yonetim-sistemi",
-  storageBucket: "site-yonetim-sistemi.appspot.com",
-  messagingSenderId: "NUMARANIZ",
-  appId: "APP_ID"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
 };
 
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+// Uygulamayı başlat (Çift başlatmayı önlemek için getApps kontrolü)
+const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 export const db = getFirestore(app);
