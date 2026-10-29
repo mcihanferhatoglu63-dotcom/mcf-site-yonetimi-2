@@ -9,7 +9,7 @@ interface Tenant {
   siteName: string;
   adminName: string;
   phone: string;
-  sitePassword: string; // Siteye özel giriş şifresi
+  sitePassword: string;
   packageType: 'trial' | 'basic' | 'pro';
   expireDate: string;
   createdAt?: any;
@@ -25,11 +25,11 @@ export default function SuperAdminPage() {
   const [siteName, setSiteName] = useState('');
   const [adminName, setAdminName] = useState('');
   const [phone, setPhone] = useState('');
-  const [sitePassword, setSitePassword] = useState(''); // Şifre atama alanı
+  const [sitePassword, setSitePassword] = useState('');
   const [packageType, setPackageType] = useState<'trial' | 'basic' | 'pro'>('pro');
   const [expireDate, setExpireDate] = useState('Süresiz');
 
-  // Düzenleme (Güncelleme) Modu için State
+  // Düzenleme Modu
   const [editingTenant, setEditingTenant] = useState<Tenant | null>(null);
 
   useEffect(() => {
@@ -39,7 +39,6 @@ export default function SuperAdminPage() {
     }
   }, []);
 
-  // Firestore'dan Tüm Siteleri Çek
   useEffect(() => {
     if (!isSuperLoggedIn) return;
     const unsubscribe = onSnapshot(collection(db, 'tenants'), (snapshot) => {
@@ -85,7 +84,6 @@ export default function SuperAdminPage() {
     );
   }
 
-  // YENİ SİTE EKLEME (Şifre Alanı Dahil)
   const handleAddTenant = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!siteName || !adminName || !sitePassword) {
@@ -97,7 +95,7 @@ export default function SuperAdminPage() {
         siteName,
         adminName,
         phone: phone || '-',
-        sitePassword, // Atanan şifre
+        sitePassword,
         packageType,
         expireDate: expireDate || 'Süresiz',
         createdAt: serverTimestamp()
@@ -113,7 +111,6 @@ export default function SuperAdminPage() {
     }
   };
 
-  // MEVCUT SİTEDE DÜZENLEME KAYDETME
   const handleUpdateTenant = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingTenant) return;
@@ -164,11 +161,11 @@ export default function SuperAdminPage() {
 
       <main style={{ maxWidth: '1280px', margin: '24px auto', padding: '0 20px' }}>
         
-        {/* YENİ SİTE EKLEME FORMU (ŞİFRE ALANI İLE) */}
+        {/* YENİ SİTE EKLEME FORMU */}
         <div style={{ backgroundColor: '#111827', borderRadius: '16px', padding: '24px', marginBottom: '28px', border: '1px solid #1f2937', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}>
-          <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', color: '#f59e0b', fontWeight: '800' }}>➕ Yeni Site / Apartman Ekle (Şifre Atama Dahil)</h3>
+          <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', color: '#f59e0b', fontWeight: '800' }}>➕ Yeni Site / Apartman Ekle</h3>
           <form onSubmit={handleAddTenant} style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-            <input type="text" placeholder="Site Adı (Örn: Palmiye Rezidans)" value={siteName} onChange={(e) => setSiteName(e.target.value)} style={{ padding: '12px', borderRadius: '10px', backgroundColor: '#0b0f19', border: '1px solid #374151', color: '#fff', flex: 2, minWidth: '180px', outline: 'none' }} />
+            <input type="text" placeholder="Site Adı (Örn: Bulvar City)" value={siteName} onChange={(e) => setSiteName(e.target.value)} style={{ padding: '12px', borderRadius: '10px', backgroundColor: '#0b0f19', border: '1px solid #374151', color: '#fff', flex: 2, minWidth: '180px', outline: 'none' }} />
             <input type="text" placeholder="Yönetici Adı" value={adminName} onChange={(e) => setAdminName(e.target.value)} style={{ padding: '12px', borderRadius: '10px', backgroundColor: '#0b0f19', border: '1px solid #374151', color: '#fff', flex: 1, minWidth: '130px', outline: 'none' }} />
             <input type="text" placeholder="Telefon" value={phone} onChange={(e) => setPhone(e.target.value)} style={{ padding: '12px', borderRadius: '10px', backgroundColor: '#0b0f19', border: '1px solid #374151', color: '#fff', flex: 1, minWidth: '130px', outline: 'none' }} />
             <input type="text" placeholder="Site Giriş Şifresi" value={sitePassword} onChange={(e) => setSitePassword(e.target.value)} style={{ padding: '12px', borderRadius: '10px', backgroundColor: '#0b0f19', border: '1px solid #f59e0b', color: '#fff', flex: 1, minWidth: '130px', outline: 'none', fontWeight: 'bold' }} />
@@ -201,7 +198,8 @@ export default function SuperAdminPage() {
                     <th style={{ padding: '12px' }}>Şifre</th>
                     <th style={{ padding: '12px' }}>Paket Türü</th>
                     <th style={{ padding: '12px' }}>Bitiş Tarihi</th>
-                    <th style={{ padding: '12px', textAlign: 'center' }}>Düzenle / İşlem</th>
+                    <th style={{ padding: '12px', textAlign: 'center' }}>Siteye Git</th>
+                    <th style={{ padding: '12px', textAlign: 'center' }}>İşlemler</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -229,13 +227,38 @@ export default function SuperAdminPage() {
                         </select>
                       </td>
                       <td style={{ padding: '12px', fontSize: '13px', color: '#94a3b8' }}>{t.expireDate}</td>
-                      <td style={{ padding: '12px', textAlign: 'center', display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                        <button onClick={() => setEditingTenant(t)} style={{ backgroundColor: '#0284c7', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}>
-                          ✏️ Düzenle
-                        </button>
-                        <button onClick={() => handleDeleteTenant(t.id)} style={{ backgroundColor: '#fee2e2', color: '#dc2626', border: 'none', padding: '6px 12px', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}>
-                          🗑️ Sil
-                        </button>
+                      
+                      {/* SİTEYE GİT BUTONU */}
+                      <td style={{ padding: '12px', textAlign: 'center' }}>
+                        <a 
+                          href={`/yonetim?site=${encodeURIComponent(t.siteName)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ 
+                            backgroundColor: '#0284c7', 
+                            color: '#fff', 
+                            textDecoration: 'none', 
+                            padding: '6px 12px', 
+                            borderRadius: '8px', 
+                            fontWeight: '700', 
+                            fontSize: '12px', 
+                            display: 'inline-block',
+                            boxShadow: '0 2px 6px rgba(2, 132, 199, 0.3)'
+                          }}
+                        >
+                          🔗 Siteye Git
+                        </a>
+                      </td>
+
+                      <td style={{ padding: '12px', textAlign: 'center' }}>
+                        <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
+                          <button onClick={() => setEditingTenant(t)} style={{ backgroundColor: '#374151', color: '#fff', border: 'none', padding: '6px 10px', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', fontSize: '12px' }}>
+                            ✏️ Düzenle
+                          </button>
+                          <button onClick={() => handleDeleteTenant(t.id)} style={{ backgroundColor: '#fee2e2', color: '#dc2626', border: 'none', padding: '6px 10px', borderRadius: '8px', fontWeight: '700', cursor: 'pointer', fontSize: '12px' }}>
+                            🗑️ Sil
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -247,7 +270,7 @@ export default function SuperAdminPage() {
 
       </main>
 
-      {/* DÜZENLEME (GÜNCELLEME) MODALI */}
+      {/* DÜZENLEME MODALI */}
       {editingTenant && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, padding: '16px' }}>
           <div style={{ backgroundColor: '#111827', border: '1px solid #374151', borderRadius: '20px', padding: '30px', maxWidth: '450px', width: '100%', boxShadow: '0 25px 50px rgba(0,0,0,0.8)' }}>
@@ -272,7 +295,7 @@ export default function SuperAdminPage() {
               </div>
               <div>
                 <label style={{ fontSize: '12px', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>Bitiş Tarihi</label>
-                <input type="text" value={editingTenant.expireDate} onChange={(e) => setEditingTenant({...editingTenant, expireDate: e.target.value})} style={{ width: '100%', padding: '10px', backgroundColor: '#0b0f19', border: '1px solid #374151', borderRadius: '8px', color: '#fff', outline: 'none', boxSizing: 'border-box' }} />
+                <input type="text" value={editingTenant.expireDate} onChange={(e) => setEditingTenant({...e, expireDate: e.target.value} as any)} style={{ width: '100%', padding: '10px', backgroundColor: '#0b0f19', border: '1px solid #374151', borderRadius: '8px', color: '#fff', outline: 'none', boxSizing: 'border-box' }} />
               </div>
 
               <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
