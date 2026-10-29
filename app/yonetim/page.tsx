@@ -140,10 +140,10 @@ export default function YonetimPanelPage() {
           
           <form onSubmit={(e) => {
             e.preventDefault();
-            if (adminPassword === '1453') { // Yönetici şifresi
+            if (adminPassword === 'asdf') { // Yönetici şifresi
               setIsAdminLoggedIn(true);
             } else {
-              alert('Hatalı şifre! (İpucu: 1453)');
+              alert('Hatalı şifre!)');
             }
           }} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             <input
@@ -514,7 +514,7 @@ Site Yönetimi`;
               <h1 style={{ fontSize: '20px', fontWeight: '800', margin: 0, color: '#ffffff' }}>
                 MCF <span style={{ color: '#f3d1df' }}>Yönetim Paneli</span>
               </h1>
-              <p style={{ fontSize: '12px', color: '#e8c5d3', margin: '2px 0 0 0', fontWeight: '500' }}>Mürdüm & Gül Kurusu Tesis Yönetimi</p>
+              <p style={{ fontSize: '12px', color: '#e8c5d3', margin: '2px 0 0 0', fontWeight: '500' }}>Profesyonel Site Takip Yönetimi</p>
             </div>
           </div>
 
