@@ -19,15 +19,14 @@ export default function HomePage() {
       alert('Lütfen site/işletme kodu giriniz.');
       return;
     }
-    // Normal site yöneticisi girişi
     router.push(`/yonetim?site=${encodeURIComponent(siteCode)}`);
   };
 
-  // Tek Tıkla Bulvar City Demo Giriş
+  // Tek Tıkla Demo Site Giriş (14 Günlük Süre ve Pro Özellikler Aktif)
   const handleDemoLogin = () => {
-    sessionStorage.setItem('mcf_site_package', 'trial');
+    sessionStorage.setItem('mcf_site_package', 'pro');
     sessionStorage.setItem('mcf_admin_logged', 'true');
-    router.push('/yonetim?site=bulvar-city-demo');
+    router.push('/yonetim?site=Demo-Site');
   };
 
   // Süper Admin Giriş Doğrulama
@@ -55,7 +54,7 @@ export default function HomePage() {
       color: '#ffffff'
     }}>
       
-      {/* SAĞ ÜST KÖŞE SÜPER ADMIN BUTONU (GÖNDERDİĞİN GÖRSELDEKİ TARZ) */}
+      {/* SAĞ ÜST KÖŞE SÜPER ADMIN BUTONU */}
       <button 
         onClick={() => setShowSuperModal(true)}
         style={{
@@ -175,7 +174,7 @@ export default function HomePage() {
 
       </div>
 
-      {/* TEK TIKLA DEMO BUTONU */}
+      {/* TEK TIKLA DEMO SİTE BUTONU (14 GÜN & PRO ÖZELLİKLER) */}
       <div style={{ marginTop: '24px', width: '100%', maxWidth: '440px' }}>
         <button 
           onClick={handleDemoLogin}
@@ -192,7 +191,7 @@ export default function HomePage() {
             boxShadow: '0 4px 15px rgba(37, 99, 235, 0.4)'
           }}
         >
-          Tek Tıkla Bulvar City Demo İle İncele
+          Tek Tıkla Demo Site İle İncele (14 Gün Pro)
         </button>
       </div>
 
