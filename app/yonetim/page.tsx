@@ -528,7 +528,7 @@ Site Yönetimi`;
               <h1 style={{ fontSize: '20px', fontWeight: '800', margin: 0, color: '#ffffff' }}>
                 MCF <span style={{ color: '#f3d1df' }}>Site Yönetim Sistemi</span>
               </h1>
-              <p style={{ fontSize: '12px', color: '#e8c5d3', margin: '2px 0 0 0', fontWeight: '500' }}>Mürdüm & Gül Kurusu Tesis Yönetimi</p>
+              <p style={{ fontSize: '12px', color: '#e8c5d3', margin: '2px 0 0 0', fontWeight: '500' }}>Profesyonel Site Takip Yönetimi</p>
             </div>
           </div>
 

@@ -30,7 +30,7 @@ export default function HomePage() {
           MCF <span style={{ color: '#f3d1df' }}>Site Yönetim Sistemi</span>
         </h1>
         <p style={{ fontSize: '15px', color: '#ebd2dc', margin: '0 0 35px 0', lineHeight: '1.6' }}>
-          Mürdüm & Gül Kurusu Tesisleri Profesyonel Yönetim ve Sakin Portalı Platformuna Hoş Geldiniz. Lütfen devam etmek istediğiniz paneli seçin:
+          Profesyonel Yönetim ve Sakin Portalı Platformuna Hoş Geldiniz. Lütfen devam etmek istediğiniz paneli seçin:
         </p>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px' }}>
