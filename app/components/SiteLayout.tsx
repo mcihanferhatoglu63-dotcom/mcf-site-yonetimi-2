@@ -176,7 +176,7 @@ export default function SiteLayout() {
     }
   };
 
-  // Son İşlemi Geri Al (Undo Last Bulk Apply)
+  // Son İşlemi Geri Al (Undo)
   const handleUndoLastBulkDue = async () => {
     if (!lastAppliedDue) return;
     if (!confirm(`Son yansıtılan ${lastAppliedDue} ₺ aidat işlemi tüm birimlerden geri alınsın mı?`)) return;
@@ -253,28 +253,28 @@ export default function SiteLayout() {
   };
 
   const handleDeleteTransaction = async (id: string) => {
-  if (!confirm('Silmek istediğinize emin misiniz?')) return;
-  try {
-    await deleteDoc(doc(db, 'transactions', id));
-  } catch (err) {
-    console.error(err);
-  }
-};
+    if (!confirm('Silmek istediğinize emin misiniz?')) return;
+    try {
+      await deleteDoc(doc(db, 'transactions', id));
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const getOwnerLabel = (block: string) => {
     return block === 'A' ? 'Mülk Sahibi' : 'Ev Sahibi';
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#090d16', fontFamily: 'Inter, system-ui, sans-serif', color: '#e2e8f0' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#f6f4ee', fontFamily: 'Inter, system-ui, sans-serif', color: '#2d3748' }}>
       
-      {/* HEADER */}
+      {/* ÜST ANTRASİT HEADER */}
       <header style={{
-        background: 'linear-gradient(135deg, #0b132b 0%, #1c2541 100%)',
+        background: 'linear-gradient(135deg, #1e2022 0%, #2f3542 100%)',
         color: '#ffffff',
         padding: '18px 24px',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.6)',
-        borderBottom: '3px solid #eab308'
+        boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+        borderBottom: '3px solid #d97706'
       }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
           
@@ -282,24 +282,24 @@ export default function SiteLayout() {
             <img 
               src="/mcf-logo.png" 
               alt="MCF Logo" 
-              style={{ height: '46px', width: 'auto', objectFit: 'contain', borderRadius: '8px', background: 'rgba(234, 179, 8, 0.1)', padding: '6px', border: '1px solid #eab308' }} 
+              style={{ height: '46px', width: 'auto', objectFit: 'contain', borderRadius: '8px', background: 'rgba(217, 119, 6, 0.15)', padding: '6px', border: '1px solid #d97706' }} 
               onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
             />
             <div>
               <h1 style={{ fontSize: '20px', fontWeight: '800', margin: 0, color: '#ffffff' }}>
-                MCF <span style={{ color: '#eab308' }}>Site Yönetim Sistemi</span>
+                MCF <span style={{ color: '#fbbf24' }}>Site Yönetim Sistemi</span>
               </h1>
-              <p style={{ fontSize: '12px', color: '#94a3b8', margin: '2px 0 0 0', fontWeight: '500' }}>Uzay Mavisi Profesyonel Tesis Yönetimi</p>
+              <p style={{ fontSize: '12px', color: '#a0aec0', margin: '2px 0 0 0', fontWeight: '500' }}>Krem & Antrasit Profesyonel Tesis Yönetimi</p>
             </div>
           </div>
 
-          <nav style={{ display: 'flex', gap: '6px', background: '#0b132b', padding: '5px', borderRadius: '12px', border: '1px solid #334155', flexWrap: 'wrap' }}>
+          <nav style={{ display: 'flex', gap: '6px', background: '#16191c', padding: '5px', borderRadius: '12px', border: '1px solid #3f4756', flexWrap: 'wrap' }}>
             <button
               onClick={() => setActiveTab('units')}
               style={{
                 padding: '10px 14px', borderRadius: '8px', border: 'none', fontWeight: '700', fontSize: '13px', cursor: 'pointer',
-                backgroundColor: activeTab === 'units' ? '#eab308' : 'transparent',
-                color: activeTab === 'units' ? '#000000' : '#94a3b8'
+                backgroundColor: activeTab === 'units' ? '#fbbf24' : 'transparent',
+                color: activeTab === 'units' ? '#1e2022' : '#cbd5e0'
               }}
             >
               🏢 Blok ve Daireler
@@ -308,8 +308,8 @@ export default function SiteLayout() {
               onClick={() => setActiveTab('directory')}
               style={{
                 padding: '10px 14px', borderRadius: '8px', border: 'none', fontWeight: '700', fontSize: '13px', cursor: 'pointer',
-                backgroundColor: activeTab === 'directory' ? '#eab308' : 'transparent',
-                color: activeTab === 'directory' ? '#000000' : '#94a3b8'
+                backgroundColor: activeTab === 'directory' ? '#fbbf24' : 'transparent',
+                color: activeTab === 'directory' ? '#1e2022' : '#cbd5e0'
               }}
             >
               📖 Sakinler Rehberi
@@ -318,8 +318,8 @@ export default function SiteLayout() {
               onClick={() => setActiveTab('accounting')}
               style={{
                 padding: '10px 14px', borderRadius: '8px', border: 'none', fontWeight: '700', fontSize: '13px', cursor: 'pointer',
-                backgroundColor: activeTab === 'accounting' ? '#eab308' : 'transparent',
-                color: activeTab === 'accounting' ? '#000000' : '#94a3b8'
+                backgroundColor: activeTab === 'accounting' ? '#fbbf24' : 'transparent',
+                color: activeTab === 'accounting' ? '#1e2022' : '#cbd5e0'
               }}
             >
               💰 Kasa
@@ -328,8 +328,8 @@ export default function SiteLayout() {
               onClick={() => setActiveTab('reports')}
               style={{
                 padding: '10px 14px', borderRadius: '8px', border: 'none', fontWeight: '700', fontSize: '13px', cursor: 'pointer',
-                backgroundColor: activeTab === 'reports' ? '#eab308' : 'transparent',
-                color: activeTab === 'reports' ? '#000000' : '#94a3b8'
+                backgroundColor: activeTab === 'reports' ? '#fbbf24' : 'transparent',
+                color: activeTab === 'reports' ? '#1e2022' : '#cbd5e0'
               }}
             >
               📊 Raporlar
@@ -338,7 +338,7 @@ export default function SiteLayout() {
         </div>
       </header>
 
-      {/* İÇERİK */}
+      {/* İÇERİK ALANI */}
       <main style={{ padding: '24px', maxWidth: '1280px', margin: '0 auto' }}>
         
         {/* 1. BLOK VE DAİRELER */}
@@ -357,15 +357,16 @@ export default function SiteLayout() {
                     padding: '14px 24px',
                     borderRadius: '12px',
                     border: '1px solid',
-                    borderColor: selectedBlock === block.key ? '#eab308' : '#1e293b',
-                    backgroundColor: selectedBlock === block.key ? '#1c2541' : '#111827',
-                    color: selectedBlock === block.key ? '#facc15' : '#94a3b8',
+                    borderColor: selectedBlock === block.key ? '#d97706' : '#d1d5db',
+                    backgroundColor: selectedBlock === block.key ? '#2f3542' : '#ffffff',
+                    color: selectedBlock === block.key ? '#fbbf24' : '#4b5563',
                     fontWeight: '700',
                     fontSize: '14px',
                     cursor: 'pointer',
                     whiteSpace: 'nowrap',
                     flex: '1 1 auto',
-                    textAlign: 'center'
+                    textAlign: 'center',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.03)'
                   }}
                 >
                   {block.name}
@@ -373,14 +374,14 @@ export default function SiteLayout() {
               ))}
             </div>
 
-            {/* ÖZET VE TOPLU AİDAT */}
+            {/* ÖZET VE TOPLU AİDAT KARTI */}
             <div style={{
-              backgroundColor: '#111827',
+              backgroundColor: '#ffffff',
               borderRadius: '16px',
               padding: '24px',
               marginBottom: '28px',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
-              border: '1px solid #1e293b',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+              border: '1px solid #e2e8f0',
               display: 'flex',
               flexWrap: 'wrap',
               justifyContent: 'space-between',
@@ -388,45 +389,44 @@ export default function SiteLayout() {
               gap: '20px'
             }}>
               <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', width: '100%', maxWidth: '520px' }}>
-                <div style={{ flex: '1 1 200px', backgroundColor: '#1c2541', border: '1px solid #334155', borderRadius: '12px', padding: '16px', display: 'flex', alignItems: 'center', gap: '14px' }}>
-                  <div style={{ background: '#eab308', color: '#000', width: '42px', height: '42px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', fontWeight: 'bold' }}>⚠️</div>
+                <div style={{ flex: '1 1 200px', backgroundColor: '#fdf8ed', border: '1px solid #fef0c7', borderRadius: '12px', padding: '16px', display: 'flex', alignItems: 'center', gap: '14px' }}>
+                  <div style={{ background: '#d97706', color: '#fff', width: '42px', height: '42px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', fontWeight: 'bold' }}>⚠️</div>
                   <div>
-                    <div style={{ fontSize: '12px', color: '#fde047', fontWeight: '700' }}>Borçlu Birim</div>
-                    <div style={{ fontSize: '20px', fontWeight: '800', color: '#fef08a', marginTop: '2px' }}>{totalDebtors} Adet</div>
+                    <div style={{ fontSize: '12px', color: '#b45309', fontWeight: '700' }}>Borçlu Birim</div>
+                    <div style={{ fontSize: '20px', fontWeight: '800', color: '#92400e', marginTop: '2px' }}>{totalDebtors} Adet</div>
                   </div>
                 </div>
 
-                <div style={{ flex: '1 1 200px', backgroundColor: '#1c2541', border: '1px solid #334155', borderRadius: '12px', padding: '16px', display: 'flex', alignItems: 'center', gap: '14px' }}>
-                  <div style={{ background: '#334155', color: '#fff', width: '42px', height: '42px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', fontWeight: 'bold' }}>💳</div>
+                <div style={{ flex: '1 1 200px', backgroundColor: '#edf2f7', border: '1px solid #cbd5e0', borderRadius: '12px', padding: '16px', display: 'flex', alignItems: 'center', gap: '14px' }}>
+                  <div style={{ background: '#2f3542', color: '#fff', width: '42px', height: '42px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', fontWeight: 'bold' }}>💳</div>
                   <div>
-                    <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: '700' }}>Toplam Alacak</div>
-                    <div style={{ fontSize: '20px', fontWeight: '800', color: '#ffffff', marginTop: '2px' }}>{totalReceivables.toLocaleString('tr-TR')} ₺</div>
+                    <div style={{ fontSize: '12px', color: '#4a5568', fontWeight: '700' }}>Toplam Alacak</div>
+                    <div style={{ fontSize: '20px', fontWeight: '800', color: '#1a202c', marginTop: '2px' }}>{totalReceivables.toLocaleString('tr-TR')} ₺</div>
                   </div>
                 </div>
               </div>
 
               {/* AİDAT YANSITMA VE GERİ ALMA ALANI */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', maxWidth: '500px', flexWrap: 'wrap' }}>
-                <span style={{ fontSize: '13px', fontWeight: '700', color: '#cbd5e1' }}>Aidat:</span>
+                <span style={{ fontSize: '13px', fontWeight: '700', color: '#4a5568' }}>Aidat:</span>
                 <input
                   type="number"
                   value={dueAmount}
                   onChange={(e) => setDueAmount(e.target.value)}
-                  style={{ flex: '1 1 90px', padding: '12px 14px', borderRadius: '10px', border: '1px solid #334155', fontSize: '15px', fontWeight: 'bold', outline: 'none', background: '#0b132b', color: '#ffffff' }}
+                  style={{ flex: '1 1 90px', padding: '12px 14px', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '15px', fontWeight: 'bold', outline: 'none', background: '#f8fafc', color: '#1e2022' }}
                 />
                 <button
                   onClick={handleBulkApplyDue}
-                  style={{ flex: '2 1 160px', backgroundColor: '#eab308', color: '#000000', padding: '12px 16px', borderRadius: '10px', border: 'none', fontWeight: '800', fontSize: '13px', cursor: 'pointer' }}
+                  style={{ flex: '2 1 160px', backgroundColor: '#2f3542', color: '#fbbf24', padding: '12px 16px', borderRadius: '10px', border: '1px solid #d97706', fontWeight: '800', fontSize: '13px', cursor: 'pointer' }}
                 >
                   ⚡ Toplu Yansıt
                 </button>
 
-                {/* SON İŞLEMİ GERİ AL BUTONU */}
                 {lastAppliedDue && (
                   <button
                     onClick={handleUndoLastBulkDue}
                     title="Son eklenen aidatı siler/geri alır"
-                    style={{ flex: '1 1 100%', marginTop: '6px', backgroundColor: '#ef4444', color: '#ffffff', padding: '10px 14px', borderRadius: '10px', border: 'none', fontWeight: '700', fontSize: '12px', cursor: 'pointer', boxShadow: '0 2px 8px rgba(239, 68, 68, 0.4)' }}
+                    style={{ flex: '1 1 100%', marginTop: '6px', backgroundColor: '#dc2626', color: '#ffffff', padding: '10px 14px', borderRadius: '10px', border: 'none', fontWeight: '700', fontSize: '12px', cursor: 'pointer', boxShadow: '0 2px 8px rgba(220, 38, 38, 0.3)' }}
                   >
                     ↩️ Son Yansıtılan Aidatı Geri Al ({lastAppliedDue} ₺)
                   </button>
@@ -436,7 +436,7 @@ export default function SiteLayout() {
 
             {/* KARTLAR */}
             {loading ? (
-              <div style={{ textAlign: 'center', padding: '60px', color: '#94a3b8' }}>Yükleniyor...</div>
+              <div style={{ textAlign: 'center', padding: '60px', color: '#4a5568' }}>Yükleniyor...</div>
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '18px' }}>
                 {filteredUnits.map((unit) => {
@@ -446,12 +446,12 @@ export default function SiteLayout() {
                     <div
                       key={unit.id}
                       style={{
-                        backgroundColor: '#111827',
+                        backgroundColor: '#ffffff',
                         border: '1px solid',
-                        borderColor: isDebtor ? '#78350f' : '#14532d',
+                        borderColor: isDebtor ? '#f59e0b' : '#10b981',
                         borderRadius: '16px',
                         padding: '18px',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.04)',
                         position: 'relative',
                         display: 'flex',
                         flexDirection: 'column',
@@ -459,32 +459,32 @@ export default function SiteLayout() {
                         gap: '12px'
                       }}
                     >
-                      <div style={{ position: 'absolute', top: 0, left: 0, width: '6px', height: '100%', backgroundColor: isDebtor ? '#eab308' : '#22c55e' }} />
+                      <div style={{ position: 'absolute', top: 0, left: 0, width: '6px', height: '100%', backgroundColor: isDebtor ? '#d97706' : '#10b981' }} />
                       
                       <div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                          <h3 style={{ margin: 0, fontSize: '16px', color: '#ffffff', fontWeight: '800' }}>
+                          <h3 style={{ margin: 0, fontSize: '16px', color: '#1e2022', fontWeight: '800' }}>
                             {selectedBlock === 'A' ? `Dükkan ${unit.unitNumber}` : `${selectedBlock} Blok - No: ${unit.unitNumber}`}
                           </h3>
-                          <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '6px', background: unit.isTenant ? '#312e81' : '#064e3b', color: unit.isTenant ? '#c7d2fe' : '#a7f3d0', fontWeight: '700' }}>
+                          <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '6px', background: unit.isTenant ? '#e0e7ff' : '#d1fae5', color: unit.isTenant ? '#3730a3' : '#065f46', fontWeight: '700' }}>
                             {unit.isTenant ? 'Kiracı' : ownerText}
                           </span>
                         </div>
 
-                        <p style={{ margin: '0 0 4px 0', fontSize: '14px', color: '#e2e8f0', fontWeight: '600' }}>
+                        <p style={{ margin: '0 0 4px 0', fontSize: '14px', color: '#2d3748', fontWeight: '600' }}>
                           👤 {unit.residentName || 'İsim Yok'}
                         </p>
-                        <p style={{ margin: '0 0 4px 0', fontSize: '13px', color: '#94a3b8' }}>
+                        <p style={{ margin: '0 0 4px 0', fontSize: '13px', color: '#718096' }}>
                           📞 {unit.phone || 'Tel Girilmemiş'}
                         </p>
                         {unit.isTenant && unit.landlordName && (
-                          <p style={{ margin: 0, fontSize: '12px', color: '#64748b' }}>
+                          <p style={{ margin: 0, fontSize: '12px', color: '#4a5568' }}>
                             🏠 {ownerText}: {unit.landlordName}
                           </p>
                         )}
                       </div>
 
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #1e293b', paddingTop: '10px', gap: '8px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #edf2f7', paddingTop: '10px', gap: '8px' }}>
                         <div
                           onClick={() => togglePaymentStatus(unit)}
                           style={{
@@ -493,8 +493,8 @@ export default function SiteLayout() {
                             borderRadius: '8px',
                             fontSize: '12px',
                             fontWeight: '700',
-                            backgroundColor: isDebtor ? '#1e1b0b' : '#052e16',
-                            color: isDebtor ? '#facc15' : '#4ade80'
+                            backgroundColor: isDebtor ? '#fef3c7' : '#d1fae5',
+                            color: isDebtor ? '#92400e' : '#065f46'
                           }}
                         >
                           {isDebtor ? `⚠️ ${unit.debt.toLocaleString('tr-TR')} ₺` : '✅ Ödendi'}
@@ -505,14 +505,14 @@ export default function SiteLayout() {
                             <button
                               onClick={() => openWhatsApp(unit.phone, unit.residentName, unit.debt)}
                               title="WhatsApp Mesaj Gönder"
-                              style={{ backgroundColor: '#065f46', color: '#6ee7b7', border: 'none', padding: '6px 10px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: '700' }}
+                              style={{ backgroundColor: '#065f46', color: '#ffffff', border: 'none', padding: '6px 10px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: '700' }}
                             >
                               💬 WA
                             </button>
                           )}
                           <button
                             onClick={() => setEditingUnit(unit)}
-                            style={{ backgroundColor: '#1c2541', color: '#60a5fa', border: '1px solid #334155', padding: '6px 10px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: '700' }}
+                            style={{ backgroundColor: '#2f3542', color: '#fbbf24', border: 'none', padding: '6px 10px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: '700' }}
                           >
                             ✏️
                           </button>
@@ -528,12 +528,12 @@ export default function SiteLayout() {
 
         {/* 2. REHBER */}
         {activeTab === 'directory' && (
-          <div style={{ backgroundColor: '#111827', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 16px rgba(0,0,0,0.5)', border: '1px solid #1e293b' }}>
-            <h2 style={{ fontSize: '18px', fontWeight: '800', color: '#ffffff', margin: '0 0 16px 0' }}>📖 Tüm Bina Sakinleri Telefon Rehberi</h2>
+          <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 16px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
+            <h2 style={{ fontSize: '18px', fontWeight: '800', color: '#1e2022', margin: '0 0 16px 0' }}>📖 Tüm Bina Sakinleri Telefon Rehberi</h2>
             <div style={{ overflowX: 'auto' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px' }}>
                 <thead>
-                  <tr style={{ borderBottom: '2px solid #1e293b', color: '#94a3b8' }}>
+                  <tr style={{ borderBottom: '2px solid #e2e8f0', color: '#718096' }}>
                     <th style={{ padding: '12px' }}>Blok / No</th>
                     <th style={{ padding: '12px' }}>Sakin Adı</th>
                     <th style={{ padding: '12px' }}>Durum</th>
@@ -545,25 +545,25 @@ export default function SiteLayout() {
                   {sortedAllUnits.map((u) => {
                     const ownerText = getOwnerLabel(u.block);
                     return (
-                      <tr key={u.id} style={{ borderBottom: '1px solid #1e293b' }}>
-                        <td style={{ padding: '14px 12px', fontWeight: '800', color: '#eab308' }}>
+                      <tr key={u.id} style={{ borderBottom: '1px solid #edf2f7' }}>
+                        <td style={{ padding: '14px 12px', fontWeight: '800', color: '#d97706' }}>
                           {u.block === 'A' ? `A Blok - Dükkan ${u.unitNumber}` : `${u.block} Blok - No: ${u.unitNumber}`}
                         </td>
-                        <td style={{ padding: '14px 12px', fontWeight: '600', color: '#ffffff' }}>{u.residentName}</td>
-                        <td style={{ padding: '14px 12px', color: '#94a3b8' }}>
+                        <td style={{ padding: '14px 12px', fontWeight: '600', color: '#1e2022' }}>{u.residentName}</td>
+                        <td style={{ padding: '14px 12px', color: '#4a5568' }}>
                           {u.isTenant ? `Kiracı (${ownerText}: ${u.landlordName || '-'})` : ownerText}
                         </td>
-                        <td style={{ padding: '14px 12px', color: '#cbd5e1', fontWeight: '600' }}>{u.phone || 'Kayıt Yok'}</td>
+                        <td style={{ padding: '14px 12px', color: '#2d3748', fontWeight: '600' }}>{u.phone || 'Kayıt Yok'}</td>
                         <td style={{ padding: '14px 12px', textAlign: 'center' }}>
                           {u.phone ? (
                             <button
                               onClick={() => openWhatsApp(u.phone, u.residentName, u.debt)}
-                              style={{ backgroundColor: '#065f46', color: '#6ee7b7', border: 'none', padding: '6px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: '700' }}
+                              style={{ backgroundColor: '#059669', color: '#ffffff', border: 'none', padding: '6px 14px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: '700' }}
                             >
                               💬 WhatsApp Mesaj Gönder
                             </button>
                           ) : (
-                            <span style={{ fontSize: '12px', color: '#64748b' }}>Tel Yok</span>
+                            <span style={{ fontSize: '12px', color: '#a0aec0' }}>Tel Yok</span>
                           )}
                         </td>
                       </tr>
@@ -579,27 +579,27 @@ export default function SiteLayout() {
         {activeTab === 'accounting' && (
           <div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px', marginBottom: '28px' }}>
-              <div style={{ backgroundColor: '#111827', padding: '24px', borderRadius: '16px', border: '1px solid #1e293b', borderLeft: '6px solid #22c55e' }}>
-                <div style={{ fontSize: '13px', color: '#94a3b8', fontWeight: '700' }}>Toplam Gelir</div>
-                <div style={{ fontSize: '26px', fontWeight: '800', color: '#4ade80', marginTop: '8px' }}>{totalIncome.toLocaleString('tr-TR')} ₺</div>
+              <div style={{ backgroundColor: '#ffffff', padding: '24px', borderRadius: '16px', border: '1px solid #e2e8f0', borderLeft: '6px solid #10b981', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
+                <div style={{ fontSize: '13px', color: '#718096', fontWeight: '700' }}>Toplam Gelir</div>
+                <div style={{ fontSize: '26px', fontWeight: '800', color: '#059669', marginTop: '8px' }}>{totalIncome.toLocaleString('tr-TR')} ₺</div>
               </div>
-              <div style={{ backgroundColor: '#111827', padding: '24px', borderRadius: '16px', border: '1px solid #1e293b', borderLeft: '6px solid #eab308' }}>
-                <div style={{ fontSize: '13px', color: '#94a3b8', fontWeight: '700' }}>Toplam Gider</div>
-                <div style={{ fontSize: '26px', fontWeight: '800', color: '#facc15', marginTop: '8px' }}>{totalExpense.toLocaleString('tr-TR')} ₺</div>
+              <div style={{ backgroundColor: '#ffffff', padding: '24px', borderRadius: '16px', border: '1px solid #e2e8f0', borderLeft: '6px solid #d97706', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
+                <div style={{ fontSize: '13px', color: '#718096', fontWeight: '700' }}>Toplam Gider</div>
+                <div style={{ fontSize: '26px', fontWeight: '800', color: '#d97706', marginTop: '8px' }}>{totalExpense.toLocaleString('tr-TR')} ₺</div>
               </div>
-              <div style={{ backgroundColor: '#111827', padding: '24px', borderRadius: '16px', border: '1px solid #1e293b', borderLeft: '6px solid #3b82f6' }}>
-                <div style={{ fontSize: '13px', color: '#94a3b8', fontWeight: '700' }}>Net Kasa Bakiyesi</div>
-                <div style={{ fontSize: '26px', fontWeight: '800', color: netBalance >= 0 ? '#60a5fa' : '#f87171', marginTop: '8px' }}>{netBalance.toLocaleString('tr-TR')} ₺</div>
+              <div style={{ backgroundColor: '#ffffff', padding: '24px', borderRadius: '16px', border: '1px solid #e2e8f0', borderLeft: '6px solid #2f3542', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
+                <div style={{ fontSize: '13px', color: '#718096', fontWeight: '700' }}>Net Kasa Bakiyesi</div>
+                <div style={{ fontSize: '26px', fontWeight: '800', color: netBalance >= 0 ? '#2f3542' : '#dc2626', marginTop: '8px' }}>{netBalance.toLocaleString('tr-TR')} ₺</div>
               </div>
             </div>
 
-            <div style={{ backgroundColor: '#111827', padding: '28px', borderRadius: '16px', marginBottom: '28px', border: '1px solid #1e293b' }}>
-              <h3 style={{ margin: '0 0 18px 0', fontSize: '16px', color: '#ffffff', fontWeight: '800' }}>➕ Yeni Kasa İşlemi Ekle</h3>
+            <div style={{ backgroundColor: '#ffffff', padding: '28px', borderRadius: '16px', marginBottom: '28px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
+              <h3 style={{ margin: '0 0 18px 0', fontSize: '16px', color: '#1e2022', fontWeight: '800' }}>➕ Yeni Kasa İşlemi Ekle</h3>
               <form onSubmit={handleAddTransaction} style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
                 <select
                   value={txType}
                   onChange={(e) => setTxType(e.target.value as 'income' | 'expense')}
-                  style={{ padding: '12px 16px', borderRadius: '10px', border: '1px solid #334155', fontSize: '14px', flex: '1 1 150px', fontWeight: '700', background: '#0b132b', color: '#ffffff' }}
+                  style={{ padding: '12px 16px', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '14px', flex: '1 1 150px', fontWeight: '700', background: '#f8fafc', color: '#1e2022' }}
                 >
                   <option value="income">🟢 Gelir Ekle</option>
                   <option value="expense">🔴 Gider Ekle</option>
@@ -610,7 +610,7 @@ export default function SiteLayout() {
                   placeholder="Açıklama (Örn: Asansör Bakımı)"
                   value={txTitle}
                   onChange={(e) => setTxTitle(e.target.value)}
-                  style={{ padding: '12px 16px', borderRadius: '10px', border: '1px solid #334155', fontSize: '14px', flex: '2 1 260px', background: '#0b132b', color: '#ffffff' }}
+                  style={{ padding: '12px 16px', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '14px', flex: '2 1 260px', background: '#f8fafc', color: '#1e2022' }}
                 />
 
                 <input
@@ -618,13 +618,13 @@ export default function SiteLayout() {
                   placeholder="Tutar (₺)"
                   value={txAmount}
                   onChange={(e) => setTxAmount(e.target.value)}
-                  style={{ padding: '12px 16px', borderRadius: '10px', border: '1px solid #334155', fontSize: '14px', flex: '1 1 130px', background: '#0b132b', color: '#ffffff' }}
+                  style={{ padding: '12px 16px', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '14px', flex: '1 1 130px', background: '#f8fafc', color: '#1e2022' }}
                 />
 
                 <select
                   value={txCategory}
                   onChange={(e) => setTxCategory(e.target.value)}
-                  style={{ padding: '12px 16px', borderRadius: '10px', border: '1px solid #334155', fontSize: '14px', flex: '1 1 170px', background: '#0b132b', color: '#ffffff', fontWeight: '500' }}
+                  style={{ padding: '12px 16px', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '14px', flex: '1 1 170px', background: '#f8fafc', color: '#1e2022', fontWeight: '500' }}
                 >
                   <option value="Aidat Tahsilatı">Aidat Tahsilatı</option>
                   <option value="Ortak Gelir">Ortak Gelir</option>
@@ -636,22 +636,22 @@ export default function SiteLayout() {
 
                 <button
                   type="submit"
-                  style={{ backgroundColor: '#eab308', color: '#000000', border: 'none', padding: '12px 24px', borderRadius: '10px', fontWeight: '800', cursor: 'pointer', flex: '1 1 150px' }}
+                  style={{ backgroundColor: '#2f3542', color: '#fbbf24', border: 'none', padding: '12px 24px', borderRadius: '10px', fontWeight: '800', cursor: 'pointer', flex: '1 1 150px' }}
                 >
                   Kaydet
                 </button>
               </form>
             </div>
 
-            <div style={{ backgroundColor: '#111827', borderRadius: '16px', padding: '24px', border: '1px solid #1e293b' }}>
-              <h3 style={{ margin: '0 0 18px 0', fontSize: '16px', color: '#ffffff', fontWeight: '800' }}>📋 Kasa Hareketleri Geçmişi</h3>
+            <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', padding: '24px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
+              <h3 style={{ margin: '0 0 18px 0', fontSize: '16px', color: '#1e2022', fontWeight: '800' }}>📋 Kasa Hareketleri Geçmişi</h3>
               {transactions.length === 0 ? (
-                <p style={{ color: '#94a3b8', textAlign: 'center', padding: '30px' }}>Henüz kayıt yok.</p>
+                <p style={{ color: '#718096', textAlign: 'center', padding: '30px' }}>Henüz kayıt yok.</p>
               ) : (
                 <div style={{ overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px' }}>
                     <thead>
-                      <tr style={{ borderBottom: '2px solid #1e293b', color: '#94a3b8' }}>
+                      <tr style={{ borderBottom: '2px solid #e2e8f0', color: '#718096' }}>
                         <th style={{ padding: '12px' }}>Tarih</th>
                         <th style={{ padding: '12px' }}>Tür</th>
                         <th style={{ padding: '12px' }}>Kategori</th>
@@ -662,20 +662,20 @@ export default function SiteLayout() {
                     </thead>
                     <tbody>
                       {transactions.map((t) => (
-                        <tr key={t.id} style={{ borderBottom: '1px solid #1e293b' }}>
-                          <td style={{ padding: '14px 12px', color: '#94a3b8' }}>{t.date || 'Bugün'}</td>
-                          <td style={{ padding: '14px 12px', fontWeight: '700', color: t.type === 'income' ? '#4ade80' : '#facc15' }}>
+                        <tr key={t.id} style={{ borderBottom: '1px solid #edf2f7' }}>
+                          <td style={{ padding: '14px 12px', color: '#718096' }}>{t.date || 'Bugün'}</td>
+                          <td style={{ padding: '14px 12px', fontWeight: '700', color: t.type === 'income' ? '#059669' : '#d97706' }}>
                             {t.type === 'income' ? '🟢 Gelir' : '🔴 Gider'}
                           </td>
-                          <td style={{ padding: '14px 12px', color: '#cbd5e1' }}>{t.category}</td>
-                          <td style={{ padding: '14px 12px', color: '#ffffff', fontWeight: '600' }}>{t.title}</td>
-                          <td style={{ padding: '14px 12px', fontWeight: '800', color: t.type === 'income' ? '#4ade80' : '#facc15' }}>
+                          <td style={{ padding: '14px 12px', color: '#4a5568' }}>{t.category}</td>
+                          <td style={{ padding: '14px 12px', color: '#1e2022', fontWeight: '600' }}>{t.title}</td>
+                          <td style={{ padding: '14px 12px', fontWeight: '800', color: t.type === 'income' ? '#059669' : '#d97706' }}>
                             {t.type === 'income' ? '+' : '-'}{Number(t.amount).toLocaleString('tr-TR')} ₺
                           </td>
                           <td style={{ padding: '14px 12px', textAlign: 'center' }}>
                             <button
                               onClick={() => handleDeleteTransaction(t.id)}
-                              style={{ backgroundColor: '#422006', color: '#facc15', border: 'none', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: '700' }}
+                              style={{ backgroundColor: '#fee2e2', color: '#dc2626', border: 'none', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: '700' }}
                             >
                               Sil
                             </button>
@@ -692,9 +692,9 @@ export default function SiteLayout() {
 
         {/* 4. RAPORLAR */}
         {activeTab === 'reports' && (
-          <div style={{ backgroundColor: '#111827', padding: '60px', borderRadius: '16px', textAlign: 'center', border: '1px solid #1e293b' }}>
-            <h2 style={{ fontSize: '20px', fontWeight: '800', color: '#ffffff', margin: '0 0 8px 0' }}>📊 Raporlama Paneli</h2>
-            <p style={{ color: '#94a3b8', margin: 0 }}>Sonraki adımda Excel ve PDF rapor indirme araçlarını buraya ekleyeceğiz.</p>
+          <div style={{ backgroundColor: '#ffffff', padding: '60px', borderRadius: '16px', textAlign: 'center', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: '800', color: '#1e2022', margin: '0 0 8px 0' }}>📊 Raporlama Paneli</h2>
+            <p style={{ color: '#718096', margin: 0 }}>Sonraki adımda Excel ve PDF rapor indirme araçlarını buraya ekleyeceğiz.</p>
           </div>
         )}
 
@@ -704,41 +704,41 @@ export default function SiteLayout() {
       {editingUnit && (
         <div style={{
           position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
-          backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px'
+          backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px'
         }}>
-          <div style={{ backgroundColor: '#111827', border: '1px solid #334155', borderRadius: '16px', padding: '24px', width: '100%', maxWidth: '420px', boxShadow: '0 10px 25px rgba(0,0,0,0.5)' }}>
-            <h3 style={{ margin: '0 0 16px 0', fontSize: '18px', color: '#ffffff', fontWeight: '800' }}>
+          <div style={{ backgroundColor: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '16px', padding: '24px', width: '100%', maxWidth: '420px', boxShadow: '0 10px 25px rgba(0,0,0,0.15)' }}>
+            <h3 style={{ margin: '0 0 16px 0', fontSize: '18px', color: '#1e2022', fontWeight: '800' }}>
               🏢 {editingUnit.block === 'A' ? `A Blok - Dükkan ${editingUnit.unitNumber}` : `${editingUnit.block} Blok - No: ${editingUnit.unitNumber}`} Düzenle
             </h3>
             
             <form onSubmit={handleSaveUnitDetails} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '13px', color: '#94a3b8', marginBottom: '6px', fontWeight: '600' }}>Sakin / İşletmeci Adı Soyadı:</label>
+                <label style={{ display: 'block', fontSize: '13px', color: '#4a5568', marginBottom: '6px', fontWeight: '600' }}>Sakin / İşletmeci Adı Soyadı:</label>
                 <input
                   type="text"
                   value={editingUnit.residentName}
                   onChange={(e) => setEditingUnit({ ...editingUnit, residentName: e.target.value })}
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #334155', background: '#0b132b', color: '#ffffff', fontSize: '14px' }}
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#f8fafc', color: '#1e2022', fontSize: '14px' }}
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '13px', color: '#94a3b8', marginBottom: '6px', fontWeight: '600' }}>Telefon Numarası (WhatsApp):</label>
+                <label style={{ display: 'block', fontSize: '13px', color: '#4a5568', marginBottom: '6px', fontWeight: '600' }}>Telefon Numarası (WhatsApp):</label>
                 <input
                   type="text"
                   placeholder="0532..."
                   value={editingUnit.phone || ''}
                   onChange={(e) => setEditingUnit({ ...editingUnit, phone: e.target.value })}
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #334155', background: '#0b132b', color: '#ffffff', fontSize: '14px' }}
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#f8fafc', color: '#1e2022', fontSize: '14px' }}
                 />
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '13px', color: '#94a3b8', marginBottom: '6px', fontWeight: '600' }}>Mülkiyet Durumu:</label>
+                <label style={{ display: 'block', fontSize: '13px', color: '#4a5568', marginBottom: '6px', fontWeight: '600' }}>Mülkiyet Durumu:</label>
                 <select
                   value={editingUnit.isTenant ? 'tenant' : 'owner'}
                   onChange={(e) => setEditingUnit({ ...editingUnit, isTenant: e.target.value === 'tenant' })}
-                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #334155', background: '#0b132b', color: '#ffffff', fontSize: '14px', fontWeight: '700' }}
+                  style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#f8fafc', color: '#1e2022', fontSize: '14px', fontWeight: '700' }}
                 >
                   <option value="owner">🏠 {getOwnerLabel(editingUnit.block)} (Oturuyor / İşletiyor)</option>
                   <option value="tenant">🔑 Kiracı</option>
@@ -747,14 +747,14 @@ export default function SiteLayout() {
 
               {editingUnit.isTenant && (
                 <div>
-                  <label style={{ display: 'block', fontSize: '13px', color: '#94a3b8', marginBottom: '6px', fontWeight: '600' }}>
+                  <label style={{ display: 'block', fontSize: '13px', color: '#4a5568', marginBottom: '6px', fontWeight: '600' }}>
                     {getOwnerLabel(editingUnit.block)} Adı Soyadı:
                   </label>
                   <input
                     type="text"
                     value={editingUnit.landlordName || ''}
                     onChange={(e) => setEditingUnit({ ...editingUnit, landlordName: e.target.value })}
-                    style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #334155', background: '#0b132b', color: '#ffffff', fontSize: '14px' }}
+                    style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#f8fafc', color: '#1e2022', fontSize: '14px' }}
                   />
                 </div>
               )}
@@ -763,13 +763,13 @@ export default function SiteLayout() {
                 <button
                   type="button"
                   onClick={() => setEditingUnit(null)}
-                  style={{ flex: 1, backgroundColor: '#334155', color: '#ffffff', border: 'none', padding: '10px', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}
+                  style={{ flex: 1, backgroundColor: '#e2e8f0', color: '#1e2022', border: 'none', padding: '10px', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}
                 >
                   İptal
                 </button>
                 <button
                   type="submit"
-                  style={{ flex: 1, backgroundColor: '#eab308', color: '#000000', border: 'none', padding: '10px', borderRadius: '8px', fontWeight: '800', cursor: 'pointer' }}
+                  style={{ flex: 1, backgroundColor: '#2f3542', color: '#fbbf24', border: 'none', padding: '10px', borderRadius: '8px', fontWeight: '800', cursor: 'pointer' }}
                 >
                   Kaydet
                 </button>
