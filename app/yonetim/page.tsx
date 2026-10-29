@@ -1,14 +1,8 @@
 'use client';
 
-
-
-
 import React, { useState, useEffect } from 'react';
 import { db } from '../firebase';
 import { collection, onSnapshot, doc, updateDoc, writeBatch, addDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
-
-
-
 
 interface Unit {
   id: string; // Örn: B_12
@@ -31,45 +25,10 @@ interface Transaction {
   date: string;
 }
 
-export default function SiteLayout() {
-// Yönetici Giriş State'i
+export default function YonetimPanelPage() {
+  // YÖNETİCİ ŞİFRE KORUMASI STATE'LERİ
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   const [adminPassword, setAdminPassword] = useState('');
-
-  // Eğer yönetici giriş yapmadıysa kilit ekranını göster
-  if (!isAdminLoggedIn) {
-    return (
-      <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #4a1535 0%, #6b2d5c 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, sans-serif', padding: '20px' }}>
-        <div style={{ backgroundColor: '#ffffff', padding: '40px', borderRadius: '20px', maxWidth: '400px', width: '100%', boxShadow: '0 15px 30px rgba(0,0,0,0.3)', textAlign: 'center' }}>
-          <div style={{ fontSize: '36px', marginBottom: '10px' }}>🔐</div>
-          <h2 style={{ color: '#4a1535', fontSize: '20px', fontWeight: '800', margin: '0 0 10px 0' }}>Yönetici Paneli Girişi</h2>
-          <p style={{ color: '#6b7280', fontSize: '13px', margin: '0 0 20px 0' }}>Lütfen devam etmek için yönetici şifrenizi giriniz.</p>
-          
-          <form onSubmit={(e) => {
-            e.preventDefault();
-            if (adminPassword === 'asdf') { // Buradaki şifreyi dilediğin gibi değiştirebilirsin abicim
-              setIsAdminLoggedIn(true);
-            } else {
-              alert('Hatalı şifre!');
-            }
-          }} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            <input
-              type="password"
-              placeholder="Yönetici Şifresi"
-              value={adminPassword}
-              onChange={(e) => setAdminPassword(e.target.value)}
-              style={{ padding: '12px 16px', borderRadius: '10px', border: '1px solid #d8b8c5', fontSize: '16px', outline: 'none', textAlign: 'center' }}
-            />
-            <button type="submit" style={{ backgroundColor: '#6b2d5c', color: '#fff', border: 'none', padding: '12px', borderRadius: '10px', fontWeight: '800', cursor: 'pointer', fontSize: '15px' }}>
-              Giriş Yap
-            </button>
-            <a href="/" style={{ fontSize: '13px', color: '#6b7280', textDecoration: 'none', marginTop: '5px' }}>← Ana Sayfaya Dön</a>
-          </form>
-        </div>
-      </div>
-    );
-  }
-
 
   const [activeTab, setActiveTab] = useState<'units' | 'directory' | 'accounting' | 'reports'>('units');
   const [selectedBlock, setSelectedBlock] = useState('A');
@@ -169,6 +128,40 @@ export default function SiteLayout() {
       unsubscribeTx();
     };
   }, []);
+
+  // EĞER YÖNETİCİ GİRİŞ YAPMADIYSA ŞİFRE EKRANINI GÖSTER
+  if (!isAdminLoggedIn) {
+    return (
+      <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #4a1535 0%, #6b2d5c 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter, sans-serif', padding: '20px' }}>
+        <div style={{ backgroundColor: '#ffffff', padding: '40px', borderRadius: '20px', maxWidth: '400px', width: '100%', boxShadow: '0 15px 30px rgba(0,0,0,0.3)', textAlign: 'center' }}>
+          <div style={{ fontSize: '36px', marginBottom: '10px' }}>🔐</div>
+          <h2 style={{ color: '#4a1535', fontSize: '20px', fontWeight: '800', margin: '0 0 10px 0' }}>Yönetici Paneli Girişi</h2>
+          <p style={{ color: '#6b7280', fontSize: '13px', margin: '0 0 20px 0' }}>Lütfen devam etmek için yönetici şifrenizi giriniz.</p>
+          
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            if (adminPassword === '1453') { // Yönetici şifresi
+              setIsAdminLoggedIn(true);
+            } else {
+              alert('Hatalı şifre! (İpucu: 1453)');
+            }
+          }} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <input
+              type="password"
+              placeholder="Yönetici Şifresi"
+              value={adminPassword}
+              onChange={(e) => setAdminPassword(e.target.value)}
+              style={{ padding: '12px 16px', borderRadius: '10px', border: '1px solid #d8b8c5', fontSize: '16px', outline: 'none', textAlign: 'center' }}
+            />
+            <button type="submit" style={{ backgroundColor: '#6b2d5c', color: '#fff', border: 'none', padding: '12px', borderRadius: '10px', fontWeight: '800', cursor: 'pointer', fontSize: '15px' }}>
+              Giriş Yap
+            </button>
+            <a href="/" style={{ fontSize: '13px', color: '#6b7280', textDecoration: 'none', marginTop: '5px' }}>← Ana Sayfaya Dön</a>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   // RAKAMSAL SIRALAMA (1, 2, 3 ... 28)
   const filteredUnits = units
@@ -334,7 +327,6 @@ Site Yönetimi`;
   };
 
   // EXCEL RAPORUNU GENİŞ VE DÜZENLİ HTML TABLO OLARAK İNDİRME (.XLS FORMATI)
-  // Bu yöntem Excel'de sütunların sıkışmasını engeller ve tam oturmasını sağlar.
   const exportUnitsToExcel = () => {
     let htmlContent = `
       <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
@@ -518,17 +510,11 @@ Site Yönetimi`;
         <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
           
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <img 
-              src="/mcf-logo.png" 
-              alt="MCF Logo" 
-              style={{ height: '46px', width: 'auto', objectFit: 'contain', borderRadius: '8px', background: 'rgba(212, 165, 184, 0.2)', padding: '6px', border: '1px solid #d4a5b8' }} 
-              onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
-            />
             <div>
               <h1 style={{ fontSize: '20px', fontWeight: '800', margin: 0, color: '#ffffff' }}>
-                MCF <span style={{ color: '#f3d1df' }}>Site Yönetim Sistemi</span>
+                MCF <span style={{ color: '#f3d1df' }}>Yönetim Paneli</span>
               </h1>
-              <p style={{ fontSize: '12px', color: '#e8c5d3', margin: '2px 0 0 0', fontWeight: '500' }}>Profesyonel Site Takip Yönetimi</p>
+              <p style={{ fontSize: '12px', color: '#e8c5d3', margin: '2px 0 0 0', fontWeight: '500' }}>Mürdüm & Gül Kurusu Tesis Yönetimi</p>
             </div>
           </div>
 
@@ -573,6 +559,17 @@ Site Yönetimi`;
             >
               📊 Raporlar
             </button>
+            <a
+              href="/"
+              style={{
+                padding: '10px 14px', borderRadius: '8px', border: 'none', fontWeight: '700', fontSize: '13px', cursor: 'pointer', textDecoration: 'none',
+                backgroundColor: '#dc2626',
+                color: '#ffffff',
+                display: 'flex', alignItems: 'center'
+              }}
+            >
+              🚪 Çıkış
+            </a>
           </nav>
         </div>
       </header>
@@ -955,7 +952,7 @@ Site Yönetimi`;
           </div>
         )}
 
-        {/* 4. RAPORLAR (PROFESYONEL EXCEL MERKEZİ) */}
+        {/* 4. RAPORLAR */}
         {activeTab === 'reports' && (
           <div style={{ backgroundColor: '#ffffff', padding: '40px', borderRadius: '16px', textAlign: 'center', border: '1px solid #ebd2dc', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
             <h2 style={{ fontSize: '22px', fontWeight: '800', color: '#4a1535', margin: '0 0 10px 0' }}>📊 Profesyonel Raporlama ve Excel Aktarım Merkezi</h2>
