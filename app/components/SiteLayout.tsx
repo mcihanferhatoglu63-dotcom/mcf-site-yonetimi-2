@@ -39,6 +39,9 @@ export default function SiteLayout() {
   // Düzenleme Modalı
   const [editingUnit, setEditingUnit] = useState<Unit | null>(null);
 
+  // Resmi Uyarı Modalı State'leri
+  const [warningModalUnit, setWarningModalUnit] = useState<Unit | null>(null);
+
   // Kasa Formu
   const [txType, setTxType] = useState<'income' | 'expense'>('income');
   const [txTitle, setTxTitle] = useState('');
@@ -221,7 +224,7 @@ export default function SiteLayout() {
     }
   };
 
-  // WhatsApp Mesajı Gönderme
+  // WhatsApp Mesajı Gönderme (Genel)
   const openWhatsApp = (phone: string, name: string, debt: number) => {
     if (!phone) {
       alert('Bu sakine ait telefon numarası kayıtlı değil.');
@@ -230,6 +233,101 @@ export default function SiteLayout() {
     const cleanPhone = phone.replace(/\D/g, '');
     const message = encodeURIComponent(`Sayın ${name}, MCF Site Yönetim Sistemi'nden bilgilendirme: Güncel borç/aidat tutarınız ${debt.toLocaleString('tr-TR')} ₺'dir. Bilgilerinize sunarız.`);
     window.open(`https://wa.me/${cleanPhone}?text=${message}`, '_blank');
+  };
+
+  // Resmi Borç Uyarı Metni Oluşturucu
+  const getOfficialWarningText = (unit: Unit) => {
+    const unitTitle = unit.block === 'A' ? `A Blok Dükkan ${unit.unitNumber}` : `${unit.block} Blok No: ${unit.unitNumber}`;
+    return `Sayın ${unit.residentName || 'Sakin'}, (${unitTitle})
+Bu ay itibariyle toplam ${unit.debt.toLocaleString('tr-TR')} ₺ aidat/borç bakiyeniz bulunmaktadır. 
+Ödememeniz halinde Kat Mülkiyeti Kanunu (KMK) 20. ve 34. maddeleri gereğince yasal icra takibi ve hukuki işlemler başlatılacaktır. 
+Bilgilerinize sunar, ödemenizi derhal gerçekleştirmenizi rica ederiz.
+Site Yönetimi`;
+  };
+
+  // WhatsApp ile Resmi Uyarı Gönder
+  const sendOfficialWhatsAppWarning = (unit: Unit) => {
+    if (!unit.phone) {
+      alert('Bu sakine ait telefon numarası kayıtlı değil.');
+      return;
+    }
+    const cleanPhone = unit.phone.replace(/\D/g, '');
+    const message = encodeURIComponent(getOfficialWarningText(unit));
+    window.open(`https://wa.me/${cleanPhone}?text=${message}`, '_blank');
+  };
+
+  // Resmi Uyarıyı Yazdır (Print)
+  const printOfficialWarning = (unit: Unit) => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Resmi Borç Bildirimi - ${unit.block} Blok No: ${unit.unitNumber}</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 40px; color: #000; }
+            .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 30px; }
+            .content { font-size: 16px; line-height: 1.8; white-space: pre-wrap; }
+            .footer { margin-top: 50px; display: flex; justify-content: space-between; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h2>MCF SİTE YÖNETİMİ</h2>
+            <p>RESMİ BORÇ VE YASAL İHTAR BİLDİRİMİ</p>
+          </div>
+          <div class="content">${getOfficialWarningText(unit)}</div>
+          <div class="footer">
+            <div>Tarih: ${new Date().toLocaleDateString('tr-TR')}</div>
+            <div>İmza / Kaşe</div>
+          </div>
+          <script>window.print();</script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
+
+  // Excel'e Sakin Listesi Aktarma (.CSV Formatında)
+  const exportUnitsToExcel = () => {
+    let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+    csvContent += "Blok,Daire/Dükkan No,Sakin Adı,Telefon,Mülkiyet Durumu,Ev Sahibi,Borç (TL),Ödeme Durumu\n";
+
+    sortedAllUnits.forEach(u => {
+      const ownerLabel = getOwnerLabel(u.block);
+      const statusText = u.status === 'paid' ? 'Ödendi' : 'Borçlu';
+      const tenantText = u.isTenant ? `Kiracı (${ownerLabel}: ${u.landlordName || '-'})` : ownerLabel;
+      const row = [u.block, u.unitNumber, `"${u.residentName}"`, `"${u.phone}"`, `"${tenantText}"`, `"${u.debt}"`, statusText];
+      csvContent += row.join(",") + "\n";
+    });
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `MCF_Site_Sakinleri_Raporu_${new Date().toLocaleDateString('tr-TR')}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Kasa Raporunu Excel'e Aktarma
+  const exportTransactionsToExcel = () => {
+    let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+    csvContent += "Tarih,İşlem Türü,Kategori,Açıklama,Tutar (TL)\n";
+
+    transactions.forEach(t => {
+      const typeText = t.type === 'income' ? 'Gelir' : 'Gider';
+      const row = [t.date || 'Bugün', typeText, `"${t.category}"`, `"${t.title}"`, t.amount];
+      csvContent += row.join(",") + "\n";
+    });
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `MCF_Kasa_Raporu_${new Date().toLocaleDateString('tr-TR')}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   // Kasa İşlemi Ekle
@@ -268,7 +366,7 @@ export default function SiteLayout() {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#fcf8fa', fontFamily: 'Inter, system-ui, sans-serif', color: '#4a2833' }}>
       
-      {/* ÜST MÜRDÜM & GÜL KURUSU HEADER */}
+      {/* HEADER */}
       <header style={{
         background: 'linear-gradient(135deg, #6b2d5c 0%, #4a1535 100%)',
         color: '#ffffff',
@@ -389,8 +487,6 @@ export default function SiteLayout() {
               gap: '20px'
             }}>
               <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', width: '100%', maxWidth: '520px' }}>
-                
-                {/* BORÇLU BİRİM KARTI (KIRMIZI VURGULU) */}
                 <div style={{ flex: '1 1 200px', backgroundColor: '#fef2f2', border: '1px solid #fee2e2', borderRadius: '12px', padding: '16px', display: 'flex', alignItems: 'center', gap: '14px' }}>
                   <div style={{ background: '#dc2626', color: '#fff', width: '42px', height: '42px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', fontWeight: 'bold' }}>⚠️</div>
                   <div>
@@ -408,7 +504,6 @@ export default function SiteLayout() {
                 </div>
               </div>
 
-              {/* AİDAT YANSITMA VE GERİ ALMA ALANI */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', maxWidth: '500px', flexWrap: 'wrap' }}>
                 <span style={{ fontSize: '13px', fontWeight: '700', color: '#6b2d5c' }}>Aidat:</span>
                 <input
@@ -448,10 +543,8 @@ export default function SiteLayout() {
                     <div
                       key={unit.id}
                       style={{
-                        // HER BİR DÜKKAN VEYA EVİN ARKA PLANI SARI YAPILDI
-                        backgroundColor: '#fef9c3', // Sıcak pastel sarı tonu
+                        backgroundColor: '#fef9c3',
                         border: '1px solid',
-                        // BORÇLU İSE KIRMIZI, ÖDEMİŞ İSE YEŞİL KENARLIK
                         borderColor: isDebtor ? '#ef4444' : '#10b981',
                         borderRadius: '16px',
                         padding: '18px',
@@ -463,14 +556,40 @@ export default function SiteLayout() {
                         gap: '12px'
                       }}
                     >
-                      {/* SOL ŞERİT: BORÇLU İSE KIRMIZI, ÖDEMİŞ İSE YEŞİL */}
                       <div style={{ position: 'absolute', top: 0, left: 0, width: '6px', height: '100%', backgroundColor: isDebtor ? '#dc2626' : '#10b981' }} />
                       
                       <div>
+                        {/* KART BAŞLIĞI VE BORÇLU İSE ÜNLEM İKONU */}
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                          <h3 style={{ margin: 0, fontSize: '16px', color: '#713f12', fontWeight: '800' }}>
+                          <h3 style={{ margin: 0, fontSize: '16px', color: '#713f12', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '6px' }}>
                             {selectedBlock === 'A' ? `Dükkan ${unit.unitNumber}` : `${selectedBlock} Blok - No: ${unit.unitNumber}`}
+                            
+                            {/* YALNIZCA BORÇLU OLANLARIN BAŞLIĞININ YANINDA ÜNLEM ÇIKAR */}
+                            {isDebtor && (
+                              <button
+                                onClick={() => setWarningModalUnit(unit)}
+                                title="Resmi Borç ve İhtar Uyarısı Görüntüle"
+                                style={{
+                                  backgroundColor: '#dc2626',
+                                  color: '#ffffff',
+                                  border: 'none',
+                                  borderRadius: '50%',
+                                  width: '22px',
+                                  height: '22px',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  fontSize: '13px',
+                                  fontWeight: 'bold',
+                                  cursor: 'pointer',
+                                  boxShadow: '0 2px 4px rgba(220, 38, 38, 0.4)'
+                                }}
+                              >
+                                ⚠️
+                              </button>
+                            )}
                           </h3>
+
                           <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '6px', background: unit.isTenant ? '#fef08a' : '#d1fae5', color: unit.isTenant ? '#854d0e' : '#065f46', fontWeight: '700' }}>
                             {unit.isTenant ? 'Kiracı' : ownerText}
                           </span>
@@ -490,8 +609,6 @@ export default function SiteLayout() {
                       </div>
 
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #fef08a', paddingTop: '10px', gap: '8px' }}>
-                        
-                        {/* DURUM ROZETİ: BORÇLU İSE KIRMIZI, ÖDEMİŞ İSE YEŞİL */}
                         <div
                           onClick={() => togglePaymentStatus(unit)}
                           style={{
@@ -697,11 +814,53 @@ export default function SiteLayout() {
           </div>
         )}
 
-        {/* 4. RAPORLAR */}
+        {/* 4. RAPORLAR (EXCEL AKTARIM MERKEZİ) */}
         {activeTab === 'reports' && (
-          <div style={{ backgroundColor: '#ffffff', padding: '60px', borderRadius: '16px', textAlign: 'center', border: '1px solid #ebd2dc', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
-            <h2 style={{ fontSize: '20px', fontWeight: '800', color: '#4a1535', margin: '0 0 8px 0' }}>📊 Raporlama Paneli</h2>
-            <p style={{ color: '#6b2d5c', margin: 0 }}>Sonraki adımda Excel ve PDF rapor indirme araçlarını buraya ekleyeceğiz.</p>
+          <div style={{ backgroundColor: '#ffffff', padding: '40px', borderRadius: '16px', textAlign: 'center', border: '1px solid #ebd2dc', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
+            <h2 style={{ fontSize: '22px', fontWeight: '800', color: '#4a1535', margin: '0 0 10px 0' }}>📊 Raporlama ve Excel Dışa Aktarım Merkezi</h2>
+            <p style={{ color: '#6b2d5c', margin: '0 0 30px 0', fontSize: '14px' }}>Bina sakinlerinin ödeme durumlarını ve kasa hareketlerini tek tuşla Excel (CSV) olarak indirebilirsiniz.</p>
+            
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', flexWrap: 'wrap' }}>
+              <button
+                onClick={exportUnitsToExcel}
+                style={{
+                  backgroundColor: '#059669',
+                  color: '#ffffff',
+                  border: 'none',
+                  padding: '16px 24px',
+                  borderRadius: '12px',
+                  fontWeight: '800',
+                  fontSize: '15px',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(5, 150, 105, 0.25)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}
+              >
+                📥 Sakinler ve Ödeme Durumunu Excel&apos;e Aktar
+              </button>
+
+              <button
+                onClick={exportTransactionsToExcel}
+                style={{
+                  backgroundColor: '#6b2d5c',
+                  color: '#f3d1df',
+                  border: 'none',
+                  padding: '16px 24px',
+                  borderRadius: '12px',
+                  fontWeight: '800',
+                  fontSize: '15px',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(107, 45, 92, 0.25)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}
+              >
+                📥 Gelir / Gider Kasa Raporunu Excel&apos;e Aktar
+              </button>
+            </div>
           </div>
         )}
 
@@ -782,6 +941,72 @@ export default function SiteLayout() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* RESMİ UYARI MODALI */}
+      {warningModalUnit && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+          backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px'
+        }}>
+          <div style={{ backgroundColor: '#ffffff', border: '2px solid #dc2626', borderRadius: '16px', padding: '24px', width: '100%', maxWidth: '520px', boxShadow: '0 15px 30px rgba(0,0,0,0.3)' }}>
+            <h3 style={{ margin: '0 0 12px 0', fontSize: '18px', color: '#991b1b', fontWeight: '800' }}>
+              📜 Resmi Borç ve İhtar Bildirimi
+            </h3>
+            <p style={{ fontSize: '13px', color: '#6b7280', margin: '0 0 16px 0' }}>
+              Aşağıdaki yasal metin ilgili sakine WhatsApp üzerinden gönderilebilir veya resmi evrak olarak yazdırılabilir.
+            </p>
+
+            <div style={{
+              backgroundColor: '#fef2f2',
+              border: '1px solid #fecaca',
+              borderRadius: '10px',
+              padding: '14px',
+              fontSize: '14px',
+              color: '#7f1d1d',
+              lineHeight: '1.6',
+              whiteSpace: 'pre-wrap',
+              marginBottom: '20px',
+              maxHeight: '220px',
+              overflowY: 'auto',
+              fontWeight: '500'
+            }}>
+              {getOfficialWarningText(warningModalUnit)}
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={() => setWarningModalUnit(null)}
+                style={{ flex: 1, backgroundColor: '#e5e7eb', color: '#374151', border: 'none', padding: '12px', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}
+              >
+                Kapat
+              </button>
+              
+              <button
+                type="button"
+                onClick={() => {
+                  printOfficialWarning(warningModalUnit);
+                    setWarningModalUnit(null);
+                }}
+                style={{ flex: 1, backgroundColor: '#4b5563', color: '#ffffff', border: 'none', padding: '12px', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}
+              >
+                🖨️ Yazdır (Resmi Belge)
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  sendOfficialWhatsAppWarning(warningModalUnit);
+                  setWarningModalUnit(null);
+                }}
+                style={{ flex: 2, backgroundColor: '#059669', color: '#ffffff', border: 'none', padding: '12px', borderRadius: '8px', fontWeight: '800', cursor: 'pointer' }}
+              >
+                💬 WhatsApp ile Gönder
+              </button>
+            </div>
           </div>
         </div>
       )}
