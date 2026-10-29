@@ -33,6 +33,9 @@ export default function SiteLayout() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Son Yansıtılan Aidat Tutarı (Geri alma işlemi için)
+  const [lastAppliedDue, setLastAppliedDue] = useState<number | null>(null);
+
   // Düzenleme Modalı
   const [editingUnit, setEditingUnit] = useState<Unit | null>(null);
 
@@ -119,12 +122,11 @@ export default function SiteLayout() {
     };
   }, []);
 
-  // RAKAMSAL SIRALAMA (1, 2, 3 ... 28 şeklinde küçükten büyüğe)
+  // RAKAMSAL SIRALAMA (1, 2, 3 ... 28)
   const filteredUnits = units
     .filter(u => u.block === selectedBlock)
     .sort((a, b) => Number(a.unitNumber) - Number(b.unitNumber));
 
-  // Rehber İçin Tüm Birimleri Rakamsal Sıralama (Blok ve Daire No'ya Göre)
   const sortedAllUnits = [...units].sort((a, b) => {
     if (a.block === b.block) {
       return Number(a.unitNumber) - Number(b.unitNumber);
@@ -155,17 +157,46 @@ export default function SiteLayout() {
 
   // Toplu Aidat Yansıt
   const handleBulkApplyDue = async () => {
-    if (!confirm(`${dueAmount} ₺ aidat tüm bloklardaki birimlere yansıtılsın mı?`)) return;
+    const amount = Number(dueAmount);
+    if (!amount || amount <= 0) return alert('Geçerli bir aidat tutarı giriniz.');
+    if (!confirm(`${amount} ₺ aidat tüm bloklardaki birimlere yansıtılsın mı?`)) return;
+
     try {
       const batch = writeBatch(db);
       units.forEach((unit) => {
         const unitRef = doc(db, 'units', unit.id);
-        batch.update(unitRef, { debt: (unit.debt || 0) + Number(dueAmount), status: 'unpaid' });
+        batch.update(unitRef, { debt: (unit.debt || 0) + amount, status: 'unpaid' });
       });
       await batch.commit();
+      setLastAppliedDue(amount);
       alert('Aidatlar başarıyla yansıtıldı!');
     } catch (err) {
       console.error(err);
+      alert('Aidat yansıtılırken bir hata oluştu.');
+    }
+  };
+
+  // Son İşlemi Geri Al (Undo Last Bulk Apply)
+  const handleUndoLastBulkDue = async () => {
+    if (!lastAppliedDue) return;
+    if (!confirm(`Son yansıtılan ${lastAppliedDue} ₺ aidat işlemi tüm birimlerden geri alınsın mı?`)) return;
+
+    try {
+      const batch = writeBatch(db);
+      units.forEach((unit) => {
+        const unitRef = doc(db, 'units', unit.id);
+        const newDebt = Math.max(0, (unit.debt || 0) - lastAppliedDue);
+        batch.update(unitRef, { 
+          debt: newDebt, 
+          status: newDebt === 0 ? 'paid' : 'unpaid' 
+        });
+      });
+      await batch.commit();
+      setLastAppliedDue(null);
+      alert('Son toplu aidat yansıtma işlemi başarıyla geri alındı!');
+    } catch (err) {
+      console.error(err);
+      alert('Geri alma işlemi sırasında hata oluştu.');
     }
   };
 
@@ -222,15 +253,14 @@ export default function SiteLayout() {
   };
 
   const handleDeleteTransaction = async (id: string) => {
-    if (!confirm('Silmek istediğinize emin misiniz?')) return;
-    try {
-      await deleteDoc(doc(db, 'transactions', id));
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  if (!confirm('Silmek istediğinize emin misiniz?')) return;
+  try {
+    await deleteDoc(doc(db, 'transactions', id));
+  } catch (err) {
+    console.error(err);
+  }
+};
 
-  // Etiket Yardımcısı (A Blok için Mülk Sahibi, Diğerleri için Ev Sahibi)
   const getOwnerLabel = (block: string) => {
     return block === 'A' ? 'Mülk Sahibi' : 'Ev Sahibi';
   };
@@ -375,24 +405,36 @@ export default function SiteLayout() {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '100%', maxWidth: '420px', flexWrap: 'wrap' }}>
-                <span style={{ fontSize: '13px', fontWeight: '700', color: '#cbd5e1' }}>Aidat Tutarı:</span>
+              {/* AİDAT YANSITMA VE GERİ ALMA ALANI */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', maxWidth: '500px', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '13px', fontWeight: '700', color: '#cbd5e1' }}>Aidat:</span>
                 <input
                   type="number"
                   value={dueAmount}
                   onChange={(e) => setDueAmount(e.target.value)}
-                  style={{ flex: '1 1 110px', padding: '12px 14px', borderRadius: '10px', border: '1px solid #334155', fontSize: '15px', fontWeight: 'bold', outline: 'none', background: '#0b132b', color: '#ffffff' }}
+                  style={{ flex: '1 1 90px', padding: '12px 14px', borderRadius: '10px', border: '1px solid #334155', fontSize: '15px', fontWeight: 'bold', outline: 'none', background: '#0b132b', color: '#ffffff' }}
                 />
                 <button
                   onClick={handleBulkApplyDue}
-                  style={{ flex: '2 1 180px', backgroundColor: '#eab308', color: '#000000', padding: '12px 18px', borderRadius: '10px', border: 'none', fontWeight: '800', fontSize: '13px', cursor: 'pointer' }}
+                  style={{ flex: '2 1 160px', backgroundColor: '#eab308', color: '#000000', padding: '12px 16px', borderRadius: '10px', border: 'none', fontWeight: '800', fontSize: '13px', cursor: 'pointer' }}
                 >
-                  ⚡ Toplu Aidat Yansıt
+                  ⚡ Toplu Yansıt
                 </button>
+
+                {/* SON İŞLEMİ GERİ AL BUTONU */}
+                {lastAppliedDue && (
+                  <button
+                    onClick={handleUndoLastBulkDue}
+                    title="Son eklenen aidatı siler/geri alır"
+                    style={{ flex: '1 1 100%', marginTop: '6px', backgroundColor: '#ef4444', color: '#ffffff', padding: '10px 14px', borderRadius: '10px', border: 'none', fontWeight: '700', fontSize: '12px', cursor: 'pointer', boxShadow: '0 2px 8px rgba(239, 68, 68, 0.4)' }}
+                  >
+                    ↩️ Son Yansıtılan Aidatı Geri Al ({lastAppliedDue} ₺)
+                  </button>
+                )}
               </div>
             </div>
 
-            {/* KARTLAR (RAKAMSAL SIRALANMIŞ) */}
+            {/* KARTLAR */}
             {loading ? (
               <div style={{ textAlign: 'center', padding: '60px', color: '#94a3b8' }}>Yükleniyor...</div>
             ) : (
@@ -484,7 +526,7 @@ export default function SiteLayout() {
           </>
         )}
 
-        {/* 2. SAKİNLER REHBERİ SEKMESİ */}
+        {/* 2. REHBER */}
         {activeTab === 'directory' && (
           <div style={{ backgroundColor: '#111827', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 16px rgba(0,0,0,0.5)', border: '1px solid #1e293b' }}>
             <h2 style={{ fontSize: '18px', fontWeight: '800', color: '#ffffff', margin: '0 0 16px 0' }}>📖 Tüm Bina Sakinleri Telefon Rehberi</h2>
