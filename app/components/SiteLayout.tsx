@@ -23,9 +23,9 @@ interface Transaction {
 }
 
 const defaultBlocks = [
-  { key: 'A', name: 'A Blok (Dükkanlar)', type: 'shop' },
-  { key: 'B', name: 'B Blok (Konut - 14 Kat)', type: 'residential' },
-  { key: 'C', name: 'C Blok (Konut - 14 Kat)', type: 'residential' },
+  { key: 'A', name: 'A Blok (Dükkanlar)' },
+  { key: 'B', name: 'B Blok (Konut - 14 Kat)' },
+  { key: 'C', name: 'C Blok (Konut - 14 Kat)' },
 ];
 
 export default function SiteLayout() {
@@ -36,13 +36,11 @@ export default function SiteLayout() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Yeni İşlem Form State'leri (Kasa için)
   const [txType, setTxType] = useState<'income' | 'expense'>('income');
   const [txTitle, setTxTitle] = useState('');
   const [txAmount, setTxAmount] = useState('');
   const [txCategory, setTxCategory] = useState('Aidat Tahsilatı');
 
-  // Firestore'dan Daireleri Çekme
   useEffect(() => {
     const unsubscribeUnits = onSnapshot(collection(db, 'units'), (snapshot) => {
       const fetchedUnits: Unit[] = snapshot.docs.map(doc => ({
@@ -51,20 +49,14 @@ export default function SiteLayout() {
       })) as Unit[];
       setUnits(fetchedUnits);
       setLoading(false);
-    }, (error) => {
-      console.error("Daireler çekilirken hata:", error);
-      setLoading(false);
     });
 
-    // Firestore'dan Kasa İşlemlerini Çekme
     const unsubscribeTx = onSnapshot(collection(db, 'transactions'), (snapshot) => {
       const fetchedTx: Transaction[] = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       })) as Transaction[];
       setTransactions(fetchedTx);
-    }, (error) => {
-      console.error("Kasa hareketleri çekilirken hata:", error);
     });
 
     return () => {
@@ -77,67 +69,41 @@ export default function SiteLayout() {
   const totalDebtors = units.filter(u => u.status === 'unpaid').length;
   const totalReceivables = units.reduce((sum, u) => sum + (u.debt || 0), 0);
 
-  // Kasa Hesaplamaları
-  const totalIncome = transactions
-    .filter(t => t.type === 'income')
-    .reduce((sum, t) => sum + Number(t.amount || 0), 0);
-
-  const totalExpense = transactions
-    .filter(t => t.type === 'expense')
-    .reduce((sum, t) => sum + Number(t.amount || 0), 0);
-
+  const totalIncome = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + Number(t.amount || 0), 0);
+  const totalExpense = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + Number(t.amount || 0), 0);
   const netBalance = totalIncome - totalExpense;
 
-  // Ödeme / Borç Durumunu Değiştirme
   const togglePaymentStatus = async (unit: Unit) => {
     try {
       const unitRef = doc(db, 'units', unit.id);
       if (unit.status === 'paid') {
-        await updateDoc(unitRef, {
-          status: 'unpaid',
-          debt: Number(dueAmount) || 1500
-        });
+        await updateDoc(unitRef, { status: 'unpaid', debt: Number(dueAmount) || 1500 });
       } else {
-        await updateDoc(unitRef, {
-          status: 'paid',
-          debt: 0
-        });
+        await updateDoc(unitRef, { status: 'paid', debt: 0 });
       }
     } catch (err) {
-      console.error("Ödeme güncellenirken hata:", err);
+      console.error(err);
     }
   };
 
-  // Toplu Aidat Yansıtma
   const handleBulkApplyDue = async () => {
     if (!confirm(`${dueAmount} ₺ aidat tüm dairelere yansıtılsın mı?`)) return;
-
     try {
       const batch = writeBatch(db);
       units.forEach((unit) => {
         const unitRef = doc(db, 'units', unit.id);
-        const newDebt = (unit.debt || 0) + Number(dueAmount);
-        batch.update(unitRef, {
-          debt: newDebt,
-          status: 'unpaid'
-        });
+        batch.update(unitRef, { debt: (unit.debt || 0) + Number(dueAmount), status: 'unpaid' });
       });
       await batch.commit();
-      alert('Aidatlar tüm dairelere başarıyla yansıtıldı!');
+      alert('Aidatlar başarıyla yansıtıldı!');
     } catch (err) {
-      console.error("Toplu aidat hatası:", err);
-      alert('Aidat yansıtılırken bir hata oluştu.');
+      console.error(err);
     }
   };
 
-  // Yeni Gelir / Gider Ekleme
   const handleAddTransaction = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!txTitle || !txAmount) {
-      alert('Lütfen işlem başlığı ve tutar giriniz.');
-      return;
-    }
-
+    if (!txTitle || !txAmount) return alert('Lütfen başlık ve tutar giriniz.');
     try {
       await addDoc(collection(db, 'transactions'), {
         type: txType,
@@ -147,103 +113,69 @@ export default function SiteLayout() {
         date: new Date().toLocaleDateString('tr-TR'),
         createdAt: serverTimestamp()
       });
-
       setTxTitle('');
       setTxAmount('');
-      alert('İşlem kasaya başarıyla eklendi!');
     } catch (err) {
-      console.error("İşlem eklenirken hata:", err);
-      alert('Kayıt sırasında bir hata oluştu.');
+      console.error(err);
     }
   };
 
-  // İşlem Silme
   const handleDeleteTransaction = async (id: string) => {
-    if (!confirm('Bu kaydı silmek istediğinize emin misiniz?')) return;
+    if (!confirm('Silmek istediğinize emin misiniz?')) return;
     try {
       await deleteDoc(doc(db, 'transactions', id));
     } catch (err) {
-      console.error("İşlem silinirken hata:", err);
+      console.error(err);
     }
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f4f6f9', fontFamily: 'system-ui, sans-serif' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#121212', fontFamily: 'Inter, system-ui, sans-serif', color: '#e5e7eb' }}>
       
-      {/* HEADER */}
+      {/* ÜST SİYAH-SARI KURUMSAL HEADER */}
       <header style={{
-        backgroundColor: '#111827',
+        background: '#000000',
         color: '#ffffff',
-        padding: '16px 20px',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+        padding: '18px 24px',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+        borderBottom: '3px solid #eab308'
       }}>
-        <div style={{
-          maxWidth: '1200px',
-          margin: '0 auto',
-          display: 'flex',
-          flexDirection: 'row',
-          flexWrap: 'wrap',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          gap: '16px'
-        }}>
-          {/* LOGO & BAŞLIK */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+        <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
+          
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
             <img 
               src="/mcf-logo.png" 
               alt="MCF Logo" 
-              style={{ 
-                height: '42px', 
-                width: 'auto', 
-                objectFit: 'contain',
-                borderRadius: '6px',
-                backgroundColor: 'rgba(255,255,255,0.05)',
-                padding: '4px'
-              }} 
+              style={{ height: '46px', width: 'auto', objectFit: 'contain', borderRadius: '8px', background: 'rgba(234, 179, 8, 0.1)', padding: '6px', border: '1px solid #eab308' }} 
               onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
             />
             <div>
-              <h1 style={{ fontSize: '20px', fontWeight: 'bold', margin: 0, color: '#ffffff' }}>
-                MCF Site Yönetim Sistemi
+              <h1 style={{ fontSize: '20px', fontWeight: '800', margin: 0, letterSpacing: '-0.5px', color: '#ffffff' }}>
+                MCF <span style={{ color: '#eab308' }}>Site Yönetim Sistemi</span>
               </h1>
-              <p style={{ fontSize: '12px', color: '#9ca3af', margin: '2px 0 0 0' }}>
-                Technology & Software Solutions
-              </p>
+              <p style={{ fontSize: '12px', color: '#9ca3af', margin: '2px 0 0 0', fontWeight: '500' }}>Profesyonel Bina ve Tesis Yönetimi</p>
             </div>
           </div>
 
-          {/* SEKMELER */}
-          <nav style={{ display: 'flex', gap: '8px', width: '100%', maxWidth: '100%', overflowX: 'auto', paddingBottom: '4px' }}>
+          <nav style={{ display: 'flex', gap: '8px', background: '#1a1a1a', padding: '5px', borderRadius: '12px', border: '1px solid #333333' }}>
             <button
               onClick={() => setActiveTab('units')}
               style={{
-                flex: '1 1 auto',
-                padding: '10px 16px',
-                borderRadius: '8px',
-                border: 'none',
-                fontWeight: '600',
-                fontSize: '14px',
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-                backgroundColor: activeTab === 'units' ? '#2563eb' : '#1f2937',
-                color: activeTab === 'units' ? '#ffffff' : '#9ca3af',
+                padding: '10px 18px', borderRadius: '8px', border: 'none', fontWeight: '700', fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s',
+                backgroundColor: activeTab === 'units' ? '#eab308' : 'transparent',
+                color: activeTab === 'units' ? '#000000' : '#9ca3af',
+                boxShadow: activeTab === 'units' ? '0 2px 10px rgba(234, 179, 8, 0.4)' : 'none'
               }}
             >
-              🧩 Blok and Daireler
+              🏢 Blok ve Daireler
             </button>
             <button
               onClick={() => setActiveTab('accounting')}
               style={{
-                flex: '1 1 auto',
-                padding: '10px 16px',
-                borderRadius: '8px',
-                border: 'none',
-                fontWeight: '600',
-                fontSize: '14px',
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-                backgroundColor: activeTab === 'accounting' ? '#2563eb' : '#1f2937',
-                color: activeTab === 'accounting' ? '#ffffff' : '#9ca3af',
+                padding: '10px 18px', borderRadius: '8px', border: 'none', fontWeight: '700', fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s',
+                backgroundColor: activeTab === 'accounting' ? '#eab308' : 'transparent',
+                color: activeTab === 'accounting' ? '#000000' : '#9ca3af',
+                boxShadow: activeTab === 'accounting' ? '0 2px 10px rgba(234, 179, 8, 0.4)' : 'none'
               }}
             >
               💰 Gelir / Gider (Kasa)
@@ -251,16 +183,10 @@ export default function SiteLayout() {
             <button
               onClick={() => setActiveTab('reports')}
               style={{
-                flex: '1 1 auto',
-                padding: '10px 16px',
-                borderRadius: '8px',
-                border: 'none',
-                fontWeight: '600',
-                fontSize: '14px',
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-                backgroundColor: activeTab === 'reports' ? '#2563eb' : '#1f2937',
-                color: activeTab === 'reports' ? '#ffffff' : '#9ca3af',
+                padding: '10px 18px', borderRadius: '8px', border: 'none', fontWeight: '700', fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s',
+                backgroundColor: activeTab === 'reports' ? '#eab308' : 'transparent',
+                color: activeTab === 'reports' ? '#000000' : '#9ca3af',
+                boxShadow: activeTab === 'reports' ? '0 2px 10px rgba(234, 179, 8, 0.4)' : 'none'
               }}
             >
               📊 Raporlar
@@ -269,132 +195,97 @@ export default function SiteLayout() {
         </div>
       </header>
 
-      {/* İÇERİK ALANI */}
-      <main style={{ padding: '16px', maxWidth: '1200px', margin: '0 auto' }}>
+      {/* İÇERİK KISMI */}
+      <main style={{ padding: '24px', maxWidth: '1280px', margin: '0 auto' }}>
         
-        {/* 1. SEKME: BLOK VE DAİRELER */}
         {activeTab === 'units' && (
           <>
-            <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', overflowX: 'auto', paddingBottom: '4px' }}>
+            {/* BLOK SEÇİMİ */}
+            <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', overflowX: 'auto', paddingBottom: '4px' }}>
               {defaultBlocks.map((block) => (
                 <button
                   key={block.key}
                   onClick={() => setSelectedBlock(block.key)}
                   style={{
-                    padding: '12px 20px',
-                    borderRadius: '10px',
+                    padding: '14px 24px',
+                    borderRadius: '12px',
                     border: '1px solid',
-                    borderColor: selectedBlock === block.key ? '#2563eb' : '#e5e7eb',
-                    backgroundColor: selectedBlock === block.key ? '#2563eb' : '#ffffff',
-                    color: selectedBlock === block.key ? '#ffffff' : '#374151',
-                    fontWeight: '600',
+                    borderColor: selectedBlock === block.key ? '#eab308' : '#27272a',
+                    backgroundColor: selectedBlock === block.key ? '#1e1b0b' : '#18181b',
+                    color: selectedBlock === block.key ? '#facc15' : '#a1a1aa',
+                    fontWeight: '700',
                     fontSize: '14px',
                     cursor: 'pointer',
+                    boxShadow: selectedBlock === block.key ? '0 4px 12px rgba(234, 179, 8, 0.15)' : '0 2px 4px rgba(0,0,0,0.2)',
                     whiteSpace: 'nowrap',
                     flex: '1 1 auto',
-                    textAlign: 'center'
+                    textAlign: 'center',
+                    transition: 'all 0.2s'
                   }}
                 >
-                  🏢 {block.name}
+                  {block.name}
                 </button>
               ))}
             </div>
 
+            {/* ÖZET VE AİDAT KARTI */}
             <div style={{
-              backgroundColor: '#ffffff',
-              borderRadius: '14px',
-              padding: '20px',
-              marginBottom: '24px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+              backgroundColor: '#18181b',
+              borderRadius: '16px',
+              padding: '24px',
+              marginBottom: '28px',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
+              border: '1px solid #27272a',
               display: 'flex',
-              flexDirection: 'row',
               flexWrap: 'wrap',
               justifyContent: 'space-between',
               alignItems: 'center',
-              gap: '16px'
+              gap: '20px'
             }}>
-              <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', width: '100%', maxWidth: '500px' }}>
-                <div style={{
-                  flex: '1 1 180px',
-                  backgroundColor: '#fff7ed',
-                  border: '1px solid #ffedd5',
-                  borderRadius: '10px',
-                  padding: '12px 16px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px'
-                }}>
-                  <span style={{ fontSize: '24px' }}>⚠️</span>
+              <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', width: '100%', maxWidth: '520px' }}>
+                <div style={{ flex: '1 1 200px', backgroundColor: '#1e1b0b', border: '1px solid #422006', borderRadius: '12px', padding: '16px', display: 'flex', alignItems: 'center', gap: '14px' }}>
+                  <div style={{ background: '#eab308', color: '#000', width: '42px', height: '42px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', fontWeight: 'bold' }}>⚠️</div>
                   <div>
-                    <div style={{ fontSize: '12px', color: '#c2410c', fontWeight: '500' }}>Borçlu Daire</div>
-                    <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#9a3412' }}>{totalDebtors} Adet</div>
+                    <div style={{ fontSize: '12px', color: '#fde047', fontWeight: '700' }}>Borçlu Daire</div>
+                    <div style={{ fontSize: '20px', fontWeight: '800', color: '#fef08a', marginTop: '2px' }}>{totalDebtors} Adet</div>
                   </div>
                 </div>
 
-                <div style={{
-                  flex: '1 1 180px',
-                  backgroundColor: '#eff6ff',
-                  border: '1px solid #dbeafe',
-                  borderRadius: '10px',
-                  padding: '12px 16px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px'
-                }}>
-                  <span style={{ fontSize: '24px' }}>💳</span>
+                <div style={{ flex: '1 1 200px', backgroundColor: '#09090b', border: '1px solid #3f3f46', borderRadius: '12px', padding: '16px', display: 'flex', alignItems: 'center', gap: '14px' }}>
+                  <div style={{ background: '#3f3f46', color: '#fff', width: '42px', height: '42px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', fontWeight: 'bold' }}>💳</div>
                   <div>
-                    <div style={{ fontSize: '12px', color: '#1d4ed8', fontWeight: '500' }}>Toplam Alacak</div>
-                    <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#1e40af' }}>
-                      {totalReceivables.toLocaleString('tr-TR')} ₺
-                    </div>
+                    <div style={{ fontSize: '12px', color: '#a1a1aa', fontWeight: '700' }}>Toplam Alacak</div>
+                    <div style={{ fontSize: '20px', fontWeight: '800', color: '#ffffff', marginTop: '2px' }}>{totalReceivables.toLocaleString('tr-TR')} ₺</div>
                   </div>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', maxWidth: '400px', flexWrap: 'wrap' }}>
-                <span style={{ fontSize: '14px', fontWeight: '600', color: '#4b5563' }}>Aidat:</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '100%', maxWidth: '420px', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '13px', fontWeight: '700', color: '#d4d4d8' }}>Aidat Tutarı:</span>
                 <input
                   type="number"
                   value={dueAmount}
                   onChange={(e) => setDueAmount(e.target.value)}
-                  style={{
-                    flex: '1 1 100px',
-                    padding: '10px 14px',
-                    borderRadius: '8px',
-                    border: '1px solid #d1d5db',
-                    fontSize: '15px',
-                    fontWeight: 'bold',
-                    outline: 'none'
-                  }}
+                  style={{ flex: '1 1 110px', padding: '12px 14px', borderRadius: '10px', border: '1px solid #3f3f46', fontSize: '15px', fontWeight: 'bold', outline: 'none', background: '#09090b', color: '#ffffff' }}
                 />
                 <button
                   onClick={handleBulkApplyDue}
-                  style={{
-                    flex: '2 1 180px',
-                    backgroundColor: '#dc2626',
-                    color: '#ffffff',
-                    padding: '10px 16px',
-                    borderRadius: '8px',
-                    border: 'none',
-                    fontWeight: 'bold',
-                    fontSize: '14px',
-                    cursor: 'pointer',
-                    boxShadow: '0 2px 6px rgba(220, 38, 38, 0.3)'
-                  }}
+                  style={{ flex: '2 1 180px', backgroundColor: '#eab308', color: '#000000', padding: '12px 18px', borderRadius: '10px', border: 'none', fontWeight: '800', fontSize: '13px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(234, 179, 8, 0.3)', transition: 'all 0.2s' }}
                 >
                   ⚡ Toplu Aidat Yansıt
                 </button>
               </div>
             </div>
 
+            {/* DAİRE KARTLARI GRID */}
             {loading ? (
-              <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>Veriler Yükleniyor...</div>
+              <div style={{ textAlign: 'center', padding: '60px', color: '#a1a1aa', fontWeight: '600' }}>Veriler Yükleniyor...</div>
             ) : filteredUnits.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280', backgroundColor: '#fff', borderRadius: '12px' }}>
-                Bu blokta henüz daire/dükkan verisi eklenmemiş.
+              <div style={{ textAlign: 'center', padding: '60px', color: '#a1a1aa', backgroundColor: '#18181b', borderRadius: '16px', border: '1px solid #27272a' }}>
+                Bu blokta henüz daire eklenmemiş.
               </div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '16px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '18px' }}>
                 {filteredUnits.map((unit) => {
                   const isDebtor = unit.status === 'unpaid';
                   return (
@@ -402,29 +293,35 @@ export default function SiteLayout() {
                       key={unit.id}
                       onClick={() => togglePaymentStatus(unit)}
                       style={{
-                        backgroundColor: isDebtor ? '#fef2f2' : '#f0fdf4',
+                        backgroundColor: '#18181b',
                         border: '1px solid',
-                        borderColor: isDebtor ? '#fecaca' : '#bbf7d0',
-                        borderRadius: '12px',
-                        padding: '16px',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
+                        borderColor: isDebtor ? '#78350f' : '#14532d',
+                        borderRadius: '16px',
+                        padding: '20px',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
                         cursor: 'pointer',
-                        transition: 'all 0.2s'
+                        transition: 'transform 0.2s, box-shadow 0.2s',
+                        position: 'relative',
+                        overflow: 'hidden'
                       }}
                     >
-                      <h3 style={{ margin: '0 0 6px 0', fontSize: '16px', color: '#1f2937', fontWeight: 'bold' }}>
+                      <div style={{ position: 'absolute', top: 0, left: 0, width: '6px', height: '100%', backgroundColor: isDebtor ? '#eab308' : '#22c55e' }} />
+                      <h3 style={{ margin: '0 0 6px 0', fontSize: '16px', color: '#ffffff', fontWeight: '800' }}>
                         {selectedBlock} Blok - No: {unit.unitNumber}
                       </h3>
-                      <p style={{ margin: '0 0 12px 0', fontSize: '13px', color: '#6b7280' }}>
+                      <p style={{ margin: '0 0 14px 0', fontSize: '13px', color: '#a1a1aa', fontWeight: '500' }}>
                         {unit.residentName || 'Sakin Belirtilmemiş'}
                       </p>
                       <div style={{
                         display: 'inline-flex',
                         alignItems: 'center',
-                        gap: '4px',
+                        gap: '6px',
+                        padding: '6px 12px',
+                        borderRadius: '8px',
                         fontSize: '13px',
-                        fontWeight: 'bold',
-                        color: isDebtor ? '#dc2626' : '#16a34a'
+                        fontWeight: '700',
+                        backgroundColor: isDebtor ? '#1e1b0b' : '#052e16',
+                        color: isDebtor ? '#facc15' : '#4ade80'
                       }}>
                         {isDebtor ? `⚠️ Borç: ${unit.debt.toLocaleString('tr-TR')} ₺` : '✅ Ödendi'}
                       </div>
@@ -436,46 +333,32 @@ export default function SiteLayout() {
           </>
         )}
 
-        {/* 2. SEKME: GELİR / GİDER (KASA) YÖNETİMİ */}
         {activeTab === 'accounting' && (
           <div>
-            {/* KASA ÖZET KARTLARI */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-              gap: '16px',
-              marginBottom: '24px'
-            }}>
-              <div style={{ backgroundColor: '#ffffff', padding: '20px', borderRadius: '12px', boxShadow: '0 2px 6px rgba(0,0,0,0.04)', borderLeft: '5px solid #16a34a' }}>
-                <div style={{ fontSize: '13px', color: '#6b7280', fontWeight: '600' }}>Toplam Gelir</div>
-                <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#16a34a', marginTop: '6px' }}>
-                  {totalIncome.toLocaleString('tr-TR')} ₺
-                </div>
+            {/* KASA ÖZETLERİ */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px', marginBottom: '28px' }}>
+              <div style={{ backgroundColor: '#18181b', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 16px rgba(0,0,0,0.4)', border: '1px solid #27272a', borderLeft: '6px solid #22c55e' }}>
+                <div style={{ fontSize: '13px', color: '#a1a1aa', fontWeight: '700' }}>Toplam Gelir</div>
+                <div style={{ fontSize: '26px', fontWeight: '800', color: '#4ade80', marginTop: '8px' }}>{totalIncome.toLocaleString('tr-TR')} ₺</div>
               </div>
-
-              <div style={{ backgroundColor: '#ffffff', padding: '20px', borderRadius: '12px', boxShadow: '0 2px 6px rgba(0,0,0,0.04)', borderLeft: '5px solid #dc2626' }}>
-                <div style={{ fontSize: '13px', color: '#6b7280', fontWeight: '600' }}>Toplam Gider</div>
-                <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#dc2626', marginTop: '6px' }}>
-                  {totalExpense.toLocaleString('tr-TR')} ₺
-                </div>
+              <div style={{ backgroundColor: '#18181b', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 16px rgba(0,0,0,0.4)', border: '1px solid #27272a', borderLeft: '6px solid #eab308' }}>
+                <div style={{ fontSize: '13px', color: '#a1a1aa', fontWeight: '700' }}>Toplam Gider</div>
+                <div style={{ fontSize: '26px', fontWeight: '800', color: '#facc15', marginTop: '8px' }}>{totalExpense.toLocaleString('tr-TR')} ₺</div>
               </div>
-
-              <div style={{ backgroundColor: '#ffffff', padding: '20px', borderRadius: '12px', boxShadow: '0 2px 6px rgba(0,0,0,0.04)', borderLeft: '5px solid #2563eb' }}>
-                <div style={{ fontSize: '13px', color: '#6b7280', fontWeight: '600' }}>Net Kasa Bakiyesi</div>
-                <div style={{ fontSize: '24px', fontWeight: 'bold', color: netBalance >= 0 ? '#2563eb' : '#dc2626', marginTop: '6px' }}>
-                  {netBalance.toLocaleString('tr-TR')} ₺
-                </div>
+              <div style={{ backgroundColor: '#18181b', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 16px rgba(0,0,0,0.4)', border: '1px solid #27272a', borderLeft: '6px solid #3b82f6' }}>
+                <div style={{ fontSize: '13px', color: '#a1a1aa', fontWeight: '700' }}>Net Kasa Bakiyesi</div>
+                <div style={{ fontSize: '26px', fontWeight: '800', color: netBalance >= 0 ? '#60a5fa' : '#f87171', marginTop: '8px' }}>{netBalance.toLocaleString('tr-TR')} ₺</div>
               </div>
             </div>
 
-            {/* YENİ İŞLEM EKLEME FORMU */}
-            <div style={{ backgroundColor: '#ffffff', padding: '24px', borderRadius: '14px', marginBottom: '24px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
-              <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', color: '#1f2937' }}>➕ Yeni Kasa İşlemi Ekle</h3>
-              <form onSubmit={handleAddTransaction} style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+            {/* İŞLEM EKLEME FORMU */}
+            <div style={{ backgroundColor: '#18181b', padding: '28px', borderRadius: '16px', marginBottom: '28px', boxShadow: '0 4px 16px rgba(0,0,0,0.4)', border: '1px solid #27272a' }}>
+              <h3 style={{ margin: '0 0 18px 0', fontSize: '16px', color: '#ffffff', fontWeight: '800' }}>➕ Yeni Kasa İşlemi Ekle</h3>
+              <form onSubmit={handleAddTransaction} style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
                 <select
                   value={txType}
                   onChange={(e) => setTxType(e.target.value as 'income' | 'expense')}
-                  style={{ padding: '10px 14px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '14px', flex: '1 1 140px', fontWeight: '600' }}
+                  style={{ padding: '12px 16px', borderRadius: '10px', border: '1px solid #3f3f46', fontSize: '14px', flex: '1 1 150px', fontWeight: '700', background: '#09090b', color: '#ffffff' }}
                 >
                   <option value="income">🟢 Gelir Ekle</option>
                   <option value="expense">🔴 Gider Ekle</option>
@@ -483,10 +366,10 @@ export default function SiteLayout() {
 
                 <input
                   type="text"
-                  placeholder="İşlem Açıklaması (Örn: Elektrik Faturası)"
+                  placeholder="Açıklama (Örn: Elektrik Faturası)"
                   value={txTitle}
                   onChange={(e) => setTxTitle(e.target.value)}
-                  style={{ padding: '10px 14px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '14px', flex: '2 1 240px' }}
+                  style={{ padding: '12px 16px', borderRadius: '10px', border: '1px solid #3f3f46', fontSize: '14px', flex: '2 1 260px', background: '#09090b', color: '#ffffff' }}
                 />
 
                 <input
@@ -494,13 +377,13 @@ export default function SiteLayout() {
                   placeholder="Tutar (₺)"
                   value={txAmount}
                   onChange={(e) => setTxAmount(e.target.value)}
-                  style={{ padding: '10px 14px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '14px', flex: '1 1 120px' }}
+                  style={{ padding: '12px 16px', borderRadius: '10px', border: '1px solid #3f3f46', fontSize: '14px', flex: '1 1 130px', background: '#09090b', color: '#ffffff' }}
                 />
 
                 <select
                   value={txCategory}
                   onChange={(e) => setTxCategory(e.target.value)}
-                  style={{ padding: '10px 14px', borderRadius: '8px', border: '1px solid #d1d5db', fontSize: '14px', flex: '1 1 160px' }}
+                  style={{ padding: '12px 16px', borderRadius: '10px', border: '1px solid #3f3f46', fontSize: '14px', flex: '1 1 170px', background: '#09090b', color: '#ffffff', fontWeight: '500' }}
                 >
                   <option value="Aidat Tahsilatı">Aidat Tahsilatı</option>
                   <option value="Ortak Gelir">Ortak Gelir</option>
@@ -512,56 +395,47 @@ export default function SiteLayout() {
 
                 <button
                   type="submit"
-                  style={{
-                    backgroundColor: '#2563eb',
-                    color: '#ffffff',
-                    border: 'none',
-                    padding: '10px 20px',
-                    borderRadius: '8px',
-                    fontWeight: 'bold',
-                    cursor: 'pointer',
-                    flex: '1 1 140px'
-                  }}
+                  style={{ backgroundColor: '#eab308', color: '#000000', border: 'none', padding: '12px 24px', borderRadius: '10px', fontWeight: '800', cursor: 'pointer', flex: '1 1 150px', boxShadow: '0 4px 12px rgba(234, 179, 8, 0.3)' }}
                 >
                   Kaydet
                 </button>
               </form>
             </div>
 
-            {/* İŞLEM GEÇMİŞİ TABLOSU */}
-            <div style={{ backgroundColor: '#ffffff', borderRadius: '14px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
-              <h3 style={{ margin: '0 0 16px 0', fontSize: '16px', color: '#1f2937' }}>📋 Kasa Hareketleri Geçmişi</h3>
+            {/* TABLO */}
+            <div style={{ backgroundColor: '#18181b', borderRadius: '16px', padding: '24px', boxShadow: '0 4px 16px rgba(0,0,0,0.4)', border: '1px solid #27272a' }}>
+              <h3 style={{ margin: '0 0 18px 0', fontSize: '16px', color: '#ffffff', fontWeight: '800' }}>📋 Kasa Hareketleri Geçmişi</h3>
               {transactions.length === 0 ? (
-                <p style={{ color: '#6b7280', textAlign: 'center', padding: '20px' }}>Henüz kayıtlı bir kasa hareketi bulunmuyor.</p>
+                <p style={{ color: '#a1a1aa', textAlign: 'center', padding: '30px', fontWeight: '500' }}>Henüz kayıtlı bir kasa hareketi bulunmuyor.</p>
               ) : (
                 <div style={{ overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px' }}>
                     <thead>
-                      <tr style={{ borderBottom: '2px solid #e5e7eb', color: '#4b5563' }}>
-                        <th style={{ padding: '10px' }}>Tarih</th>
-                        <th style={{ padding: '10px' }}>Tür</th>
-                        <th style={{ padding: '10px' }}>Kategori</th>
-                        <th style={{ padding: '10px' }}>Açıklama</th>
-                        <th style={{ padding: '10px' }}>Tutar</th>
-                        <th style={{ padding: '10px', textAlign: 'center' }}>İşlem</th>
+                      <tr style={{ borderBottom: '2px solid #27272a', color: '#a1a1aa' }}>
+                        <th style={{ padding: '12px' }}>Tarih</th>
+                        <th style={{ padding: '12px' }}>Tür</th>
+                        <th style={{ padding: '12px' }}>Kategori</th>
+                        <th style={{ padding: '12px' }}>Açıklama</th>
+                        <th style={{ padding: '12px' }}>Tutar</th>
+                        <th style={{ padding: '12px', textAlign: 'center' }}>İşlem</th>
                       </tr>
                     </thead>
                     <tbody>
                       {transactions.map((t) => (
-                        <tr key={t.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                          <td style={{ padding: '12px 10px', color: '#6b7280' }}>{t.date || 'Bugün'}</td>
-                          <td style={{ padding: '12px 10px', fontWeight: '600', color: t.type === 'income' ? '#16a34a' : '#dc2626' }}>
+                        <tr key={t.id} style={{ borderBottom: '1px solid #27272a' }}>
+                          <td style={{ padding: '14px 12px', color: '#a1a1aa', fontWeight: '500' }}>{t.date || 'Bugün'}</td>
+                          <td style={{ padding: '14px 12px', fontWeight: '700', color: t.type === 'income' ? '#4ade80' : '#facc15' }}>
                             {t.type === 'income' ? '🟢 Gelir' : '🔴 Gider'}
                           </td>
-                          <td style={{ padding: '12px 10px', color: '#374151' }}>{t.category}</td>
-                          <td style={{ padding: '12px 10px', color: '#1f2937', fontWeight: '500' }}>{t.title}</td>
-                          <td style={{ padding: '12px 10px', fontWeight: 'bold', color: t.type === 'income' ? '#16a34a' : '#dc2626' }}>
+                          <td style={{ padding: '14px 12px', color: '#d4d4d8', fontWeight: '500' }}>{t.category}</td>
+                          <td style={{ padding: '14px 12px', color: '#ffffff', fontWeight: '600' }}>{t.title}</td>
+                          <td style={{ padding: '14px 12px', fontWeight: '800', color: t.type === 'income' ? '#4ade80' : '#facc15' }}>
                             {t.type === 'income' ? '+' : '-'}{Number(t.amount).toLocaleString('tr-TR')} ₺
                           </td>
-                          <td style={{ padding: '12px 10px', textAlign: 'center' }}>
+                          <td style={{ padding: '14px 12px', textAlign: 'center' }}>
                             <button
                               onClick={() => handleDeleteTransaction(t.id)}
-                              style={{ backgroundColor: '#fee2e2', color: '#dc2626', border: 'none', padding: '6px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
+                              style={{ backgroundColor: '#422006', color: '#facc15', border: 'none', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: '700' }}
                             >
                               Sil
                             </button>
@@ -576,11 +450,10 @@ export default function SiteLayout() {
           </div>
         )}
 
-        {/* 3. SEKME: RAPORLAR */}
         {activeTab === 'reports' && (
-          <div style={{ backgroundColor: '#ffffff', padding: '40px', borderRadius: '12px', textAlign: 'center' }}>
-            <h2>📊 Raporlama Paneli</h2>
-            <p style={{ color: '#6b7280', marginTop: '8px' }}>Sonraki adımda Excel ve PDF rapor indirme araçlarını buraya ekleyeceğiz.</p>
+          <div style={{ backgroundColor: '#18181b', padding: '60px', borderRadius: '16px', textAlign: 'center', border: '1px solid #27272a' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: '800', color: '#ffffff', margin: '0 0 8px 0' }}>📊 Raporlama Paneli</h2>
+            <p style={{ color: '#a1a1aa', margin: 0, fontWeight: '500' }}>Sonraki adımda Excel ve PDF rapor indirme araçlarını buraya ekleyeceğiz.</p>
           </div>
         )}
 
