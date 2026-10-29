@@ -60,13 +60,12 @@ export default function YonetimPanelPage() {
   const [txAmount, setTxAmount] = useState('');
   const [txCategory, setTxCategory] = useState('Aidat Tahsilatı');
 
+  // URL'den site adını alma ve Süperadmin'den gelen paket bilgisini anlık dinleme
   useEffect(() => {
     const sessionAuth = sessionStorage.getItem('mcf_admin_logged');
     if (sessionAuth === 'true') {
       setIsAdminLoggedIn(true);
     }
-    const savedPkg = sessionStorage.getItem('mcf_site_package') as 'trial' | 'basic' | 'pro';
-    if (savedPkg) setCurrentPackage(savedPkg);
 
     const urlParams = new URLSearchParams(window.location.search);
     const siteParam = urlParams.get('site');
@@ -74,7 +73,20 @@ export default function YonetimPanelPage() {
       setCurrentSiteName(siteParam);
     }
 
+    // Firestore'daki tenants tablosundan bu sitenin güncel paketini anlık dinle
+    const unsubscribeTenants = onSnapshot(collection(db, 'tenants'), (snapshot) => {
+      const matchedTenant = snapshot.docs.find(doc => doc.data().siteName === (siteParam || 'Bulvar City'));
+      if (matchedTenant) {
+        const tenantData = matchedTenant.data();
+        if (tenantData.packageType) {
+          setCurrentPackage(tenantData.packageType);
+        }
+      }
+    });
+
     setIsAuthChecked(true);
+
+    return () => unsubscribeTenants();
   }, []);
 
   useEffect(() => {
@@ -121,7 +133,7 @@ export default function YonetimPanelPage() {
     return <div style={{ minHeight: '100vh', backgroundColor: '#0b0f19', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f59e0b', fontWeight: 'bold' }}>Yükleniyor...</div>;
   }
 
-  // DİNAMİK ŞİFRE KONTROLÜ (SÜPERADMİNDE BELİRLEDİĞİN ŞİFREYİ KONTROL EDER)
+  // SÜPERADMİNDE ATANAN ŞİFREYİ DOĞRULAYAN GİRİŞ FONKSİYONU
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!adminPassword) return alert('Lütfen şifre giriniz.');
@@ -139,7 +151,6 @@ export default function YonetimPanelPage() {
           alert('Hatalı site şifresi!');
         }
       } else {
-        // Yedek varsayılan şifre
         if (adminPassword === '1453') {
           setIsAdminLoggedIn(true);
           sessionStorage.setItem('mcf_admin_logged', 'true');
@@ -323,7 +334,6 @@ ${currentSiteName} Yönetimi`;
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0b0f19', fontFamily: 'Inter, system-ui, sans-serif', color: '#ffffff' }}>
       
-      {/* HEADER */}
       <header style={{ backgroundColor: '#111827', borderBottom: '1px solid #1f2937', padding: '16px 24px', boxShadow: '0 4px 20px rgba(0,0,0,0.4)' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
           
@@ -372,7 +382,6 @@ ${currentSiteName} Yönetimi`;
         </div>
       </header>
 
-      {/* İÇERİK */}
       <main style={{ padding: '24px', maxWidth: '1280px', margin: '0 auto' }}>
         
         {isFeatureRestricted(activeTab) ? (
@@ -637,7 +646,6 @@ ${currentSiteName} Yönetimi`;
 
       </main>
 
-      {/* DÜZENLEME MODALI */}
       {editingUnit && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }}>
           <div style={{ backgroundColor: '#111827', border: '1px solid #374151', borderRadius: '16px', padding: '24px', width: '100%', maxWidth: '420px' }}>
@@ -659,7 +667,6 @@ ${currentSiteName} Yönetimi`;
         </div>
       )}
 
-      {/* İHTAR MODALI */}
       {warningModalUnit && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }}>
           <div style={{ backgroundColor: '#111827', border: '2px solid #dc2626', borderRadius: '16px', padding: '24px', width: '100%', maxWidth: '500px' }}>
