@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Site Yönetim Paneli - A, B, C Blok</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Inter Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen">
+
+  <!-- Main Container -->
+  <div class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+
+    <!-- Header & Title -->
+    <header class="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80">
+      <div>
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-xl bg-blue-600 text-white flex items-center justify-center text-xl shadow-md shadow-blue-500/20">
+            <i class="fa-solid fa-city"></i>
+          </div>
+          <div>
+            <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Akasya Yaşam Sitesi</h1>
+            <p class="text-sm text-slate-500">Site & Apartman Yönetim Otomasyonu</p>
+          </div>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <button onclick="renderAll()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold rounded-xl transition flex items-center gap-2">
+          <i class="fa-solid fa-arrows-rotate"></i> Yenile
+        </button>
+        <button onclick="openGlobalChargeModal()" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition shadow-sm shadow-blue-600/30 flex items-center gap-2">
+          <i class="fa-solid fa-file-invoice-dollar"></i> Toplu Aidat Yansıt
+        </button>
+      </div>
+    </header>
+
+    <!-- Stat Dashboard Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Toplam Bağımsız Bölüm</p>
+          <h3 class="text-2xl font-bold text-slate-900" id="stat-total-units">64</h3>
+          <p class="text-xs text-slate-500 mt-1">8 Dükkan • 56 Daire</p>
+        </div>
+        <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg">
+          <i class="fa-solid fa-building shadow-xs"></i>
+        </div>
+      </div>
+
+      <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Bu Ay Toplanan</p>
+          <h3 class="text-2xl font-bold text-emerald-600" id="stat-collected">₺42,500</h3>
+          <p class="text-xs text-emerald-600/80 font-medium mt-1"><i class="fa-solid fa-arrow-up-right"></i> Tahsilat %78</p>
+        </div>
+        <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg">
+          <i class="fa-solid fa-circle-check"></i>
+        </div>
+      </div>
+
+      <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Gecikmedeki Borç</p>
+          <h3 class="text-2xl font-bold text-rose-600" id="stat-debt">₺11,200</h3>
+          <p class="text-xs text-rose-600/80 font-medium mt-1"><span id="stat-debt-count">9</span> Birim Ödeme Bekliyor</p>
+        </div>
+        <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-lg">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+      </div>
+
+      <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1">Doluluk Oranı</p>
+          <h3 class="text-2xl font-bold text-slate-900" id="stat-occupancy">%92</h3>
+          <p class="text-xs text-slate-500 mt-1">59 Dolu • 5 Boş</p>
+        </div>
+        <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg">
+          <i class="fa-solid fa-users"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+      
+      <!-- Block Navigation Tabs -->
+      <div class="border-b border-slate-100 bg-slate-50/50 p-3 sm:p-4 flex flex-wrap gap-2">
+        <button onclick="switchBlock('block_a')" id="tab-block_a" class="tab-btn px-5 py-3 rounded-xl font-medium text-sm transition flex items-center gap-2.5">
+          <i class="fa-solid fa-store"></i>
+          <span>A Blok (Ticari - 8 Dükkan)</span>
+        </button>
+        <button onclick="switchBlock('block_b')" id="tab-block_b" class="tab-btn px-5 py-3 rounded-xl font-medium text-sm transition flex items-center gap-2.5">
+          <i class="fa-solid fa-building"></i>
+          <span>B Blok (14 Kat / 28 Daire)</span>
+        </button>
+        <button onclick="switchBlock('block_c')" id="tab-block_c" class="tab-btn px-5 py-3 rounded-xl font-medium text-sm transition flex items-center gap-2.5">
+          <i class="fa-solid fa-building-user"></i>
+          <span>C Blok (14 Kat / 28 Daire)</span>
+        </button>
+      </div>
+
+      <!-- Layout View Content -->
+      <div class="p-6">
+        
+        <!-- Legend / Info Row -->
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-100">
+          <div>
+            <h2 id="block-title" class="text-lg font-bold text-slate-900">A Blok - Ticari Üniteler</h2>
+            <p id="block-subtitle" class="text-xs text-slate-500">Dükkan ve iş yerleri yerleşim planı</p>
+          </div>
+          <div class="flex items-center gap-4 text-xs font-medium text-slate-600 bg-slate-50 px-4 py-2 rounded-xl border border-slate-200/60">
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Ödendi / Borçsuz</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> Borçlu</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span> Boş Ünite</span>
+          </div>
+        </div>
+
+        <!-- Dynamic Container -->
+        <div id="units-container"></div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Detail & Transaction Modal -->
+  <div id="unit-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-lg rounded-2xl shadow-xl border border-slate-100 overflow-hidden transform transition-all">
+      
+      <!-- Modal Header -->
+      <div class="bg-slate-900 text-white p-6 flex justify-between items-center">
+        <div>
+          <span id="modal-unit-tag" class="text-xs font-semibold uppercase tracking-wider text-blue-400">B Blok • Kat 12</span>
+          <h3 id="modal-unit-name" class="text-xl font-bold">Daire 24</h3>
+        </div>
+        <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 space-y-5">
+        
+        <!-- Status & Balance Card -->
+        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/70 flex justify-between items-center">
+          <div>
+            <p class="text-xs text-slate-500 font-medium">Güncel Hesap Bakiyesi</p>
+            <p id="modal-unit-balance" class="text-2xl font-bold text-slate-900">₺0</p>
+          </div>
+          <span id="modal-unit-status-badge" class="px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
+            Borçsuz
+          </span>
+        </div>
+
+        <!-- Resident Details Form -->
+        <div class="space-y-4">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">Sakin & İletişim Bilgileri</h4>
+          
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1">Sakin Tipi</label>
+              <select id="modal-resident-type" class="w-full text-sm p-2.5 rounded-lg border border-slate-200 bg-white focus:ring-2 focus:ring-blue-500 outline-none">
+                <option value="owner">Kat Maliki (Ev Sahibi)</option>
+                <option value="tenant">Kiracı</option>
+                <option value="vacant">Boş Ünite</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1">Ad Soyad / Firma</label>
+              <input type="text" id="modal-resident-name" class="w-full text-sm p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Ad Soyad">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1">Telefon</label>
+              <input type="text" id="modal-resident-phone" class="w-full text-sm p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="05xx xxx xx xx">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 mb-1">Aylık Aidat Tutarı</label>
+              <input type="number" id="modal-monthly-fee" class="w-full text-sm p-2.5 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="₺750">
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Finance Actions -->
+        <div class="pt-2 border-t border-slate-100">
+          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Hızlı Finans İşlemi</h4>
+          <div class="grid grid-cols-2 gap-3">
+            <button onclick="handleQuickTransaction('payment')" class="p-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-700 font-semibold text-xs flex items-center justify-center gap-2 transition">
+              <i class="fa-solid fa-money-bill-wave text-base"></i> Tahsilat Al (Ödeme)
+            </button>
+            <button onclick="handleQuickTransaction('charge')" class="p-3 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 font-semibold text-xs flex items-center justify-center gap-2 transition">
+              <i class="fa-solid fa-plus-minus text-base"></i> Aidat / Borç Yansıt
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="bg-slate-50 p-4 border-t border-slate-100 flex justify-between items-center">
+        <button onclick="closeModal()" class="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-slate-800 transition">İptal</button>
+        <button onclick="saveUnitDetails()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl shadow-sm transition">Değişiklikleri Kaydet</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- JavaScript Logic -->
+  <script>
+    // System Initial Data Structure
+    const appState = {
+      activeBlock: 'block_a',
+      selectedUnitId: null,
+      units: {}
+    };
+
+    // Initialize Mock Data for A (8 shops), B (28 flats), C (28 flats)
+    function initializeData() {
+      // A Block (Shops)
+      for (let i = 1; i <= 8; i++) {
+        const id = `A_${i}`;
+        const isDebt = i % 3 === 0;
+        appState.units[id] = {
+          id,
+          block: 'A',
+          blockKey: 'block_a',
+          number: `Dükkan ${i}`,
+          floor: 0,
+          type: 'shop',
+          residentType: 'owner',
+          residentName: `Ticari Firma ${i}`,
+          phone: `0532 100 00 0${i}`,
+          monthlyFee: 1200,
+          balance: isDebt ? -1200 : 0
+        };
+      }
+
+      // B Block (Residential - 14 Floors, 28 Flats)
+      for (let f = 1; f <= 14; f++) {
+        for (let u = 1; u <= 2; u++) {
+          const flatNum = (f - 1) * 2 + u;
+          const id = `B_${flatNum}`;
+          const isDebt = flatNum % 5 === 0;
+          const isVacant = flatNum === 11 || flatNum === 23;
+
+          appState.units[id] = {
+            id,
+            block: 'B',
+            blockKey: 'block_b',
+            number: `Daire ${flatNum}`,
+            floor: f,
+            type: 'flat',
+            residentType: isVacant ? 'vacant' : (flatNum % 2 === 0 ? 'owner' : 'tenant'),
+            residentName: isVacant ? '-' : `Sakin B-${flatNum}`,
+            phone: isVacant ? '-' : `0555 200 00 ${flatNum < 10 ? '0' + flatNum : flatNum}`,
+            monthlyFee: 750,
+            balance: isVacant ? 0 : (isDebt ? -750 : 0)
+          };
+        }
+      }
+
+      // C Block (Residential - 14 Floors, 28 Flats)
+      for (let f = 1; f <= 14; f++) {
+        for (let u = 1; u <= 2; u++) {
+          const flatNum = (f - 1) * 2 + u;
+          const id = `C_${flatNum}`;
+          const isDebt = flatNum % 4 === 0;
+          const isVacant = flatNum === 5 || flatNum === 19;
+
+          appState.units[id] = {
+            id,
+            block: 'C',
+            blockKey: 'block_c',
+            number: `Daire ${flatNum}`,
+            floor: f,
+            type: 'flat',
+            residentType: isVacant ? 'vacant' : (flatNum % 2 === 0 ? 'owner' : 'tenant'),
+            residentName: isVacant ? '-' : `Sakin C-${flatNum}`,
+            phone: isVacant ? '-' : `0542 300 00 ${flatNum < 10 ? '0' + flatNum : flatNum}`,
+            monthlyFee: 750,
+            balance: isVacant ? 0 : (isDebt ? -1500 : 0)
+          };
+        }
+      }
+    }
+
+    // Switch Tab
+    function switchBlock(blockKey) {
+      appState.activeBlock = blockKey;
+      renderAll();
+    }
+
+    // Render Stats and Active View
+    function renderAll() {
+      renderTabs();
+      renderStats();
+      renderLayout();
+    }
+
+    // Render Tab UI
+    function renderTabs() {
+      ['block_a', 'block_b', 'block_c'].forEach(key => {
+        const btn = document.getElementById(`tab-${key}`);
+        if (key === appState.activeBlock) {
+          btn.className = "tab-btn px-5 py-3 rounded-xl font-semibold text-sm transition flex items-center gap-2.5 bg-blue-600 text-white shadow-md shadow-blue-500/20";
+        } else {
+          btn.className = "tab-btn px-5 py-3 rounded-xl font-medium text-sm transition flex items-center gap-2.5 bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/60";
+        }
+      });
+
+      // Update Subtitles
+      const titleEl = document.getElementById('block-title');
+      const subEl = document.getElementById('block-subtitle');
+
+      if (appState.activeBlock === 'block_a') {
+        titleEl.textContent = "A Blok - Ticari Üniteler (8 Dükkan)";
+        subEl.textContent = "Zemin Kat İş Yerleri ve Ticari Alan Yerleşim Şeması";
+      } else if (appState.activeBlock === 'block_b') {
+        titleEl.textContent = "B Blok - Konut Rezidansı (14 Kat / 28 Daire)";
+        subEl.textContent = "Kat Başına 2 Bağımsız Bölüm Yerleşimi";
+      } else {
+        titleEl.textContent = "C Blok - Konut Rezidansı (14 Kat / 28 Daire)";
+        subEl.textContent = "Kat Başına 2 Bağımsız Bölüm Yerleşimi";
+      }
+    }
+
+    // Calculate & Render Stats Dashboard
+    function renderStats() {
+      const unitsArray = Object.values(appState.units);
+      let totalDebt = 0;
+      let debtCount = 0;
+      let vacantCount = 0;
+
+      unitsArray.forEach(u => {
+        if (u.balance < 0) {
+          totalDebt += Math.abs(u.balance);
+          debtCount++;
+        }
+        if (u.residentType === 'vacant') {
+          vacantCount++;
+        }
+      });
+
+      const occupiedCount = unitsArray.length - vacantCount;
+      const occupancyRate = Math.round((occupiedCount / unitsArray.length) * 100);
+
+      document.getElementById('stat-total-units').textContent = unitsArray.length;
+      document.getElementById('stat-debt').textContent = `₺${totalDebt.toLocaleString('tr-TR')}`;
+      document.getElementById('stat-debt-count').textContent = debtCount;
+      document.getElementById('stat-occupancy').textContent = `%${occupancyRate}`;
+    }
+
+    // Render Dynamic Layout (Grid for A, Stacked Floors for B & C)
+    function renderLayout() {
+      const container = document.getElementById('units-container');
+      container.innerHTML = '';
+
+      const currentUnits = Object.values(appState.units).filter(u => u.blockKey === appState.activeBlock);
+
+      if (appState.activeBlock === 'block_a') {
+        // A Blok Commercial Grid (8 Shops)
+        const grid = document.createElement('div');
+        grid.className = "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4";
+
+        currentUnits.forEach(unit => {
+          const card = createUnitCard(unit);
+          grid.appendChild(card);
+        });
+
+        container.appendChild(grid);
+      } else {
+        // B & C Block Residential Stacked Layout (14 Floors, Highest floor top)
+        const floorsFlex = document.createElement('div');
+        floorsFlex.className = "flex flex-col gap-3 max-h-[620px] overflow-y-auto pr-2 custom-scrollbar";
+
+        // Loop from Floor 14 down to 1
+        for (let floor = 14; floor >= 1; floor--) {
+          const floorUnits = currentUnits.filter(u => u.floor === floor);
+
+          const floorRow = document.createElement('div');
+          floorRow.className = "flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200/70 hover:border-slate-300 transition";
+
+          // Floor Label Badge
+          const floorBadge = document.createElement('div');
+          floorBadge.className = "w-full sm:w-24 shrink-0 font-bold text-slate-500 text-xs uppercase tracking-wider bg-white py-2 px-3 rounded-lg border border-slate-200/80 flex items-center justify-between sm:justify-center gap-2";
+          floorBadge.innerHTML = `<i class="fa-solid fa-layer-group text-slate-400"></i> Kat ${floor}`;
+          floorRow.appendChild(floorBadge);
+
+          // Units Grid (2 units per floor)
+          const unitsGrid = document.createElement('div');
+          unitsGrid.className = "flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3";
+
+          floorUnits.forEach(unit => {
+            const unitCard = createUnitCard(unit);
+            unitsGrid.appendChild(unitCard);
+          });
+
+          floorRow.appendChild(unitsGrid);
+          floorsFlex.appendChild(floorRow);
+        }
+
+        container.appendChild(floorsFlex);
+      }
+    }
+
+    // Helper to generate a single Unit Card
+    function createUnitCard(unit) {
+      const isDebt = unit.balance < 0;
+      const isVacant = unit.residentType === 'vacant';
+
+      let statusColor = "bg-emerald-500";
+      let statusText = "Ödendi";
+      let borderStyle = "border-slate-200/80 hover:border-blue-400";
+
+      if (isVacant) {
+        statusColor = "bg-amber-400";
+        statusText = "Boş";
+      } else if (isDebt) {
+        statusColor = "bg-rose-500";
+        statusText = `₺${Math.abs(unit.balance)} Borç`;
+        borderStyle = "border-rose-200 bg-rose-50/20 hover:border-rose-400";
+      }
+
+      const card = document.createElement('div');
+      card.className = `bg-white p-4 rounded-xl border ${borderStyle} shadow-xs cursor-pointer transition-all duration-200 hover:shadow-md flex flex-col justify-between`;
+      card.onclick = () => openUnitModal(unit.id);
+
+      card.innerHTML = `
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full ${statusColor}"></span>
+            <span class="font-bold text-slate-900 text-sm">${unit.number}</span>
+          </div>
+          <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md ${isVacant ? 'bg-amber-50 text-amber-700' : (unit.residentType === 'owner' ? 'bg-blue-50 text-blue-700' : 'bg-purple-50 text-purple-700')}">
+            ${isVacant ? 'Boş' : (unit.residentType === 'owner' ? 'Ev Sahibi' : 'Kiracı')}
+          </span>
+        </div>
+        <div class="flex items-end justify-between mt-1 pt-2 border-t border-slate-100 text-xs">
+          <span class="text-slate-600 font-medium truncate max-w-[120px]" title="${unit.residentName}">${unit.residentName}</span>
+          <span class="font-bold ${isDebt ? 'text-rose-600' : 'text-slate-500'}">${statusText}</span>
+        </div>
+      `;
+
+      return card;
+    }
+
+    // Modal Operations
+    function openUnitModal(unitId) {
+      appState.selectedUnitId = unitId;
+      const unit = appState.units[unitId];
+
+      document.getElementById('modal-unit-tag').textContent = `${unit.block} Blok • ${unit.floor > 0 ? 'Kat ' + unit.floor : 'Ticari Zemin'}`;
+      document.getElementById('modal-unit-name').textContent = unit.number;
+      document.getElementById('modal-resident-type').value = unit.residentType;
+      document.getElementById('modal-resident-name').value = unit.residentName !== '-' ? unit.residentName : '';
+      document.getElementById('modal-resident-phone').value = unit.phone !== '-' ? unit.phone : '';
+      document.getElementById('modal-monthly-fee').value = unit.monthlyFee;
+
+      updateModalBalanceUI(unit);
+
+      document.getElementById('unit-modal').classList.remove('hidden');
+    }
+
+    function updateModalBalanceUI(unit) {
+      const balanceEl = document.getElementById('modal-unit-balance');
+      const badgeEl = document.getElementById('modal-unit-status-badge');
+
+      if (unit.balance < 0) {
+        balanceEl.textContent = `-₺${Math.abs(unit.balance).toLocaleString('tr-TR')}`;
+        balanceEl.className = "text-2xl font-bold text-rose-600";
+        badgeEl.textContent = "Gecikmede / Borçlu";
+        badgeEl.className = "px-3 py-1.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-700";
+      } else {
+        balanceEl.textContent = `₺${unit.balance.toLocaleString('tr-TR')}`;
+        balanceEl.className = "text-2xl font-bold text-slate-900";
+        badgeEl.textContent = "Borçsuz";
+        badgeEl.className = "px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700";
+      }
+    }
+
+    function closeModal() {
+      document.getElementById('unit-modal').classList.add('hidden');
+      appState.selectedUnitId = null;
+    }
+
+    function saveUnitDetails() {
+      if (!appState.selectedUnitId) return;
+      const unit = appState.units[appState.selectedUnitId];
+
+      unit.residentType = document.getElementById('modal-resident-type').value;
+      unit.residentName = document.getElementById('modal-resident-name').value || '-';
+      unit.phone = document.getElementById('modal-resident-phone').value || '-';
+      unit.monthlyFee = parseFloat(document.getElementById('modal-monthly-fee').value) || 0;
+
+      closeModal();
+      renderAll();
+    }
+
+    // Quick Finance Actions in Modal
+    function handleQuickTransaction(type) {
+      if (!appState.selectedUnitId) return;
+      const unit = appState.units[appState.selectedUnitId];
+
+      if (type === 'payment') {
+        // Clear debt or add credit
+        unit.balance = 0;
+      } else if (type === 'charge') {
+        // Charge monthly fee
+        unit.balance -= unit.monthlyFee;
+      }
+
+      updateModalBalanceUI(unit);
+      renderAll();
+    }
+
+    // Bulk Monthly Fee Charge
+    function openGlobalChargeModal() {
+      const confirmAction = confirm("Tüm 64 bağımsız bölüme aylık sabit aidat borcu yansıtılsın mı?");
+      if (confirmAction) {
+        Object.values(appState.units).forEach(u => {
+          if (u.residentType !== 'vacant') {
+            u.balance -= u.monthlyFee;
+          }
+        });
+        renderAll();
+        alert("Toplu aidat tüm ünitelere başarıyla borçlandırıldı.");
+      }
+    }
+
+    // On Window Load
+    window.onload = function() {
+      initializeData();
+      renderAll();
+    };
+  </script>
+</body>
+</html>
