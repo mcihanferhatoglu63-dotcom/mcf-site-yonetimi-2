@@ -6,27 +6,41 @@ import { useRouter } from 'next/navigation';
 export default function HomePage() {
   const router = useRouter();
   const [siteCode, setSiteCode] = useState('');
-  const [sitePassword, setSitePassword] = useState('');
   
+  // Seçim Modalı (Yönetim mi, Sakin mi?)
+  const [showPortalModal, setShowPortalModal] = useState(false);
+  const [selectedSite, setSelectedSite] = useState('');
+
   // Süper Admin Modalı için State'ler
   const [showSuperModal, setShowSuperModal] = useState(false);
   const [superPassword, setSuperPassword] = useState('');
 
-  // İşletme / Site Girişi
-  const handleLogin = (e: React.FormEvent) => {
+  // Site Adı Girilip Devam Et Butonuna Basıldığında
+  const handleProceed = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!siteCode) {
-      alert('Lütfen site/işletme kodu giriniz.');
+    if (!siteCode.trim()) {
+      alert('Lütfen site/işletme adı giriniz.');
       return;
     }
-    router.push(`/yonetim?site=${encodeURIComponent(siteCode)}`);
+    setSelectedSite(siteCode.trim());
+    setShowPortalModal(true);
   };
 
-  // Tek Tıkla Demo Site Giriş (14 Günlük Süre ve Pro Özellikler Aktif)
-  const handleDemoLogin = () => {
+  // Tek Tıkla Demo Site Girişi (Doğrudan Seçim Modalını Açar)
+  const handleDemoClick = () => {
     sessionStorage.setItem('mcf_site_package', 'pro');
-    sessionStorage.setItem('mcf_admin_logged', 'true');
-    router.push('/yonetim?site=Demo-Site');
+    setSelectedSite('Demo-Site');
+    setShowPortalModal(true);
+  };
+
+  // Yönetim Paneline Yönlendir
+  const goToManagement = () => {
+    router.push(`/yonetim?site=${encodeURIComponent(selectedSite)}`);
+  };
+
+  // Sakin Portalına Yönlendir
+  const goToResident = () => {
+    router.push(`/sakin?site=${encodeURIComponent(selectedSite)}`);
   };
 
   // Süper Admin Giriş Doğrulama
@@ -92,7 +106,7 @@ export default function HomePage() {
         </p>
       </div>
 
-      {/* GİRİŞ KARTI */}
+      {/* GİRİŞ KARTI (SADECE SİTE ADI) */}
       <div style={{ 
         backgroundColor: '#111827', 
         border: '1px solid #1f2937', 
@@ -104,40 +118,17 @@ export default function HomePage() {
         textAlign: 'center'
       }}>
         
-        <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <form onSubmit={handleProceed} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           
           <div style={{ textAlign: 'left' }}>
             <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px', fontWeight: '600' }}>
-              Site / İşletme Kodu
+              Site / İşletme Adı
             </label>
             <input 
               type="text" 
               placeholder="Örn: bulvar-city" 
               value={siteCode}
               onChange={(e) => setSiteCode(e.target.value)}
-              style={{ 
-                width: '100%', 
-                padding: '14px 16px', 
-                backgroundColor: '#0b0f19', 
-                border: '1px solid #374151', 
-                borderRadius: '10px', 
-                color: '#fff', 
-                fontSize: '15px',
-                outline: 'none',
-                boxSizing: 'border-box'
-              }} 
-            />
-          </div>
-
-          <div style={{ textAlign: 'left' }}>
-            <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px', fontWeight: '600' }}>
-              Erişim Şifresi
-            </label>
-            <input 
-              type="password" 
-              placeholder="Şifrenizi giriniz..." 
-              value={sitePassword}
-              onChange={(e) => setSitePassword(e.target.value)}
               style={{ 
                 width: '100%', 
                 padding: '14px 16px', 
@@ -167,17 +158,17 @@ export default function HomePage() {
               marginTop: '4px'
             }}
           >
-            Panele Giriş Yap
+            Devam Et
           </button>
 
         </form>
 
       </div>
 
-      {/* TEK TIKLA DEMO SİTE BUTONU (14 GÜN & PRO ÖZELLİKLER) */}
+      {/* TEK TIKLA DEMO SİTE BUTONU */}
       <div style={{ marginTop: '24px', width: '100%', maxWidth: '440px' }}>
         <button 
-          onClick={handleDemoLogin}
+          onClick={handleDemoClick}
           style={{ 
             width: '100%', 
             background: 'linear-gradient(135deg, #0284c7 0%, #2563eb 100%)', 
@@ -194,6 +185,37 @@ export default function HomePage() {
           Tek Tıkla Demo Site İle İncele (14 Gün Pro)
         </button>
       </div>
+
+      {/* PORTAL SEÇİM MODALI (SAKİN GİRİŞİ VEYA YÖNETİM GİRİŞİ) */}
+      {showPortalModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }}>
+          <div style={{ backgroundColor: '#111827', border: '1px solid #374151', borderRadius: '16px', padding: '32px', maxWidth: '400px', width: '100%', textAlign: 'center' }}>
+            <h3 style={{ margin: '0 0 6px 0', fontSize: '20px', color: '#f59e0b', fontWeight: '800' }}>{selectedSite}</h3>
+            <p style={{ fontSize: '13px', color: '#94a3b8', margin: '0 0 24px 0' }}>Lütfen bağlanmak istediğiniz portali seçiniz.</p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <button 
+                onClick={goToManagement}
+                style={{ backgroundColor: '#f59e0b', color: '#111827', border: 'none', padding: '14px', borderRadius: '10px', fontWeight: '800', fontSize: '15px', cursor: 'pointer' }}
+              >
+                🏢 Yönetim Girişi
+              </button>
+              <button 
+                onClick={goToResident}
+                style={{ backgroundColor: '#0284c7', color: '#ffffff', border: 'none', padding: '14px', borderRadius: '10px', fontWeight: '800', fontSize: '15px', cursor: 'pointer' }}
+              >
+                🏠 Sakin Girişi
+              </button>
+              <button 
+                onClick={() => setShowPortalModal(false)}
+                style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '13px', cursor: 'pointer', marginTop: '8px' }}
+              >
+                İptal / Geri Dön
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* SÜPER ADMIN ŞİFRE MODALI */}
       {showSuperModal && (
