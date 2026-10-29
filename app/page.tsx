@@ -200,12 +200,12 @@ export default function HomePage() {
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }}>
           <div style={{ backgroundColor: '#111827', border: '1px solid #374151', borderRadius: '16px', padding: '30px', maxWidth: '380px', width: '100%', textAlign: 'center' }}>
             <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', color: '#f59e0b', fontWeight: '800' }}>MCF Teknoloji Süper Admin</h3>
-            <p style={{ fontSize: '12px', color: '#94a3b8', margin: '0 0 20px 0' }}>Süper admin şifrenizi (1923) giriniz.</p>
+            <p style={{ fontSize: '12px', color: '#94a3b8', margin: '0 0 20px 0' }}>Yönetici şifrenizi giriniz.</p>
 
             <form onSubmit={handleSuperLogin} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <input
                 type="password"
-                placeholder="Şifre (1923)"
+                placeholder="Şifrenizi giriniz..."
                 value={superPassword}
                 onChange={(e) => setSuperPassword(e.target.value)}
                 style={{ padding: '12px', backgroundColor: '#0b0f19', border: '1px solid #374151', borderRadius: '8px', color: '#fff', fontSize: '15px', textAlign: 'center', outline: 'none', fontWeight: 'bold' }}
