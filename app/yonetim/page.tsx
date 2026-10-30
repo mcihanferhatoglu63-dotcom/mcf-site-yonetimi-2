@@ -98,28 +98,15 @@ export default function YonetimPanelPage() {
   }, []);
 
   useEffect(() => {
-    const unsubscribeUnits = onSnapshot(collection(db, 'units'), async (snapshot) => {
+    // BURASI DÜZELTİLDİ: Otomatik varsayılan oluşturma kaldırıldı, böylece sildiğiniz bloklar geri gelmez!
+    const unsubscribeUnits = onSnapshot(collection(db, 'units'), (snapshot) => {
       let fetchedUnits: Unit[] = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       })) as Unit[];
 
-      if (fetchedUnits.length === 0) {
-        const batch = writeBatch(db);
-        for (let i = 1; i <= 8; i++) {
-          batch.set(doc(db, 'units', `A_${i}`), { block: 'A', unitNumber: i, residentName: `Dükkan İşletmecisi ${i}`, phone: '0532000000' + (i < 10 ? '0' + i : i), isTenant: false, landlordName: '', debt: 0, status: 'paid' });
-        }
-        for (let i = 1; i <= 28; i++) {
-          batch.set(doc(db, 'units', `B_${i}`), { block: 'B', unitNumber: i, residentName: `B Blok Sakin ${i}`, phone: '053311100' + (i < 10 ? '0' + i : i), isTenant: false, landlordName: '', debt: 0, status: 'paid' });
-        }
-        for (let i = 1; i <= 28; i++) {
-          batch.set(doc(db, 'units', `C_${i}`), { block: 'C', unitNumber: i, residentName: `C Blok Sakin ${i}`, phone: '053522200' + (i < 10 ? '0' + i : i), isTenant: false, landlordName: '', debt: 0, status: 'paid' });
-        }
-        await batch.commit();
-      } else {
-        setUnits(fetchedUnits);
-        setLoading(false);
-      }
+      setUnits(fetchedUnits);
+      setLoading(false);
     });
 
     const unsubscribeTx = onSnapshot(collection(db, 'transactions'), (snapshot) => {
@@ -258,7 +245,6 @@ export default function YonetimPanelPage() {
     } catch (err) { console.error(err); }
   };
 
-  // Tekil Blok Silme Fonksiyonu
   const handleDeleteBlock = async (blockName: string) => {
     if (!confirm(`Dikkat! ${blockName} bloğu ve bu bloğa ait tüm daireler kalıcı olarak silinecek. Emin misiniz?`)) return;
     try {
@@ -278,7 +264,6 @@ export default function YonetimPanelPage() {
     }
   };
 
-  // KESİN ÇÖZÜM: Mevcut TÜM daireleri veritabanından tamamen silip, yeni girilen blokları ve daireleri sıfırdan kurar
   const handleGenerateCustomUnits = async (e: React.FormEvent) => {
     e.preventDefault();
     const blocksArray = configBlocks.split(',').map(b => b.trim()).filter(b => b.length > 0);
@@ -291,7 +276,6 @@ export default function YonetimPanelPage() {
     if (!confirm(`Dikkat! Mevcut tüm eski bloklar ve daireler tamamen silinecek. Yalnızca (${blocksArray.join(', ')}) blokları ve her birinde ${countPerBlock} daire oluşturulacak. Emin misiniz?`)) return;
 
     try {
-      // 1. Adım: Firestore'daki mevcut tüm birimleri/daireleri çek ve batch ile sil
       const querySnapshot = await getDocs(collection(db, 'units'));
       const deleteBatch = writeBatch(db);
       querySnapshot.docs.forEach((document) => {
@@ -299,7 +283,6 @@ export default function YonetimPanelPage() {
       });
       await deleteBatch.commit();
 
-      // 2. Adım: Yeni tanımlanan blokları ve daireleri sıfırdan oluştur
       const createBatch = writeBatch(db);
       blocksArray.forEach(block => {
         for (let i = 1; i <= countPerBlock; i++) {
@@ -318,7 +301,6 @@ export default function YonetimPanelPage() {
       });
       await createBatch.commit();
 
-      // Üst aidat miktarını da güncel tutar yap
       setDueAmount(configDefaultDue);
       setSelectedBlock(blocksArray[0]);
 
