@@ -66,15 +66,20 @@ export default function YonetimPanelPage() {
   const [txCategory, setTxCategory] = useState('Aidat Tahsilatı');
 
   useEffect(() => {
-    const sessionAuth = sessionStorage.getItem('mcf_admin_logged');
-    if (sessionAuth === 'true') {
-      setIsAdminLoggedIn(true);
-    }
-
     const urlParams = new URLSearchParams(window.location.search);
     const siteParam = urlParams.get('site');
     if (siteParam) {
       setCurrentSiteName(siteParam);
+      // Eğer gelen site Demo-Site ise doğrudan admin oturumunu otomatik aç
+      if (siteParam === 'Demo-Site') {
+        setIsAdminLoggedIn(true);
+        sessionStorage.setItem('mcf_admin_logged', 'true');
+      }
+    }
+
+    const sessionAuth = sessionStorage.getItem('mcf_admin_logged');
+    if (sessionAuth === 'true') {
+      setIsAdminLoggedIn(true);
     }
 
     const savedDemoPkg = sessionStorage.getItem('mcf_site_package');
@@ -98,7 +103,6 @@ export default function YonetimPanelPage() {
   }, []);
 
   useEffect(() => {
-    // BURASI DÜZELTİLDİ: Otomatik varsayılan oluşturma kaldırıldı, böylece sildiğiniz bloklar geri gelmez!
     const unsubscribeUnits = onSnapshot(collection(db, 'units'), (snapshot) => {
       let fetchedUnits: Unit[] = snapshot.docs.map(doc => ({
         id: doc.id,
