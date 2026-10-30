@@ -9,6 +9,7 @@ interface Tenant {
   id: string;
   siteName: string;
   packageType?: string;
+  sitePassword?: string;
 }
 
 export default function HomePage() {
@@ -19,6 +20,11 @@ export default function HomePage() {
   // Seçim Modalı (Yönetim mi, Sakin mi?)
   const [showPortalModal, setShowPortalModal] = useState(false);
   const [selectedSite, setSelectedSite] = useState('');
+
+  // Gerçek Siteler için Yönetim Şifre Doğrulama Modalı
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [enteredPassword, setEnteredPassword] = useState('');
+  const [targetSiteForPassword, setTargetSiteForPassword5] = useState<{name: string, pass: string} | null>(null);
 
   // Süper Admin Modalı için State'ler
   const [showSuperModal, setShowSuperModal] = useState(false);
@@ -39,9 +45,17 @@ export default function HomePage() {
   }, []);
 
   // Listeden bir siteye tıklandığında
-  const handleSiteClick = (siteName: string) => {
-    setSelectedSite(siteName);
-    setShowPortalModal(true);
+  const handleSiteClick = (tenant: Tenant) => {
+    setSelectedSite(tenant.siteName);
+    
+    // Eğer tıklanan site "Demo-Site" ise şifresiz olarak direkt portal seçimine git
+    if (tenant.siteName === 'Demo-Site') {
+      sessionStorage.setItem('mcf_site_package', 'pro');
+      setShowPortalModal(true);
+    } else {
+      // Normal siteler için portal seçimine yönlendir
+      setShowPortalModal(true);
+    }
   };
 
   // Tek Tıkla Demo Site Girişi
@@ -51,12 +65,18 @@ export default function HomePage() {
     setShowPortalModal(true);
   };
 
-  // Yönetim Paneline Yönlendir
+  // Yönetim Paneline Yönlendir (Demo ise şifresiz, diğerlerinde şifre kontrolü ile)
   const goToManagement = () => {
-    router.push(`/yonetim?site=${encodeURIComponent(selectedSite)}`);
+    if (selectedSite === 'Demo-Site') {
+      sessionStorage.setItem('mcf_admin_logged', 'true');
+      router.push(`/yonetim?site=${encodeURIComponent(selectedSite)}`);
+    } else {
+      // Normal site ise yönetim paneline yönlendir (Yönetim paneli kendi içinde şifre isteyecek)
+      router.push(`/yonetim?site=${encodeURIComponent(selectedSite)}`);
+    }
   };
 
-  // Sakin Portalına Yönlendir
+  // Sakin Portalına Yönlendir (Hepsi şifresiz, daire no ile)
   const goToResident = () => {
     router.push(`/sakin?site=${encodeURIComponent(selectedSite)}`);
   };
@@ -151,7 +171,7 @@ export default function HomePage() {
             {tenants.map((tenant) => (
               <button
                 key={tenant.id}
-                onClick={() => handleSiteClick(tenant.siteName)}
+                onClick={() => handleSiteClick(tenant)}
                 style={{
                   width: '100%',
                   padding: '14px 16px',
@@ -212,13 +232,13 @@ export default function HomePage() {
                 onClick={goToManagement}
                 style={{ backgroundColor: '#f59e0b', color: '#111827', border: 'none', padding: '14px', borderRadius: '10px', fontWeight: '800', fontSize: '15px', cursor: 'pointer' }}
               >
-                🏢 Yönetim Girişi
+                🏢 Yönetim Girişi {selectedSite === 'Demo-Site' ? '(Şifresiz)' : ''}
               </button>
               <button 
                 onClick={goToResident}
                 style={{ backgroundColor: '#0284c7', color: '#ffffff', border: 'none', padding: '14px', borderRadius: '10px', fontWeight: '800', fontSize: '15px', cursor: 'pointer' }}
               >
-                🏠 Sakin Girişi
+                🏠 Sakin Girişi (Şifresiz)
               </button>
               <button 
                 onClick={() => setShowPortalModal(false)}
