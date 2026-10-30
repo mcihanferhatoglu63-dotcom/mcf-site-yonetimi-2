@@ -278,7 +278,7 @@ export default function YonetimPanelPage() {
     }
   };
 
-  // Sıfırdan Tüm Blok ve Daireleri Oluşturma
+  // KESİN ÇÖZÜM: Mevcut TÜM daireleri veritabanından tamamen silip, yeni girilen blokları ve daireleri sıfırdan kurar
   const handleGenerateCustomUnits = async (e: React.FormEvent) => {
     e.preventDefault();
     const blocksArray = configBlocks.split(',').map(b => b.trim()).filter(b => b.length > 0);
@@ -288,21 +288,23 @@ export default function YonetimPanelPage() {
     if (blocksArray.length === 0) return alert('Lütfen en az bir blok giriniz.');
     if (!countPerBlock || countPerBlock <= 0) return alert('Lütfen geçerli bir daire sayısı giriniz.');
 
-    if (!confirm(`Dikkat! Mevcut tüm daireler silinecek ve yeni bloklar (${blocksArray.join(', ')}) ile her blokta ${countPerBlock} daire oluşturulacak. Varsayılan aidat ${defaultDue} ₺ olarak ayarlanacak. Emin misiniz?`)) return;
+    if (!confirm(`Dikkat! Mevcut tüm eski bloklar ve daireler tamamen silinecek. Yalnızca (${blocksArray.join(', ')}) blokları ve her birinde ${countPerBlock} daire oluşturulacak. Emin misiniz?`)) return;
 
     try {
-      const snapshot = await getDocs(collection(db, 'units'));
-      const batch = writeBatch(db);
-      snapshot.docs.forEach(d => {
-        batch.delete(d.ref);
+      // 1. Adım: Firestore'daki mevcut tüm birimleri/daireleri çek ve batch ile sil
+      const querySnapshot = await getDocs(collection(db, 'units'));
+      const deleteBatch = writeBatch(db);
+      querySnapshot.docs.forEach((document) => {
+        deleteBatch.delete(document.ref);
       });
-      await batch.commit();
+      await deleteBatch.commit();
 
-      const newBatch = writeBatch(db);
+      // 2. Adım: Yeni tanımlanan blokları ve daireleri sıfırdan oluştur
+      const createBatch = writeBatch(db);
       blocksArray.forEach(block => {
         for (let i = 1; i <= countPerBlock; i++) {
           const docId = `${block}_${i}`;
-          newBatch.set(doc(db, 'units', docId), {
+          createBatch.set(doc(db, 'units', docId), {
             block: block,
             unitNumber: i,
             residentName: `${block} Blok Sakini ${i}`,
@@ -314,12 +316,13 @@ export default function YonetimPanelPage() {
           });
         }
       });
-      await newBatch.commit();
+      await createBatch.commit();
 
-      // Üst aidat miktarını da güncelle
+      // Üst aidat miktarını da güncel tutar yap
       setDueAmount(configDefaultDue);
+      setSelectedBlock(blocksArray[0]);
 
-      alert('Site yapılandırması sıfırdan başarıyla oluşturuldu!');
+      alert('Eski bloklar temizlendi ve yeni site yapılandırması başarıyla oluşturuldu!');
       setActiveTab('units');
     } catch (err) {
       console.error(err);
@@ -733,19 +736,19 @@ ${currentSiteName} Yönetimi`;
               <div style={{ backgroundColor: '#111827', borderRadius: '16px', padding: '30px', border: '1px solid #1f2937', maxWidth: '600px', margin: '0 auto' }}>
                 <h2 style={{ fontSize: '20px', fontWeight: '800', color: '#f59e0b', margin: '0 0 8px 0' }}>⚙️ Site Blok ve Daire Yapılandırması</h2>
                 <p style={{ fontSize: '13px', color: '#94a3b8', margin: '0 0 24px 0' }}>
-                  Bu sitede yer alacak blokları, her bloktaki daire sayısını ve varsayılan aylık aidat tutarını belirleyin.
+                  Bu butona bastığınızda eski tüm bloklar tamamen temizlenir ve sadece buraya yazdığınız bloklar sıfırdan oluşturulur.
                 </p>
 
                 <form onSubmit={handleGenerateCustomUnits} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
                   <div>
                     <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px', fontWeight: '600' }}>
-                      Blok İsimleri (Virgülle ayırarak yazınız)
+                      Blok İsimleri (Virgülle ayırarak yazınız, örn: A)
                     </label>
                     <input 
                       type="text" 
                       value={configBlocks} 
                       onChange={(e) => setConfigBlocks(e.target.value)} 
-                      placeholder="Örn: A, B" 
+                      placeholder="Örn: A" 
                       style={{ width: '100%', padding: '14px', backgroundColor: '#0b0f19', border: '1px solid #374151', borderRadius: '10px', color: '#fff', fontSize: '15px', fontWeight: 'bold' }} 
                     />
                   </div>
@@ -777,7 +780,7 @@ ${currentSiteName} Yönetimi`;
                   </div>
 
                   <button type="submit" style={{ backgroundColor: '#f59e0b', color: '#111827', border: 'none', padding: '14px', borderRadius: '10px', fontWeight: '800', fontSize: '15px', cursor: 'pointer', marginTop: '10px' }}>
-                    🔄 Blokları ve Daireleri Sıfırdan Oluştur
+                    🔄 Eski Blokları Sil ve Sıfırdan Oluştur
                   </button>
                 </form>
               </div>
