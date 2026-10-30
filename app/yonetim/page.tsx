@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { db } from '../firebase';
-import { collection, onSnapshot, doc, updateDoc, writeBatch, addDoc, deleteDoc, serverTimestamp, query, where, getDocs } from 'firebase/firestore';
+import { collection, onSnapshot, doc, updateDoc, writeBatch, addDoc, deleteDoc, serverTimestamp, query, where, getDocs, setDoc } from 'firebase/firestore';
 
 interface Unit {
   id: string;
@@ -40,7 +40,7 @@ export default function YonetimPanelPage() {
   const [isAuthChecked, setIsAuthChecked] = useState(false);
   const [currentSiteName, setCurrentSiteName] = useState('Bulvar City');
 
-  const [activeTab, setActiveTab] = useState<'units' | 'directory' | 'accounting' | 'reports' | 'complaints'>('units');
+  const [activeTab, setActiveTab] = useState<'units' | 'directory' | 'accounting' | 'reports' | 'complaints' | 'settings'>('units');
   const [selectedBlock, setSelectedBlock] = useState('A');
   const [dueAmount, setDueAmount] = useState('2000');
   
@@ -55,6 +55,10 @@ export default function YonetimPanelPage() {
 
   // Paket state'i (trial, basic, pro)
   const [currentPackage, setCurrentPackage] = useState<'trial' | 'basic' | 'pro'>('trial');
+
+  // Site Yapılandırma State'leri (Bloklar ve Daire Sayıları)
+  const [configBlocks, setConfigBlocks] = useState('A, B, C');
+  const [unitsPerBlockInput, setUnitsPerBlockInput] = useState('10');
 
   const [txType, setTxType] = useState<'income' | 'expense'>('income');
   const [txTitle, setTxTitle] = useState('');
@@ -74,13 +78,11 @@ export default function YonetimPanelPage() {
       setCurrentSiteName(siteParam);
     }
 
-    // Eğer tarayıcıda demo için set edilmiş bir paket varsa öncelik ver
     const savedDemoPkg = sessionStorage.getItem('mcf_site_package');
     if (savedDemoPkg === 'trial' || savedDemoPkg === 'pro') {
       setCurrentPackage(savedDemoPkg as any);
     }
 
-    // Firestore'daki tenants tablosundan bu sitenin güncel paketini anlık dinle
     const unsubscribeTenants = onSnapshot(collection(db, 'tenants'), (snapshot) => {
       const matchedTenant = snapshot.docs.find(doc => doc.data().siteName === (siteParam || 'Demo-Site'));
       if (matchedTenant) {
@@ -140,12 +142,10 @@ export default function YonetimPanelPage() {
     return <div style={{ minHeight: '100vh', backgroundColor: '#0b0f19', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f59e0b', fontWeight: 'bold' }}>Yükleniyor...</div>;
   }
 
-  // SÜPERADMİNDE ATANAN ŞİFREYİ DOĞRULAYAN GİRİŞ FONKSİYONU
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!adminPassword) return alert('Lütfen şifre giriniz.');
 
-    // Demo site için direkt giriş
     if (currentSiteName === 'Demo-Site') {
       setIsAdminLoggedIn(true);
       sessionStorage.setItem('mcf_admin_logged', 'true');
@@ -204,7 +204,11 @@ export default function YonetimPanelPage() {
     );
   }
 
-  const filteredUnits = units.filter(u => u.block === selectedBlock).sort((a, b) => Number(a.unitNumber) - Number(b.unitNumber));
+  // Benzersiz blok listesini al (A, B, C veya kullanıcının tanımladığı bloklar)
+  const availableBlocks = Array.from(new Set(units.map(u => u.block))).sort();
+  const currentActiveBlock = availableBlocks.includes(selectedBlock) ? selectedBlock : (availableBlocks[0] || 'A');
+
+  const filteredUnits = units.filter(u => u.block === currentActiveBlock).sort((a, b) => Number(a.unitNumber) - Number(b.unitNumber));
   const sortedAllUnits = [...units].sort((a, b) => a.block === b.block ? Number(a.unitNumber) - Number(b.unitNumber) : a.block.localeCompare(b.block));
 
   const totalDebtors = units.filter(u => u.status === 'unpaid').length;
@@ -256,6 +260,52 @@ export default function YonetimPanelPage() {
     } catch (err) { console.error(err); }
   };
 
+  // Özel Blok ve Daire Yapılandırmasını Kaydetme / Oluşturma
+  const handleGenerateCustomUnits = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const blocksArray = configBlocks.split(',').map(b => b.trim()).filter(b => b.length > 0);
+    const countPerBlock = Number(unitsPerBlockInput);
+
+    if (blocksArray.length === 0) return alert('Lütfen en az bir blok giriniz.');
+    if (!countPerBlock || countPerBlock <= 0) return alert('Lütfen geçerli bir daire sayısı giriniz.');
+
+    if (!confirm(`Dikkat! Mevcut tüm daireler silinecek ve yeni bloklar (${blocksArray.join(', ')}) ile her blokta ${countPerBlock} daire oluşturulacak. Emin misiniz?`)) return;
+
+    try {
+      // Önce mevcut birimleri sil
+      const snapshot = await getDocs(collection(db, 'units'));
+      const batch = writeBatch(db);
+      snapshot.docs.forEach(d => {
+        batch.delete(d.ref);
+      });
+      await batch.commit();
+
+      // Yeni birimleri oluştur
+      const newBatch = writeBatch(db);
+      blocksArray.forEach(block => {
+        for (let i = 1; i <= countPerBlock; i++) {
+          const docId = `${block}_${i}`;
+          newBatch.set(doc(db, 'units', docId), {
+            block: block,
+            unitNumber: i,
+            residentName: `${block} Blok Sakini ${i}`,
+            phone: '053200000' + (i < 10 ? '0' + i : i),
+            isTenant: false,
+            landlordName: '',
+            debt: 0,
+            status: 'paid'
+          });
+        }
+      });
+      await newBatch.commit();
+      alert('Site yapılandırması başarıyla güncellendi ve daireler oluşturuldu!');
+      setActiveTab('units');
+    } catch (err) {
+      console.error(err);
+      alert('Yapılandırma kaydedilirken hata oluştu.');
+    }
+  };
+
   const handleSaveUnitDetails = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingUnit) return;
@@ -279,7 +329,7 @@ export default function YonetimPanelPage() {
   };
 
   const getOfficialWarningText = (unit: Unit) => {
-    const unitTitle = unit.block === 'A' ? `A Blok Dükkan ${unit.unitNumber}` : `${unit.block} Blok No: ${unit.unitNumber}`;
+    const unitTitle = `${unit.block} Blok No: ${unit.unitNumber}`;
     return `Sayın ${unit.residentName || 'Sakin'}, (${unitTitle})
 Bu ay itibariyle toplam ${unit.debt.toLocaleString('tr-TR')} ₺ aidat/borç bakiyeniz bulunmaktadır. 
 Ödememeniz halinde yasal takibat başlatılacaktır.
@@ -336,9 +386,6 @@ ${currentSiteName} Yönetimi`;
     try { await deleteDoc(doc(db, 'transactions', id)); } catch (err) { console.error(err); }
   };
 
-  const getOwnerLabel = (block: string) => block === 'A' ? 'Mülk Sahibi' : 'Ev Sahibi';
-
-  // Kısıtlama Kuralı: Sadece 'basic' paketinde Kasa, Raporlar ve Bildirimler kilitlidir. Trial ve Pro'da serbesttir.
   const isFeatureRestricted = (tab: string) => {
     if (currentPackage === 'basic' && (tab === 'accounting' || tab === 'reports' || tab === 'complaints')) {
       return true;
@@ -383,6 +430,9 @@ ${currentSiteName} Yönetimi`;
                 </span>
               )}
             </button>
+            <button onClick={() => setActiveTab('settings')} style={{ padding: '10px 14px', borderRadius: '8px', border: 'none', fontWeight: '700', fontSize: '13px', cursor: 'pointer', backgroundColor: activeTab === 'settings' ? '#f59e0b' : 'transparent', color: activeTab === 'settings' ? '#111827' : '#94a3b8' }}>
+              ⚙️ Site Ayarları
+            </button>
 
             <button 
               onClick={() => {
@@ -412,13 +462,9 @@ ${currentSiteName} Yönetimi`;
             {activeTab === 'units' && (
               <>
                 <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', overflowX: 'auto', paddingBottom: '4px' }}>
-                  {[
-                    { key: 'A', name: 'A Blok (8 Dükkan)' },
-                    { key: 'B', name: 'B Blok (28 Daire)' },
-                    { key: 'C', name: 'C Blok (28 Daire)' }
-                  ].map((b) => (
-                    <button key={b.key} onClick={() => setSelectedBlock(b.key)} style={{ padding: '14px 24px', borderRadius: '12px', border: '1px solid', borderColor: selectedBlock === b.key ? '#f59e0b' : '#374151', backgroundColor: selectedBlock === b.key ? '#f59e0b' : '#111827', color: selectedBlock === b.key ? '#111827' : '#ffffff', fontWeight: '700', cursor: 'pointer', flex: 1 }}>
-                      {b.name}
+                  {availableBlocks.map((blk) => (
+                    <button key={blk} onClick={() => setSelectedBlock(blk)} style={{ padding: '14px 24px', borderRadius: '12px', border: '1px solid', borderColor: currentActiveBlock === blk ? '#f59e0b' : '#374151', backgroundColor: currentActiveBlock === blk ? '#f59e0b' : '#111827', color: currentActiveBlock === blk ? '#111827' : '#ffffff', fontWeight: '700', cursor: 'pointer', flex: 1 }}>
+                      {blk} Blok
                     </button>
                   ))}
                 </div>
@@ -459,11 +505,11 @@ ${currentSiteName} Yönetimi`;
                           <div>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
                               <h3 style={{ margin: 0, fontSize: '16px', color: '#ffffff', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                {selectedBlock === 'A' ? `Dükkan ${unit.unitNumber}` : `${selectedBlock} Blok - No: ${unit.unitNumber}`}
+                                {unit.block} Blok - No: {unit.unitNumber}
                                 {isDebtor && <button onClick={() => setWarningModalUnit(unit)} title="İhtar Görüntüle" style={{ backgroundColor: '#dc2626', color: '#fff', border: 'none', borderRadius: '50%', width: '22px', height: '22px', cursor: 'pointer', fontSize: '12px' }}>⚠️</button>}
                               </h3>
                               <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '6px', background: unit.isTenant ? '#374151' : '#065f46', color: '#fff', fontWeight: '700' }}>
-                                {unit.isTenant ? 'Kiracı' : getOwnerLabel(unit.block)}
+                                {unit.isTenant ? 'Kiracı' : 'Mülk Sahibi'}
                               </span>
                             </div>
                             <p style={{ margin: '0 0 4px 0', fontSize: '14px', color: '#cbd5e1', fontWeight: '600' }}>👤 {unit.residentName || 'İsim Yok'}</p>
@@ -654,6 +700,47 @@ ${currentSiteName} Yönetimi`;
                     ))}
                   </div>
                 )}
+              </div>
+            )}
+
+            {activeTab === 'settings' && (
+              <div style={{ backgroundColor: '#111827', borderRadius: '16px', padding: '30px', border: '1px solid #1f2937', maxWidth: '600px', margin: '0 auto' }}>
+                <h2 style={{ fontSize: '20px', fontWeight: '800', color: '#f59e0b', margin: '0 0 8px 0' }}>⚙️ Site Blok ve Daire Yapılandırması</h2>
+                <p style={{ fontSize: '13px', color: '#94a3b8', margin: '0 0 24px 0' }}>
+                  Bu sitede yer alacak blokları ve her bloktaki daire sayısını belirleyin. Kaydettiğinizde sistem daireleri otomatik olarak oluşturacaktır.
+                </p>
+
+                <form onSubmit={handleGenerateCustomUnits} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px', fontWeight: '600' }}>
+                      Blok İsimleri (Virgülle ayırarak yazınız)
+                    </label>
+                    <input 
+                      type="text" 
+                      value={configBlocks} 
+                      onChange={(e) => setConfigBlocks(e.target.value)} 
+                      placeholder="Örn: A, B, C, D" 
+                      style={{ width: '100%', padding: '14px', backgroundColor: '#0b0f19', border: '1px solid #374151', borderRadius: '10px', color: '#fff', fontSize: '15px', fontWeight: 'bold' }} 
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px', fontWeight: '600' }}>
+                      Her Bloktaki Daire / Birim Sayısı
+                    </label>
+                    <input 
+                      type="number" 
+                      value={unitsPerBlockInput} 
+                      onChange={(e) => setUnitsPerBlockInput(e.target.value)} 
+                      placeholder="Örn: 20" 
+                      style={{ width: '100%', padding: '14px', backgroundColor: '#0b0f19', border: '1px solid #374151', borderRadius: '10px', color: '#fff', fontSize: '15px', fontWeight: 'bold' }} 
+                    />
+                  </div>
+
+                  <button type="submit" style={{ backgroundColor: '#f59e0b', color: '#111827', border: 'none', padding: '14px', borderRadius: '10px', fontWeight: '800', fontSize: '15px', cursor: 'pointer', marginTop: '10px' }}>
+                    🔄 Blokları ve Daireleri Sıfırdan Oluştur
+                  </button>
+                </form>
               </div>
             )}
           </>
