@@ -82,7 +82,6 @@ export default function SuperAdminPage() {
             textAlign: "center",
           }}
         >
-          {/* ORİJİNAL GÖRSEL LOGO */}
           <div
             style={{
               display: "flex",
@@ -205,7 +204,6 @@ export default function SuperAdminPage() {
     sessionStorage.removeItem("mcf_super_logged");
   };
 
-  // GÜNCELLENEN DÜZENLEME FONKSİYONU
   const handleUpdateTenant = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingTenant || !editingTenant.id) {
@@ -240,8 +238,9 @@ export default function SuperAdminPage() {
     }
   };
 
-  // Demo siteyi normal tablodan ayırıp özel yönetmek için filtreler:
+  // Demo siteyi üstteki widget için buluyoruz
   const demoTenant = tenants.find((t) => t.siteName === "Demo-Site");
+  // Normal müşteri listesi
   const regularTenants = tenants.filter((t) => t.siteName !== "Demo-Site");
 
   return (
@@ -259,82 +258,72 @@ export default function SuperAdminPage() {
           borderBottom: "1px solid #1f2937",
           padding: "18px 24px",
           boxShadow: "0 4px 20px rgba(0,0,0,0.4)",
+          marginBottom: "24px",
         }}
       >
-        {/* SÜPERADMIN PANELİ ÜST BAŞLIK & LOGO */}
         <div
           style={{
-            backgroundColor: "#111827",
-            borderBottom: "1px solid #1f2937",
-            padding: "16px 24px",
-            boxShadow: "0 4px 20px rgba(0,0,0,0.4)",
-            marginBottom: "24px",
+            maxWidth: "1280px",
+            margin: "0 auto",
+            display: "flex",
+            flexWrap: "wrap",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: "16px",
           }}
         >
-          <div
+          <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+            <img
+              src="/mcf-logo.png"
+              alt="MCF Logo"
+              style={{ height: "42px", width: "auto", objectFit: "contain" }}
+            />
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <span
+                style={{
+                  fontSize: "15px",
+                  fontWeight: "800",
+                  color: "#ffffff",
+                  lineHeight: 1.2,
+                }}
+              >
+                MCF TECHNOLOGY
+              </span>
+              <span
+                style={{
+                  fontSize: "10px",
+                  fontWeight: "700",
+                  color: "#f59e0b",
+                  letterSpacing: "0.5px",
+                }}
+              >
+                SİTE TAKİP YÖNETİM SİSTEMİ SÜPERADMIN PANELİ
+              </span>
+            </div>
+          </div>
+          <button
+            onClick={handleSuperLogout}
             style={{
-              maxWidth: "1280px",
-              margin: "0 auto",
-              display: "flex",
-              flexWrap: "wrap",
-              justifyContent: "space-between",
-              alignItems: "center",
-              gap: "16px",
+              backgroundColor: "#ef4444",
+              color: "#fff",
+              border: "none",
+              padding: "10px 18px",
+              borderRadius: "10px",
+              fontWeight: "800",
+              cursor: "pointer",
+              fontSize: "14px",
+              boxShadow: "0 4px 12px rgba(239, 68, 68, 0.3)",
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
-              <img
-                src="/mcf-logo.png"
-                alt="MCF Logo"
-                style={{ height: "42px", width: "auto", objectFit: "contain" }}
-              />
-              <div style={{ display: "flex", flexDirection: "column" }}>
-                <span
-                  style={{
-                    fontSize: "15px",
-                    fontWeight: "800",
-                    color: "#ffffff",
-                    lineHeight: 1.2,
-                  }}
-                >
-                  MCF TECHNOLOGY
-                </span>
-                <span
-                  style={{
-                    fontSize: "10px",
-                    fontWeight: "700",
-                    color: "#f59e0b",
-                    letterSpacing: "0.5px",
-                  }}
-                >
-                  SİTE TAKİP YÖNETİM SİSTEMİ SÜPERADMIN PANELİ
-                </span>
-              </div>
-            </div>
-            <button
-              onClick={handleSuperLogout}
-              style={{
-                backgroundColor: "#ef4444",
-                color: "#fff",
-                border: "none",
-                padding: "10px 18px",
-                borderRadius: "10px",
-                fontWeight: "800",
-                cursor: "pointer",
-                fontSize: "14px",
-                boxShadow: "0 4px 12px rgba(239, 68, 68, 0.3)",
-              }}
-            >
-              Çıkış Yap
-            </button>
-          </div>
+            Çıkış Yap
+          </button>
         </div>
       </header>
 
       <main
         style={{ maxWidth: "1280px", margin: "24px auto", padding: "0 20px" }}
       >
-        {/* 🌟 DEMO SİTE İÇİN ÖZEL KONTROL WIDGET'I (Normal listeyi kirletmez) */}
+        {/* 🌟 ÖZEL DEMO SİTE KONTROL ALANI (Üst Widget) */}
         <div
           style={{
             backgroundColor: "#111827",
@@ -451,40 +440,16 @@ export default function SuperAdminPage() {
                 </a>
               </div>
             ) : (
-              <button
-                onClick={async () => {
-                  try {
-                    await addDoc(collection(db, "tenants"), {
-                      siteName: "Demo-Site",
-                      adminName: "Demo Yöneticisi",
-                      phone: "-",
-                      sitePassword: "123",
-                      packageType: "trial",
-                      expireDate: "Süresiz",
-                      createdAt: serverTimestamp(),
-                    });
-                  } catch (err) {
-                    console.error(err);
-                  }
-                }}
-                style={{
-                  backgroundColor: "#f59e0b",
-                  color: "#111827",
-                  border: "none",
-                  padding: "10px 16px",
-                  borderRadius: "8px",
-                  fontWeight: "800",
-                  cursor: "pointer",
-                  fontSize: "13px",
-                }}
+              <span
+                style={{ fontSize: "13px", color: "#f59e0b", fontWeight: "600" }}
               >
-                + Sistemde Demo-Site Kaydı Oluştur
-              </button>
+                ⚠️ Veritabanında "Demo-Site" kaydı bulunamadı. Lütfen aşağıdan ekleyin.
+              </span>
             )}
           </div>
         </div>
 
-        {/* YENİ SİTE EKLEME FORMU */}
+        {/* Yeni Site Ekle Formu */}
         <div
           style={{
             backgroundColor: "#111827",
@@ -624,7 +589,7 @@ export default function SuperAdminPage() {
           </form>
         </div>
 
-        {/* NORMAL MÜŞTERİ SİTELERİ TABLOSU (Demo-Site gizlenmiştir) */}
+        {/* MÜŞTERİ SİTELERİ TABLOSU (Eğer Demo-Site tabloda da gösterilmek istenirse veya ekstra renk vurgusu için) */}
         <div
           style={{
             backgroundColor: "#111827",
@@ -654,7 +619,7 @@ export default function SuperAdminPage() {
             >
               Yükleniyor...
             </p>
-          ) : regularTenants.length === 0 ? (
+          ) : regularTenants.length === 0 && !demoTenant ? (
             <p
               style={{
                 textAlign: "center",
@@ -696,6 +661,157 @@ export default function SuperAdminPage() {
                   </tr>
                 </thead>
                 <tbody>
+                  {/* 🌟 1. ÖZEL VURGULU DEMO-SİTE SATIRI (Eğer eklenmişse tabloda en üstte farklı renk tonuyla görünür) */}
+                  {demoTenant && (
+                    <tr
+                      key={demoTenant.id}
+                      style={{
+                        borderBottom: "1px solid #f59e0b",
+                        backgroundColor: "rgba(245, 158, 11, 0.08)",
+                      }}
+                    >
+                      <td
+                        style={{
+                          padding: "12px",
+                          fontWeight: "800",
+                          color: "#f59e0b",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "6px",
+                        }}
+                      >
+                        <span>⭐</span> {demoTenant.siteName} (DEMO)
+                      </td>
+                      <td
+                        style={{
+                          padding: "12px",
+                          fontWeight: "600",
+                          color: "#cbd5e1",
+                        }}
+                      >
+                        {demoTenant.adminName}
+                      </td>
+                      <td style={{ padding: "12px", color: "#94a3b8" }}>
+                        {demoTenant.phone}
+                      </td>
+                      <td
+                        style={{
+                          padding: "12px",
+                          fontWeight: "bold",
+                          color: "#f59e0b",
+                        }}
+                      >
+                        {demoTenant.sitePassword || "-"}
+                      </td>
+                      <td style={{ padding: "12px" }}>
+                        <select
+                          value={demoTenant.packageType}
+                          onChange={async (e) => {
+                            try {
+                              await updateDoc(
+                                doc(db, "tenants", demoTenant.id),
+                                {
+                                  packageType: e.target.value,
+                                },
+                              );
+                            } catch (err) {
+                              console.error(err);
+                            }
+                          }}
+                          style={{
+                            padding: "6px 10px",
+                            borderRadius: "8px",
+                            border: "1px solid #f59e0b",
+                            fontWeight: "bold",
+                            backgroundColor:
+                              demoTenant.packageType === "pro"
+                                ? "#0369a1"
+                                : demoTenant.packageType === "basic"
+                                ? "#b45309"
+                                : "#374151",
+                            color: "#ffffff",
+                          }}
+                        >
+                          <option value="trial">Trial</option>
+                          <option value="basic">Basic</option>
+                          <option value="pro">Pro</option>
+                        </select>
+                      </td>
+                      <td
+                        style={{
+                          padding: "12px",
+                          fontSize: "13px",
+                          color: "#94a3b8",
+                        }}
+                      >
+                        {demoTenant.expireDate}
+                      </td>
+                      <td style={{ padding: "12px", textAlign: "center" }}>
+                        <a
+                          href={`/yonetim?site=${encodeURIComponent(
+                            demoTenant.siteName,
+                          )}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            backgroundColor: "#f59e0b",
+                            color: "#111827",
+                            textDecoration: "none",
+                            padding: "6px 12px",
+                            borderRadius: "8px",
+                            fontWeight: "800",
+                            fontSize: "12px",
+                            display: "inline-block",
+                            boxShadow: "0 2px 6px rgba(245, 158, 11, 0.3)",
+                          }}
+                        >
+                          Demoya Git
+                        </a>
+                      </td>
+                      <td style={{ padding: "12px", textAlign: "center" }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            gap: "6px",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <button
+                            onClick={() => setEditingTenant(demoTenant)}
+                            style={{
+                              backgroundColor: "#374151",
+                              color: "#fff",
+                              border: "none",
+                              padding: "6px 10px",
+                              borderRadius: "8px",
+                              fontWeight: "700",
+                              cursor: "pointer",
+                              fontSize: "12px",
+                            }}
+                          >
+                            Düzenle
+                          </button>
+                          <button
+                            onClick={() => handleDeleteTenant(demoTenant.id)}
+                            style={{
+                              backgroundColor: "#fee2e2",
+                              color: "#dc2626",
+                              border: "none",
+                              padding: "6px 10px",
+                              borderRadius: "8px",
+                              fontWeight: "700",
+                              cursor: "pointer",
+                              fontSize: "12px",
+                            }}
+                          >
+                            Sil
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+
+                  {/* 2. DİĞER NORMAL MÜŞTERİ SİTELERİ */}
                   {regularTenants.map((t) => (
                     <tr
                       key={t.id}
@@ -842,7 +958,7 @@ export default function SuperAdminPage() {
         </div>
       </main>
 
-      {/* DÜZENLEME MODAL PENCERESİ */}
+      {/* Düzenleme Modali */}
       {editingTenant && (
         <div
           style={{
@@ -1069,7 +1185,7 @@ export default function SuperAdminPage() {
                     padding: "12px",
                     background: "#f59e0b",
                     color: "#111827",
-                    border: "1px solid #f59e0b",
+                    border: "none",
                     borderRadius: "8px",
                     cursor: "pointer",
                     fontWeight: "800",
