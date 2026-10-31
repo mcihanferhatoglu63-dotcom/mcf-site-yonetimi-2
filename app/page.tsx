@@ -68,6 +68,7 @@ export default function HomePage() {
     sessionStorage.setItem("mcf_site_package", "trial");
     sessionStorage.setItem("mcf_admin_logged", "true"); // Şifresiz giriş için
     setSelectedSite("Demo-Site");
+    setShowPortalModal(true);
     
     // Doğrudan yönetim paneline trial paketiyle yönlendiriyoruz
     router.push(`/yonetim?site=Demo-Site`);
