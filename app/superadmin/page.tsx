@@ -60,7 +60,7 @@ export default function SuperAdminPage() {
     return () => unsubscribe();
   }, [isSuperLoggedIn]);
 
-  if (!isSuperLoggedIn) {
+ if (!isSuperLoggedIn) {
     return (
       <div
         style={{
@@ -85,51 +85,41 @@ export default function SuperAdminPage() {
             textAlign: "center",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
-            <img
-              src="/mcf-logo.png"
-              alt="MCF Logo"
-              style={{ height: "42px", width: "auto", objectFit: "contain" }}
+          {/* ORİJİNAL GÖRSEL LOGO */}
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: "16px" }}>
+            <img 
+              src="/mcf-logo.png" 
+              alt="MCF Logo" 
+              style={{ maxWidth: "160px", width: "100%", height: "auto", objectFit: "contain" }} 
             />
-            <div style={{ display: "flex", flexDirection: "column" }}>
-              <span
-                style={{
-                  fontSize: "15px",
-                  fontWeight: "800",
-                  color: "#ffffff",
-                  lineHeight: "1.2",
-                }}
-              >
-                MCF TECHNOLOGY
-              </span>
-              <span
-                style={{
-                  fontSize: "10px",
-                  fontWeight: "700",
-                  color: "#f59e0b",
-                  letterSpacing: "0.5px",
-                }}
-              >
-                SÜPERADMIN PANELİ
-              </span>
-            </div>
           </div>
+
+          <p
+            style={{
+              color: "#f59e0b",
+              fontSize: "13px",
+              fontWeight: "700",
+              margin: "0 0 24px 0",
+            }}
+          >
+            Site Takip Yönetim Sistemi (Süperadmin)
+          </p>
 
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              if (password === "asdf") {
+              if (password === "1923") {
                 setIsSuperLoggedIn(true);
                 sessionStorage.setItem("mcf_super_logged", "true");
               } else {
-                alert("Hatalı Süperadmin Şifresi!");
+                alert("Hatalı Süperadmin Şifresi! (Şifre: 1923)");
               }
             }}
             style={{ display: "flex", flexDirection: "column", gap: "14px" }}
           >
             <input
               type="password"
-              placeholder="Şifre"
+              placeholder="Şifre (1923)"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               style={{
@@ -175,6 +165,7 @@ export default function SuperAdminPage() {
       </div>
     );
   }
+
 
   const handleAddTenant = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -261,92 +252,25 @@ export default function SuperAdminPage() {
           boxShadow: "0 4px 20px rgba(0,0,0,0.4)",
         }}
       >
-        {/* SÜPERADMIN PANELİ ÜST BAŞLIK & LOGO */}
-        <div
-          style={{
-            backgroundColor: "#111827",
-            borderBottom: "1px solid #1f2937",
-            padding: "16px 24px",
-            boxShadow: "0 4px 20px rgba(0,0,0,0.4)",
-            marginBottom: "24px",
-          }}
-        >
-          <div
-            style={{
-              maxWidth: "1280px",
-              margin: "0 auto",
-              display: "flex",
-              flexWrap: "wrap",
-              justifyContent: "space-between",
-              alignItems: "center",
-              gap: "16px",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  padding: "6px 14px",
-                  borderRadius: "12px",
-                  background:
-                    "linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(245, 158, 11, 0.15) 100%)",
-                  border: "1px solid rgba(245, 158, 11, 0.4)",
-                  boxShadow: "0 4px 20px rgba(245, 158, 11, 0.15)",
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: "22px",
-                    fontWeight: "900",
-                    letterSpacing: "-1px",
-                    background:
-                      "linear-gradient(135deg, #c084fc 0%, #f59e0b 100%)",
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                    fontFamily: "Inter, sans-serif",
-                  }}
-                >
-                  MCF
-                </span>
-              </div>
-              <div style={{ display: "flex", flexDirection: "column" }}>
-                <span
-                  style={{
-                    fontSize: "15px",
-                    fontWeight: "800",
-                    color: "#ffffff",
-                    lineHeight: "1.2",
-                  }}
-                >
-                  MCF TECHNOLOGY
-                </span>
-                <span
-                  style={{
-                    fontSize: "10px",
-                    fontWeight: "700",
-                    color: "#f59e0b",
-                    letterSpacing: "0.5px",
-                  }}
-                >
-                  SİTE TAKİP YÖNETİM SİSTEMİ - SÜPERADMIN PANELİ
-                </span>
+  {/* SÜPERADMIN PANELİ ÜST BAŞLIK & LOGO */}
+        <div style={{ backgroundColor: '#111827', borderBottom: '1px solid #1f2937', padding: '16px 24px', boxShadow: '0 4px 20px rgba(0,0,0,0.4)', marginBottom: '24px' }}>
+          <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+              <img 
+                src="/mcf-logo.png" 
+                alt="MCF Logo" 
+                style={{ height: '42px', width: 'auto', objectFit: 'contain' }} 
+              />
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <span style={{ fontSize: '15px', fontWeight: '800', color: '#ffffff', lineHeight: '1.2' }}>MCF TECHNOLOGY</span>
+                <span style={{ fontSize: '10px', fontWeight: '700', color: '#f59e0b', letterSpacing: '0.5px' }}>SİTE TAKİP YÖNETİM SİSTEMİ - SÜPERADMIN PANELİ</span>
               </div>
             </div>
 
-            <button
-              onClick={handleSuperLogout}
-              style={{
-                backgroundColor: "#ef4444",
-                color: "#fff",
-                border: "none",
-                padding: "10px 18px",
-                borderRadius: "10px",
-                fontWeight: "800",
-                cursor: "pointer",
-                fontSize: "14px",
-                boxShadow: "0 4px 12px rgba(239, 68, 68, 0.3)",
-              }}
+            <button 
+              onClick={handleSuperLogout} 
+              style={{ backgroundColor: '#ef4444', color: '#fff', border: 'none', padding: '10px 18px', borderRadius: '10px', fontWeight: '800', cursor: 'pointer', fontSize: '14px', boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)' }}
             >
               Çıkış Yap
             </button>
