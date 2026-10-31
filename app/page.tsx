@@ -25,7 +25,7 @@ export default function HomePage() {
   const [showSuperModal, setShowSuperModal] = useState(false);
   const [superPassword, setSuperPassword] = useState("");
 
-  // 🌟 Yeni: Paket Tanıtım ve IBAN Modalı
+  // 🌟 Paketler & IBAN Modalı
   const [showPackagesModal, setShowPackagesModal] = useState(false);
 
   // Firestore'dan kayıtlı siteleri anlık çek
@@ -248,7 +248,7 @@ export default function HomePage() {
         )}
       </div>
 
-      {/* 🌟 PAKETLER & IBAN BİLGİLENDİRME MODALI */}
+      {/* 🌟 GÖNDERDİĞİN RESİMDEKİ TARZA BENZER KARTLI PAKETLER & IBAN MODALI */}
       {showPackagesModal && (
         <div
           style={{
@@ -268,36 +268,48 @@ export default function HomePage() {
           <div
             style={{
               backgroundColor: "#111827",
-              border: "1px solid #374151",
+              border: "1px solid #1f2937",
               borderRadius: "20px",
               padding: "30px",
-              maxWidth: "650px",
+              maxWidth: "750px",
               width: "100%",
               boxShadow: "0 25px 50px rgba(0,0,0,0.8)",
               maxHeight: "90vh",
               overflowY: "auto",
             }}
           >
+            {/* Üst Başlık ve Kapatma Butonu */}
             <div
               style={{
                 display: "flex",
                 justifyContent: "space-between",
-                alignItems: "center",
+                alignItems: "flex-start",
                 marginBottom: "20px",
                 borderBottom: "1px solid #1f2937",
-                paddingBottom: "12px",
+                paddingBottom: "14px",
               }}
             >
-              <h2
-                style={{
-                  margin: 0,
-                  fontSize: "20px",
-                  color: "#f59e0b",
-                  fontWeight: "800",
-                }}
-              >
-                💎 MCF Sistem Paketleri & Ödeme Bilgileri
-              </h2>
+              <div>
+                <h2
+                  style={{
+                    margin: "0 0 4px 0",
+                    fontSize: "20px",
+                    color: "#f59e0b",
+                    fontWeight: "800",
+                  }}
+                >
+                  Abonelik Paketleri & Banka Bilgileri
+                </h2>
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: "13px",
+                    color: "#94a3b8",
+                  }}
+                >
+                  Paket detayları, limitler ve IBAN bilgileri aşağıdadır.
+                </p>
+              </div>
               <button
                 onClick={() => setShowPackagesModal(false)}
                 style={{
@@ -313,209 +325,214 @@ export default function HomePage() {
               </button>
             </div>
 
-            {/* PAKETLER KARTI */}
+            {/* 3'LÜ KART YERLEŞİMİ (TRIAL - BASIC - PRO) */}
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-                gap: "14px",
+                gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))",
+                gap: "16px",
                 marginBottom: "24px",
               }}
             >
-              {/* TRIAL */}
+              {/* 1. Trial Sürüm */}
               <div
                 style={{
                   backgroundColor: "#0b0f19",
                   border: "1px solid #374151",
-                  borderRadius: "12px",
-                  padding: "16px",
-                  textAlign: "center",
+                  borderRadius: "14px",
+                  padding: "20px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "12px",
                 }}
               >
-                <span
+                <div>
+                  <h3
+                    style={{
+                      margin: "0 0 4px 0",
+                      fontSize: "16px",
+                      color: "#fff",
+                      fontWeight: "800",
+                    }}
+                  >
+                    Trial Sürüm
+                  </h3>
+                  <span
+                    style={{
+                      fontSize: "14px",
+                      color: "#94a3b8",
+                      fontWeight: "700",
+                    }}
+                  >
+                    Deneme Paketi
+                  </span>
+                </div>
+                <div
                   style={{
-                    backgroundColor: "#374151",
-                    color: "#fff",
-                    fontSize: "11px",
-                    fontWeight: "800",
-                    padding: "2px 8px",
-                    borderRadius: "4px",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "6px",
+                    fontSize: "13px",
+                    color: "#cbd5e1",
+                    borderTop: "1px solid #1f2937",
+                    paddingTop: "12px",
                   }}
                 >
-                  TRIAL
-                </span>
-                <h4 style={{ margin: "10px 0 4px 0", color: "#fff" }}>
-                  Deneme Sürümü
-                </h4>
-                <p
-                  style={{
-                    fontSize: "12px",
-                    color: "#94a3b8",
-                    margin: "0 0 10px 0",
-                  }}
-                >
-                  Sistemi test etmeniz için temel yönetim araçları.
-                </p>
-                <span
-                  style={{
-                    fontSize: "12px",
-                    color: "#ef4444",
-                    fontWeight: "bold",
-                  }}
-                >
-                  🔒 Online Bildirim Yok
-                </span>
+                  <span>✓ Sınırlı Daire Yönetimi</span>
+                  <span>✓ Temel Finans Takibi</span>
+                  <span style={{ color: "#ef4444", fontWeight: "bold" }}>
+                    ✕ Online Bildirim Kapalı
+                  </span>
+                </div>
               </div>
 
-              {/* BASIC */}
+              {/* 2. Basic Paket */}
               <div
                 style={{
                   backgroundColor: "#0b0f19",
                   border: "1px solid #b45309",
-                  borderRadius: "12px",
-                  padding: "16px",
-                  textAlign: "center",
+                  borderRadius: "14px",
+                  padding: "20px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "12px",
                 }}
               >
-                <span
+                <div>
+                  <h3
+                    style={{
+                      margin: "0 0 4px 0",
+                      fontSize: "16px",
+                      color: "#fff",
+                      fontWeight: "800",
+                    }}
+                  >
+                    Basic Paket
+                  </h3>
+                  <span
+                    style={{
+                      fontSize: "16px",
+                      color: "#f59e0b",
+                      fontWeight: "800",
+                    }}
+                  >
+                    1.000~TL / ay
+                  </span>
+                </div>
+                <div
                   style={{
-                    backgroundColor: "#b45309",
-                    color: "#fff",
-                    fontSize: "11px",
-                    fontWeight: "800",
-                    padding: "2px 8px",
-                    borderRadius: "4px",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "6px",
+                    fontSize: "13px",
+                    color: "#cbd5e1",
+                    borderTop: "1px solid #1f2937",
+                    paddingTop: "12px",
                   }}
                 >
-                  BASIC (1000₺)
-                </span>
-                <h4 style={{ margin: "10px 0 4px 0", color: "#fff" }}>
-                  Standart Paket
-                </h4>
-                <p
-                  style={{
-                    fontSize: "12px",
-                    color: "#94a3b8",
-                    margin: "0 0 10px 0",
-                  }}
-                >
-                  Orta ölçekli siteler için tam yönetim paneli.
-                </p>
-                <span
-                  style={{
-                    fontSize: "12px",
-                    color: "#ef4444",
-                    fontWeight: "bold",
-                  }}
-                >
-                  🔒 Online Bildirim Yok
-                </span>
+                  <span>✓ Standart Daire Kapasitesi</span>
+                  <span>✓ Gelişmiş Raporlama</span>
+                  <span style={{ color: "#ef4444", fontWeight: "bold" }}>
+                    ✕ Online Bildirim Kapalı
+                  </span>
+                </div>
               </div>
 
-              {/* PRO */}
+              {/* 3. Pro Paket (Vurgulu Çerçeve) */}
               <div
                 style={{
                   backgroundColor: "#0b0f19",
-                  border: "1px solid #0284c7",
-                  borderRadius: "12px",
-                  padding: "16px",
-                  textAlign: "center",
-                  boxShadow: "0 0 15px rgba(2, 132, 199, 0.2)",
+                  border: "1px solid #f59e0b",
+                  borderRadius: "14px",
+                  padding: "20px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "12px",
+                  boxShadow: "0 4px 20px rgba(245, 158, 11, 0.15)",
                 }}
               >
-                <span
+                <div>
+                  <h3
+                    style={{
+                      margin: "0 0 4px 0",
+                      fontSize: "16px",
+                      color: "#f59e0b",
+                      fontWeight: "800",
+                    }}
+                  >
+                    Pro Paket
+                  </h3>
+                  <span
+                    style={{
+                      fontSize: "16px",
+                      color: "#f59e0b",
+                      fontWeight: "800",
+                    }}
+                  >
+                    2.000~TL / ay
+                  </span>
+                </div>
+                <div
                   style={{
-                    backgroundColor: "#0284c7",
-                    color: "#fff",
-                    fontSize: "11px",
-                    fontWeight: "800",
-                    padding: "2px 8px",
-                    borderRadius: "4px",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "6px",
+                    fontSize: "13px",
+                    color: "#cbd5e1",
+                    borderTop: "1px solid #1f2937",
+                    paddingTop: "12px",
                   }}
                 >
-                  PRO (2000₺)
-                </span>
-                <h4 style={{ margin: "10px 0 4px 0", color: "#fff" }}>
-                  Profesyonel
-                </h4>
-                <p
-                  style={{
-                    fontSize: "12px",
-                    color: "#94a3b8",
-                    margin: "0 0 10px 0",
-                  }}
-                >
-                  Sınırsız özellik ve sakinlerden online dekont/bildirim alabilme.
-                </p>
-                <span
-                  style={{
-                    fontSize: "12px",
-                    color: "#10b981",
-                    fontWeight: "bold",
-                  }}
-                >
-                  ✅ Tam Yetki & Bildirimler
-                </span>
+                  <span>✓ Sınırsız Daire / Modül</span>
+                  <span>✓ Tam Yetki ve Yönetim</span>
+                  <span style={{ color: "#10b981", fontWeight: "bold" }}>
+                    ✅ Online Dekont / Bildirim
+                  </span>
+                </div>
               </div>
             </div>
 
-            {/* BANKA & IBAN Kutusu */}
+            {/* BANKA HESAP (IBAN) BİLGİLERİ KUTUSU */}
             <div
               style={{
                 backgroundColor: "#0b0f19",
-                border: "1px solid #f59e0b",
+                border: "1px solid #1f2937",
                 borderRadius: "14px",
                 padding: "20px",
-                textAlign: "center",
               }}
             >
-              <h3
+              <span
                 style={{
-                  margin: "0 0 8px 0",
-                  color: "#f59e0b",
-                  fontSize: "16px",
+                  fontSize: "12px",
                   fontWeight: "800",
+                  color: "#f59e0b",
+                  letterSpacing: "0.5px",
+                  display: "block",
+                  marginBottom: "8px",
                 }}
               >
-                🏦 Kurumsal Ödeme & IBAN Bilgileri
-              </h3>
-              <p
+                BANKA HESAP (IBAN) BİLGİLERİ
+              </span>
+              <div
+                style={{
+                  fontSize: "16px",
+                  fontWeight: "bold",
+                  color: "#ffffff",
+                  letterSpacing: "1px",
+                  marginBottom: "6px",
+                }}
+              >
+                TR11 0004 904482759750 06
+              </div>
+              <div
                 style={{
                   fontSize: "13px",
                   color: "#94a3b8",
-                  margin: "0 0 14px 0",
+                  fontWeight: "600",
                 }}
               >
-                Abonelik yenileme veya paket yükseltme ödemeleriniz için aşağıdaki
-                hesap bilgilerini kullanabilirsiniz.
-              </p>
-              <div
-                style={{
-                  backgroundColor: "#111827",
-                  padding: "12px",
-                  borderRadius: "8px",
-                  border: "1px dashed #374151",
-                  fontSize: "14px",
-                  fontWeight: "bold",
-                  color: "#fff",
-                  letterSpacing: "0.5px",
-                }}
-              >
-                Banka: <span style={{ color: "#f59e0b" }}>İş Bankası</span>
-                <br />
-                Alıcı: <span style={{ color: "#fff" }}>Mehmet Cihan Ferhatoğlu</span>
-                <br />
-                IBAN: <span style={{ color: "#10b981" }}>TR00 0000 0000 0000 0000 0000 00</span>
+                Alıcı: Mehmet Cihan Ferhatoğlu
               </div>
-              <p
-                style={{
-                  fontSize: "11px",
-                  color: "#94a3b8",
-                  margin: "12px 0 0 0",
-                }}
-              >
-                Ödeme yaptıktan sonra dekontu süper admine ileterek anında paketinizi aktifleştirebilirsiniz.
-              </p>
             </div>
 
             <div style={{ marginTop: "20px", textAlign: "right" }}>
