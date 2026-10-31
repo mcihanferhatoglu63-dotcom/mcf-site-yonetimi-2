@@ -73,7 +73,20 @@ export default function SuperAdminPage() {
           padding: "20px",
         }}
       >
-        {/* Süperadmin Panel Üst Başlık & Logo Entegrasyonu */}
+       
+        <div
+          style={{
+            backgroundColor: "#111827",
+            border: "1px solid #1f2937",
+            padding: "40px",
+            borderRadius: "20px",
+            maxWidth: "420px",
+            width: "100%",
+            boxShadow: "0 20px 40px rgba(0,0,0,0.6)",
+            textAlign: "center",
+          }}
+        >
+           {/* Süperadmin Panel Üst Başlık & Logo Entegrasyonu */}
         <div
           style={{
             backgroundColor: "#111827",
@@ -130,38 +143,7 @@ export default function SuperAdminPage() {
             {/* Çıkış ve Diğer Yönetim Butonları ... */}
           </div>
         </div>
-        <div
-          style={{
-            backgroundColor: "#111827",
-            border: "1px solid #1f2937",
-            padding: "40px",
-            borderRadius: "20px",
-            maxWidth: "420px",
-            width: "100%",
-            boxShadow: "0 20px 40px rgba(0,0,0,0.6)",
-            textAlign: "center",
-          }}
-        >
-          <h2
-            style={{
-              color: "#ffffff",
-              fontSize: "20px",
-              fontWeight: "800",
-              margin: "0 0 6px 0",
-            }}
-          >
-            MCF Technology
-          </h2>
-          <p
-            style={{
-              color: "#f59e0b",
-              fontSize: "13px",
-              fontWeight: "700",
-              margin: "0 0 20px 0",
-            }}
-          >
-            Site Takip Yönetim Sistemi (Süperadmin)
-          </p>
+         
 
           <form
             onSubmit={(e) => {
