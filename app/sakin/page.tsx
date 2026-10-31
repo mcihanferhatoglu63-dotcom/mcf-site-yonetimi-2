@@ -204,7 +204,7 @@ export default function SakinPanelPage() {
           {/* YETERLİ BÜYÜKLÜKTE ORTALANMIŞ LOGO */}
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '18px' }}>
             <img 
-              src="/logo.png" 
+              src="/mcf-logo.png" 
               alt="MCF Logo" 
               style={{ maxWidth: '200px', width: '100%', height: 'auto', objectFit: 'contain', filter: 'drop-shadow(0 4px 12px rgba(245, 158, 11, 0.2))' }} 
             />
@@ -283,7 +283,7 @@ export default function SakinPanelPage() {
           
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
             <img 
-              src="/logo.png" 
+              src="/mcf-logo.png" 
               alt="MCF Logo" 
               style={{ height: '44px', width: 'auto', objectFit: 'contain' }} 
             />
