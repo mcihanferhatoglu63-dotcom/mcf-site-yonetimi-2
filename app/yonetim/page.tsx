@@ -70,7 +70,6 @@ export default function YonetimPanelPage() {
     const siteParam = urlParams.get('site');
     if (siteParam) {
       setCurrentSiteName(siteParam);
-      // Eğer gelen site Demo-Site ise doğrudan admin oturumunu otomatik aç
       if (siteParam === 'Demo-Site') {
         setIsAdminLoggedIn(true);
         sessionStorage.setItem('mcf_admin_logged', 'true');
@@ -166,6 +165,13 @@ export default function YonetimPanelPage() {
       console.error(err);
       alert('Giriş yapılırken hata oluştu.');
     }
+  };
+
+  // DÜZELTİLDİ: Çıkış yapıldığında oturumu temizle ve doğrudan ana sayfaya yönlendir
+  const handleAdminLogout = () => {
+    sessionStorage.removeItem('mcf_admin_logged');
+    setIsAdminLoggedIn(false);
+    window.location.href = '/';
   };
 
   if (!isAdminLoggedIn) {
@@ -445,10 +451,7 @@ ${currentSiteName} Yönetimi`;
             </button>
 
             <button 
-              onClick={() => {
-                sessionStorage.removeItem('mcf_admin_logged');
-                setIsAdminLoggedIn(false);
-              }} 
+              onClick={handleAdminLogout} 
               style={{ padding: '10px 14px', borderRadius: '8px', textDecoration: 'none', fontWeight: '700', fontSize: '13px', backgroundColor: '#ef4444', color: '#ffffff', border: 'none', cursor: 'pointer' }}
             >
               🚪 Çıkış
