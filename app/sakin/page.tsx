@@ -253,37 +253,34 @@ export default function SakinPanelPage() {
 
   const handleSubmitComplaint = async (e: React.FormEvent) => {
     e.preventDefault();
-    // PAKET KONTROLÜ: Sadece PRO paket sakinleri bildirim/şikayet gönderebilir
-    if (currentPackage !== "pro") {
-      return alert(
-        "Üzgünüz, bulunduğunuz site Pro paket olmadığından online bildirim/şikayet gönderimi yalnızca Pro paket sitelerde aktiftir.",
-      );
+    
+    // KESİN KONTROL: Sadece PRO paketler bildirim gönderebilir (Demo-Site dahil Trial/Basic engellenir)
+    if (currentPackage !== 'pro') {
+      return alert('Üzgünüz, bulunduğunuz site Pro paket olmadığından online bildirim/şikayet gönderimi yalnızca Pro paket sitelerde aktiftir.');
     }
+
     if (!currentUnit) return;
-    if (!complaintTitle || !complaintDesc)
-      return alert("Lütfen başlık ve açıklama giriniz.");
+    if (!complaintTitle || !complaintDesc) return alert('Lütfen başlık ve açıklama giriniz.');
 
     setSubmitting(true);
     try {
-      await addDoc(collection(db, "complaints"), {
-        siteName: currentSiteName, // Hangi siteye ait olduğu kesin olarak kaydediliyor
+      await addDoc(collection(db, 'complaints'), {
+        siteName: currentSiteName,
         unitInfo: `${currentUnit.block} Blok No: ${currentUnit.unitNumber}`,
         title: complaintTitle,
         description: complaintDesc,
-        status: "pending",
-        date: new Date().toLocaleDateString("tr-TR"),
-        createdAt: serverTimestamp(),
+        status: 'pending',
+        date: new Date().toLocaleDateString('tr-TR'),
+        createdAt: serverTimestamp()
       });
 
-      setComplaintTitle("");
-      setComplaintDesc("");
-      setSuccessMessage(
-        "Bildiriminiz / Dekontunuz kendi yönetiminize başarıyla iletildi!",
-      );
-      setTimeout(() => setSuccessMessage(""), 5000);
+      setComplaintTitle('');
+      setComplaintDesc('');
+      setSuccessMessage('Bildiriminiz / Dekontunuz kendi yönetiminize başarıyla iletildi!');
+      setTimeout(() => setSuccessMessage(''), 5000);
     } catch (err) {
       console.error(err);
-      alert("Gönderilirken hata oluştu.");
+      alert('Gönderilirken hata oluştu.');
     } finally {
       setSubmitting(false);
     }
