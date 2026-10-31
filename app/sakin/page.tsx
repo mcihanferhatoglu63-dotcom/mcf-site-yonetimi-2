@@ -114,14 +114,17 @@ export default function SakinPanelPage() {
 
     const fetchSitePackage = async () => {
       const targetSite = siteParam || "Bulvar City";
-      
+
       if (targetSite === "Demo-Site") {
-        setCurrentPackage("trial"); 
+        setCurrentPackage("trial");
         return;
       }
 
       try {
-        const q = query(collection(db, "tenants"), where("siteName", "==", targetSite));
+        const q = query(
+          collection(db, "tenants"),
+          where("siteName", "==", targetSite),
+        );
         const querySnapshot = await getDocs(q);
         if (!querySnapshot.empty) {
           const data = querySnapshot.docs[0].data();
@@ -174,7 +177,7 @@ export default function SakinPanelPage() {
           id: doc.id,
           ...doc.data(),
         })) as Complaint[];
-        
+
         const filtered = all.filter(
           (c) =>
             (!c.siteName || c.siteName === currentSiteName) &&
@@ -252,14 +255,17 @@ export default function SakinPanelPage() {
 
   const handleSubmitComplaint = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // DEMO-SİTE VEYA TRIAL/BASIC KONTROLÜ: Kesinlikle bildirim/şikayet gönderilemez
-    if (currentPackage !== "pro" || currentSiteName === "Demo-Site") {
-      return alert("Üzgünüz, Trial ve Basic paketlerde ya da Demo-Site'da şikayet/bildirim oluşturma özelliği devre dışıdır. Bu özelliği kullanabilmek için Pro pakete geçmeniz gerekmektedir.");
+
+    // GÜNCELLENEN KONTROL: Sadece paket Pro değilse engelle (Demo-Site Pro yapılırsa serbest kalır)
+    if (currentPackage !== "pro") {
+      return alert(
+        "Üzgünüz, Trial ve Basic paketlerde şikayet/bildirim oluşturma özelliği devre dışıdır. Bu özelliği kullanabilmek için Pro pakete geçmeniz gerekmektedir.",
+      );
     }
 
     if (!currentUnit) return;
-    if (!complaintTitle || !complaintDesc) return alert("Lütfen başlık ve açıklama giriniz.");
+    if (!complaintTitle || !complaintDesc)
+      return alert("Lütfen başlık ve açıklama giriniz.");
 
     setSubmitting(true);
     try {
@@ -270,12 +276,14 @@ export default function SakinPanelPage() {
         description: complaintDesc,
         status: "pending",
         date: new Date().toLocaleDateString("tr-TR"),
-        createdAt: serverTimestamp()
+        createdAt: serverTimestamp(),
       });
 
       setComplaintTitle("");
       setComplaintDesc("");
-      setSuccessMessage("Bildiriminiz / Dekontunuz kendi yönetiminize başarıyla iletildi!");
+      setSuccessMessage(
+        "Bildiriminiz / Dekontunuz kendi yönetiminize başarıyla iletildi!",
+      );
       setTimeout(() => setSuccessMessage(""), 5000);
     } catch (err) {
       console.error(err);
@@ -781,9 +789,9 @@ export default function SakinPanelPage() {
                       textAlign: "center",
                     }}
                   >
-                    🔒 Bulunduğunuz site (Demo-Site / Basic / Trial paket) online bildirim
-                    gönderimini desteklememektedir. Bu özellik yalnızca Pro
-                    paket sitelerde aktiftir.
+                    🔒 Bulunduğunuz site (Demo-Site / Basic / Trial paket)
+                    online bildirim gönderimini desteklememektedir. Bu özellik
+                    yalnızca Pro paket sitelerde aktiftir.
                   </div>
                 ) : (
                   <>
