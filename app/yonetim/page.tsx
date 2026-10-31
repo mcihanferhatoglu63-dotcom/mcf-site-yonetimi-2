@@ -707,7 +707,7 @@ export default function YonetimPanelPage() {
             </p>
           </div>
 
-          <nav
+         <nav
             style={{
               display: "flex",
               gap: "6px",
@@ -719,6 +719,7 @@ export default function YonetimPanelPage() {
               alignItems: "center",
             }}
           >
+            {/* Bloklar */}
             <button
               onClick={() => setActiveTab("units")}
               style={{
@@ -735,6 +736,8 @@ export default function YonetimPanelPage() {
             >
               Bloklar
             </button>
+
+            {/* Rehber */}
             <button
               onClick={() => setActiveTab("directory")}
               style={{
@@ -751,6 +754,8 @@ export default function YonetimPanelPage() {
             >
               Rehber
             </button>
+
+            {/* Kasa - Basic veya Trial pakette kilit ikonu eklenir */}
             <button
               onClick={() => setActiveTab("accounting")}
               style={{
@@ -765,8 +770,10 @@ export default function YonetimPanelPage() {
                 color: activeTab === "accounting" ? "#111827" : "#94a3b8",
               }}
             >
-              Kasa {currentPackage === "trial" && "🔒"}
+              Kasa {(currentPackage === "basic" || currentPackage === "trial") && "🔒"}
             </button>
+
+            {/* Raporlar - Basic veya Trial pakette kilit ikonu eklenir */}
             <button
               onClick={() => setActiveTab("reports")}
               style={{
@@ -783,6 +790,8 @@ export default function YonetimPanelPage() {
             >
               Raporlar {(currentPackage === "basic" || currentPackage === "trial") && "🔒"}
             </button>
+
+            {/* Bildirimler - Basic veya Trial pakette kilit ikonu eklenir */}
             <button
               onClick={() => setActiveTab("complaints")}
               style={{
@@ -798,7 +807,7 @@ export default function YonetimPanelPage() {
                 position: "relative",
               }}
             >
-              Bildirimler {currentPackage === "trial" && "🔒"}
+              Bildirimler {(currentPackage === "basic" || currentPackage === "trial") && "🔒"}
               {pendingComplaintsCount > 0 && currentPackage === "pro" && (
                 <span
                   style={{
@@ -821,6 +830,8 @@ export default function YonetimPanelPage() {
                 </span>
               )}
             </button>
+
+            {/* Site Ayarları - Trial pakette kilit ikonu eklenir */}
             <button
               onClick={() => setActiveTab("settings")}
               style={{
@@ -837,6 +848,8 @@ export default function YonetimPanelPage() {
             >
               Site Ayarları {currentPackage === "trial" && "🔒"}
             </button>
+
+            {/* Çıkış */}
             <button
               onClick={handleAdminLogout}
               style={{
