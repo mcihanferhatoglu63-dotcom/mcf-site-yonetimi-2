@@ -60,7 +60,7 @@ export default function SuperAdminPage() {
     return () => unsubscribe();
   }, [isSuperLoggedIn]);
 
-  if (!isSuperLoggedIn) {
+ if (!isSuperLoggedIn) {
     return (
       <div
         style={{
@@ -73,7 +73,6 @@ export default function SuperAdminPage() {
           padding: "20px",
         }}
       >
-       
         <div
           style={{
             backgroundColor: "#111827",
@@ -86,64 +85,25 @@ export default function SuperAdminPage() {
             textAlign: "center",
           }}
         >
-           {/* Süperadmin Panel Üst Başlık & Logo Entegrasyonu */}
-        <div
-          style={{
-            backgroundColor: "#111827",
-            borderBottom: "1px solid #1f2937",
-            padding: "16px 24px",
-            boxShadow: "0 4px 20px rgba(0,0,0,0.4)",
-          }}
-        >
-          <div
+          {/* LOGO ENTEGRASYONU */}
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: "16px" }}>
+            <img 
+              src="/mcf-logo.png" 
+              alt="MCF Logo" 
+              style={{ maxWidth: "180px", width: "100%", height: "auto", objectFit: "contain", filter: "drop-shadow(0 4px 12px rgba(245, 158, 11, 0.2))" }} 
+            />
+          </div>
+
+          <p
             style={{
-              maxWidth: "1280px",
-              margin: "0 auto",
-              display: "flex",
-              flexWrap: "wrap",
-              justifyContent: "space-between",
-              alignItems: "center",
-              gap: "16px",
+              color: "#f59e0b",
+              fontSize: "13px",
+              fontWeight: "700",
+              margin: "0 0 24px 0",
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
-              <img
-                src="/mcf-logo.png"
-                alt="MCF Logo"
-                style={{
-                  height: "48px",
-                  width: "auto",
-                  objectFit: "contain",
-                  filter: "drop-shadow(0 2px 8px rgba(0,0,0,0.5))",
-                }}
-              />
-              <div style={{ display: "flex", flexDirection: "column" }}>
-                <span
-                  style={{
-                    fontSize: "15px",
-                    fontWeight: "800",
-                    color: "#ffffff",
-                    lineHeight: "1.2",
-                  }}
-                >
-                  MCF TEKNOLOJİ
-                </span>
-                <span
-                  style={{
-                    fontSize: "10px",
-                    fontWeight: "700",
-                    color: "#f59e0b",
-                  }}
-                >
-                  SÜPERADMIN KONTROL PANELİ
-                </span>
-              </div>
-            </div>
-
-            {/* Çıkış ve Diğer Yönetim Butonları ... */}
-          </div>
-        </div>
-         
+            Site Takip Yönetim Sistemi (Süperadmin)
+          </p>
 
           <form
             onSubmit={(e) => {
