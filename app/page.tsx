@@ -71,7 +71,7 @@ export default function HomePage() {
     setShowPortalModal(true);
     
     // Doğrudan yönetim paneline trial paketiyle yönlendiriyoruz
-    router.push(`/yonetim?site=Demo-Site`);
+
   };
 
   // Yönetim Paneline Yönlendir (Demo ise şifresiz, diğerlerinde şifre kontrolü ile)
