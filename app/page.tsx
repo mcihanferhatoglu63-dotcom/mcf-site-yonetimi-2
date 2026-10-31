@@ -62,10 +62,15 @@ export default function HomePage() {
   };
 
   // Tek Tıkla Demo Site Girişi
+// Tek Tıkla Demo Site Girişi (Trial Olarak Ayarlandı)
   const handleDemoClick = () => {
-    sessionStorage.setItem("mcf_site_package", "pro");
+    // Demo site için direkt trial paketini atıyoruz
+    sessionStorage.setItem("mcf_site_package", "trial");
+    sessionStorage.setItem("mcf_admin_logged", "true"); // Şifresiz giriş için
     setSelectedSite("Demo-Site");
-    setShowPortalModal(true);
+    
+    // Doğrudan yönetim paneline trial paketiyle yönlendiriyoruz
+    router.push(`/yonetim?site=Demo-Site`);
   };
 
   // Yönetim Paneline Yönlendir (Demo ise şifresiz, diğerlerinde şifre kontrolü ile)
