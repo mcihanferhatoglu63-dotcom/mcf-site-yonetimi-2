@@ -38,6 +38,7 @@ interface Transaction {
 
 interface Complaint {
   id: string;
+  siteName?: string; // <-- Bu alanı ekliyoruz
   unitInfo: string;
   title: string;
   description: string;
@@ -136,17 +137,21 @@ export default function YonetimPanelPage() {
       }
     );
 
-    const unsubscribeComplaints = onSnapshot(
-      collection(db, "complaints"),
-      (snapshot) => {
-        setComplaints(
-          snapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          })) as Complaint[]
-        );
-      }
+const unsubscribeComplaints = onSnapshot(
+  collection(db, "complaints"),
+  (snapshot) => {
+    const allComplaints = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as Complaint[];
+    
+    // Sadece bu siteye ait olan bildirimleri filtrele
+    const siteComplaints = allComplaints.filter(
+      (c) => !c.siteName || c.siteName === currentSiteName
     );
+    setComplaints(siteComplaints);
+  }
+);
 
     return () => {
       unsubscribeUnits();

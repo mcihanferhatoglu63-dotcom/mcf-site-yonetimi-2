@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { db } from '../firebase';
-import { collection, onSnapshot, addDoc, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, query, where, getDocs } from 'firebase/firestore';
 
 interface Unit {
   id: string;
@@ -27,6 +27,7 @@ interface Handyman {
 
 interface Complaint {
   id: string;
+  siteName?: string;
   unitInfo: string;
   title: string;
   description: string;
@@ -36,6 +37,7 @@ interface Complaint {
 
 export default function SakinPanelPage() {
   const [currentSiteName, setCurrentSiteName] = useState('Bulvar City');
+  const [currentPackage, setCurrentPackage] = useState<'trial' | 'basic' | 'pro'>('trial');
   const [units, setUnits] = useState<Unit[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -71,6 +73,29 @@ export default function SakinPanelPage() {
       setCurrentSiteName(siteParam);
     }
 
+    // Site paket türünü tenants koleksiyonundan çekiyoruz
+    const fetchSitePackage = async () => {
+      const targetSite = siteParam || 'Bulvar City';
+      if (targetSite === 'Demo-Site') {
+        setCurrentPackage('pro'); // Demo sitede test edilebilsin diye pro kabul edebiliriz veya trial
+        return;
+      }
+      try {
+        const q = query(collection(db, 'tenants'), where('siteName', '==', targetSite));
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+          const data = querySnapshot.docs[0].data();
+          if (data.packageType) {
+            setCurrentPackage(data.packageType);
+          }
+        }
+      } catch (err) {
+        console.error("Paket bilgisi alınamadı:", err);
+      }
+    };
+
+    fetchSitePackage();
+
     const unsubscribeUnits = onSnapshot(collection(db, 'units'), (snapshot) => {
       const fetchedUnits: Unit[] = snapshot.docs.map(doc => ({
         id: doc.id,
@@ -98,13 +123,14 @@ export default function SakinPanelPage() {
 
     const unitIdentifier = `${currentUnit.block} Blok No: ${currentUnit.unitNumber}`;
     const unsubscribeComplaints = onSnapshot(collection(db, 'complaints'), (snapshot) => {
-      const all: Complaint[] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Complaint[];
-      const filtered = all.filter(c => c.unitInfo === unitIdentifier);
+    const all: Complaint[] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Complaint[];
+      // Sadece bu siteye ve bu daireye ait şikayetleri filtrele
+      const filtered = all.filter(c => (!c.siteName || c.siteName === currentSiteName) && c.unitInfo === unitIdentifier);
       setMyComplaints(filtered);
     });
 
     return () => unsubscribeComplaints();
-  }, [activeUnitId, units]);
+  }, [activeUnitId, units, currentSiteName]);
 
   const availableBlocks = Array.from(new Set(units.map(u => u.block))).sort();
   const unitsInSelectedBlock = units
@@ -165,12 +191,18 @@ export default function SakinPanelPage() {
 
   const handleSubmitComplaint = async (e: React.FormEvent) => {
     e.preventDefault();
+    // PAKET KONTROLÜ: Sadece PRO paket sakinleri bildirim/şikayet gönderebilir
+    if (currentPackage !== 'pro' && currentSiteName !== 'Demo-Site') {
+      return alert('Üzgünüz, bulunduğunuz site Basic veya Trial paket kullandığı için online bildirim/şikayet gönderimi yalnızca Pro paket sitelerde aktiftir.');
+    }
+
     if (!currentUnit) return;
     if (!complaintTitle || !complaintDesc) return alert('Lütfen başlık ve açıklama giriniz.');
 
     setSubmitting(true);
     try {
       await addDoc(collection(db, 'complaints'), {
+        siteName: currentSiteName, // Hangi siteye ait olduğu kesin olarak kaydediliyor
         unitInfo: `${currentUnit.block} Blok No: ${currentUnit.unitNumber}`,
         title: complaintTitle,
         description: complaintDesc,
@@ -181,7 +213,7 @@ export default function SakinPanelPage() {
 
       setComplaintTitle('');
       setComplaintDesc('');
-      setSuccessMessage('Bildiriminiz / Dekontunuz yönetime başarıyla iletildi!');
+      setSuccessMessage('Bildiriminiz / Dekontunuz kendi yönetiminize başarıyla iletildi!');
       setTimeout(() => setSuccessMessage(''), 5000);
     } catch (err) {
       console.error(err);
@@ -195,13 +227,12 @@ export default function SakinPanelPage() {
     return <div style={{ minHeight: '100vh', backgroundColor: '#0b0f19', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f59e0b', fontWeight: 'bold' }}>Yükleniyor...</div>;
   }
 
-  // GİRİŞ EKRANI (TEMİZLENMİŞ VE LOGO EKLENMİŞ)
+  // GİRİŞ EKRANI
   if (!isLoggedIn) {
     return (
       <div style={{ minHeight: '100vh', backgroundColor: '#0b0f19', fontFamily: 'Inter, system-ui, sans-serif', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
         <div style={{ backgroundColor: '#111827', border: '1px solid #1f2937', padding: '40px', borderRadius: '20px', maxWidth: '420px', width: '100%', boxShadow: '0 20px 40px rgba(0,0,0,0.6)', textAlign: 'center' }}>
           
-          {/* YETERLİ BÜYÜKLÜKTE ORTALANMIŞ LOGO */}
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '18px' }}>
             <img 
               src="/mcf-logo.png" 
@@ -278,7 +309,6 @@ export default function SakinPanelPage() {
       
       <div style={{ maxWidth: '800px', margin: '0 auto' }}>
         
-        {/* ÜST BAŞLIK & LOGO */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', backgroundColor: '#111827', padding: '16px 24px', borderRadius: '16px', border: '1px solid #1f2937', flexWrap: 'wrap', gap: '14px' }}>
           
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
@@ -347,35 +377,43 @@ export default function SakinPanelPage() {
                 <h3 style={{ fontSize: '16px', fontWeight: '800', color: '#f59e0b', margin: '0 0 6px 0' }}>📨 Ödeme Bildirimi & Dekont Gönder</h3>
                 <p style={{ fontSize: '13px', color: '#94a3b8', margin: '0 0 20px 0' }}>Havale/EFT yaptıysanız dekont bilgisini buradan yönetime bildirebilirsiniz.</p>
 
-                {successMessage && (
-                  <div style={{ backgroundColor: '#065f46', color: '#fff', padding: '12px', borderRadius: '8px', marginBottom: '16px', fontWeight: 'bold', fontSize: '14px', textAlign: 'center' }}>
-                    {successMessage}
+                {currentPackage !== 'pro' && currentSiteName !== 'Demo-Site' ? (
+                  <div style={{ backgroundColor: '#78350f', color: '#fef3c7', padding: '16px', borderRadius: '10px', fontWeight: 'bold', fontSize: '14px', textAlign: 'center' }}>
+                    🔒 Bulunduğunuz site (Basic/Trial paket) online bildirim gönderimini desteklememektedir. Bu özellik yalnızca Pro paket sitelerde aktiftir.
                   </div>
-                )}
+                ) : (
+                  <>
+                    {successMessage && (
+                      <div style={{ backgroundColor: '#065f46', color: '#fff', padding: '12px', borderRadius: '8px', marginBottom: '16px', fontWeight: 'bold', fontSize: '14px', textAlign: 'center' }}>
+                        {successMessage}
+                      </div>
+                    )}
 
-                <form onSubmit={handleSubmitComplaint} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                  <input 
-                    type="text" 
-                    placeholder="Bildirim Başlığı (Örn: Aidat Ödemesi)" 
-                    value={complaintTitle} 
-                    onChange={(e) => setComplaintTitle(e.target.value)} 
-                    style={{ width: '100%', padding: '14px', backgroundColor: '#0b0f19', border: '1px solid #374151', borderRadius: '10px', color: '#fff', fontWeight: 'bold' }} 
-                  />
-                  <textarea 
-                    placeholder="Açıklama / Dekont Referans Numarası" 
-                    rows={4} 
-                    value={complaintDesc} 
-                    onChange={(e) => setComplaintDesc(e.target.value)} 
-                    style={{ width: '100%', padding: '14px', backgroundColor: '#0b0f19', border: '1px solid #374151', borderRadius: '10px', color: '#fff', fontWeight: 'bold', resize: 'vertical' }} 
-                  />
-                  <button 
-                    type="submit" 
-                    disabled={submitting} 
-                    style={{ backgroundColor: '#f59e0b', color: '#111827', border: 'none', padding: '14px', borderRadius: '10px', fontWeight: '800', fontSize: '15px', cursor: 'pointer' }}
-                  >
-                    {submitting ? 'Gönderiliyor...' : 'Bildirimi Yönetime Gönder'}
-                  </button>
-                </form>
+                    <form onSubmit={handleSubmitComplaint} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                      <input 
+                        type="text" 
+                        placeholder="Bildirim Başlığı (Örn: Aidat Ödemesi)" 
+                        value={complaintTitle} 
+                        onChange={(e) => setComplaintTitle(e.target.value)} 
+                        style={{ width: '100%', padding: '14px', backgroundColor: '#0b0f19', border: '1px solid #374151', borderRadius: '10px', color: '#fff', fontWeight: 'bold' }} 
+                      />
+                      <textarea 
+                        placeholder="Açıklama / Dekont Referans Numarası" 
+                        rows={4} 
+                        value={complaintDesc} 
+                        onChange={(e) => setComplaintDesc(e.target.value)} 
+                        style={{ width: '100%', padding: '14px', backgroundColor: '#0b0f19', border: '1px solid #374151', borderRadius: '10px', color: '#fff', fontWeight: 'bold', resize: 'vertical' }} 
+                      />
+                      <button 
+                        type="submit" 
+                        disabled={submitting} 
+                        style={{ backgroundColor: '#f59e0b', color: '#111827', border: 'none', padding: '14px', borderRadius: '10px', fontWeight: '800', fontSize: '15px', cursor: 'pointer' }}
+                      >
+                        {submitting ? 'Gönderiliyor...' : 'Bildirimi Kendi Yönetiminize Gönder'}
+                      </button>
+                    </form>
+                  </>
+                )}
               </div>
             )}
           </>
@@ -446,7 +484,7 @@ export default function SakinPanelPage() {
       </div>
 
       {showPasswordChangeModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }}>
+        <div style={{ position: 'fixed', top: '0', left: '0', width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }}>
           <div style={{ backgroundColor: '#111827', border: '1px solid #374151', borderRadius: '16px', padding: '24px', width: '100%', maxWidth: '400px' }}>
             <h3 style={{ margin: '0 0 10px 0', color: '#f59e0b' }}>🔑 Daire Şifresini Değiştir</h3>
             <p style={{ fontSize: '13px', color: '#94a3b8', margin: '0 0 16px 0' }}>Yeni daire şifrenizi belirleyin.</p>
