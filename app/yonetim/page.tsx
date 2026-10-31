@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useState, useEffect } from "react";
 import { db } from "../firebase";
 import {
@@ -47,26 +46,22 @@ interface Complaint {
 }
 
 export default function YonetimPanelPage() {
-  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
+  const [isAdminLoggedin, setisAdminLoggedIn] = useState(false);
   const [adminPassword, setAdminPassword] = useState("");
-  const [isAuthChecked, setIsAuthChecked] = useState(false);
+  const [isAuthChecked, setisAuthChecked] = useState(false);
   const [currentSiteName, setCurrentSiteName] = useState("Bulvar City");
-
   const [activeTab, setActiveTab] = useState<
     "units" | "directory" | "accounting" | "reports" | "complaints" | "settings"
   >("units");
   const [selectedBlock, setSelectedBlock] = useState("A");
   const [dueAmount, setDueAmount] = useState("2000");
-
   const [units, setUnits] = useState<Unit[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [loading, setLoading] = useState(true);
-
   const [lastAppliedDue, setLastAppliedDue] = useState<number | null>(null);
   const [editingUnit, setEditingUnit] = useState<Unit | null>(null);
   const [warningModalUnit, setWarningModalUnit] = useState<Unit | null>(null);
-
   const [currentPackage, setCurrentPackage] = useState<
     "trial" | "basic" | "pro"
   >("trial");
@@ -87,18 +82,16 @@ export default function YonetimPanelPage() {
     if (siteParam) {
       setCurrentSiteName(siteParam);
       if (siteParam === "Demo-Site") {
-        setIsAdminLoggedIn(true);
+        setisAdminLoggedIn(true);
         sessionStorage.setItem("mcf_admin_logged", "true");
       }
     }
-
     const sessionAuth = sessionStorage.getItem("mcf_admin_logged");
     if (sessionAuth === "true") {
-      setIsAdminLoggedIn(true);
+      setisAdminLoggedIn(true);
     }
-
     const savedDemoPkg = sessionStorage.getItem("mcf_site_package");
-    if (savedDemoPkg === "trial" || savedDemoPkg === "pro") {
+    if (savedDemoPkg === "trial" || savedDemoPkg === "pro" || savedDemoPkg === "basic") {
       setCurrentPackage(savedDemoPkg as any);
     }
 
@@ -106,7 +99,7 @@ export default function YonetimPanelPage() {
       collection(db, "tenants"),
       (snapshot) => {
         const matchedTenant = snapshot.docs.find(
-          (doc) => doc.data().siteName === (siteParam || "Demo-Site"),
+          (doc) => doc.data().siteName === (siteParam || "Demo-Site")
         );
         if (matchedTenant) {
           const tenantData = matchedTenant.data();
@@ -114,10 +107,9 @@ export default function YonetimPanelPage() {
             setCurrentPackage(tenantData.packageType);
           }
         }
-      },
+        setisAuthChecked(true);
+      }
     );
-
-    setIsAuthChecked(true);
 
     return () => unsubscribeTenants();
   }, []);
@@ -128,7 +120,6 @@ export default function YonetimPanelPage() {
         id: doc.id,
         ...doc.data(),
       })) as Unit[];
-
       setUnits(fetchedUnits);
       setLoading(false);
     });
@@ -140,9 +131,9 @@ export default function YonetimPanelPage() {
           snapshot.docs.map((doc) => ({
             id: doc.id,
             ...doc.data(),
-          })) as Transaction[],
+          })) as Transaction[]
         );
-      },
+      }
     );
 
     const unsubscribeComplaints = onSnapshot(
@@ -152,9 +143,9 @@ export default function YonetimPanelPage() {
           snapshot.docs.map((doc) => ({
             id: doc.id,
             ...doc.data(),
-          })) as Complaint[],
+          })) as Complaint[]
         );
-      },
+      }
     );
 
     return () => {
@@ -185,31 +176,28 @@ export default function YonetimPanelPage() {
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!adminPassword) return alert("Lütfen şifre giriniz.");
-
     if (currentSiteName === "Demo-Site") {
-      setIsAdminLoggedIn(true);
+      setisAdminLoggedIn(true);
       sessionStorage.setItem("mcf_admin_logged", "true");
       return;
     }
-
     try {
       const q = query(
         collection(db, "tenants"),
-        where("siteName", "==", currentSiteName),
+        where("siteName", "==", currentSiteName)
       );
       const querySnapshot = await getDocs(q);
-
       if (!querySnapshot.empty) {
         const siteData = querySnapshot.docs[0].data();
         if (siteData.sitePassword === adminPassword) {
-          setIsAdminLoggedIn(true);
+          setisAdminLoggedIn(true);
           sessionStorage.setItem("mcf_admin_logged", "true");
         } else {
           alert("Hatalı site şifresi!");
         }
       } else {
         if (adminPassword === "1453") {
-          setIsAdminLoggedIn(true);
+          setisAdminLoggedIn(true);
           sessionStorage.setItem("mcf_admin_logged", "true");
         } else {
           alert("Site bulunamadı veya şifre hatalı!");
@@ -221,14 +209,13 @@ export default function YonetimPanelPage() {
     }
   };
 
-  // DÜZELTİLDİ: Çıkış yapıldığında oturumu temizle ve doğrudan ana sayfaya yönlendir
   const handleAdminLogout = () => {
     sessionStorage.removeItem("mcf_admin_logged");
-    setIsAdminLoggedIn(false);
+    setisAdminLoggedIn(false);
     window.location.href = "/";
   };
 
-  if (!isAdminLoggedIn) {
+  if (!isAdminLoggedin) {
     return (
       <div
         style={{
@@ -273,7 +260,6 @@ export default function YonetimPanelPage() {
           >
             Yönetim Ekranı Girişi
           </p>
-
           <form
             onSubmit={handleAdminLogin}
             style={{ display: "flex", flexDirection: "column", gap: "14px" }}
@@ -335,10 +321,11 @@ export default function YonetimPanelPage() {
   const filteredUnits = units
     .filter((u) => u.block === currentActiveBlock)
     .sort((a, b) => Number(a.unitNumber) - Number(b.unitNumber));
+
   const sortedAllUnits = [...units].sort((a, b) =>
     a.block === b.block
       ? Number(a.unitNumber) - Number(b.unitNumber)
-      : a.block.localeCompare(b.block),
+      : a.block.localeCompare(b.block)
   );
 
   const totalDebtors = units.filter((u) => u.status === "unpaid").length;
@@ -350,8 +337,9 @@ export default function YonetimPanelPage() {
     .filter((t) => t.type === "expense")
     .reduce((sum, t) => sum + Number(t.amount || 0), 0);
   const netBalance = totalIncome - totalExpense;
+
   const pendingComplaintsCount = complaints.filter(
-    (c) => c.status === "pending",
+    (c) => c.status === "pending"
   ).length;
 
   const togglePaymentStatus = async (unit: Unit) => {
@@ -371,7 +359,6 @@ export default function YonetimPanelPage() {
     if (!amount || amount <= 0)
       return alert("Geçerli bir aidat tutarı giriniz.");
     if (!confirm(`${amount} ₺ aidat tüm bloklara yansıtılsın mı?`)) return;
-
     try {
       const batch = writeBatch(db);
       units.forEach((unit) => {
@@ -392,7 +379,6 @@ export default function YonetimPanelPage() {
     if (!lastAppliedDue) return;
     if (!confirm(`Son yansıtılan ${lastAppliedDue} ₺ aidat geri alınsın mı?`))
       return;
-
     try {
       const batch = writeBatch(db);
       units.forEach((unit) => {
@@ -413,7 +399,7 @@ export default function YonetimPanelPage() {
   const handleDeleteBlock = async (blockName: string) => {
     if (
       !confirm(
-        `Dikkat! ${blockName} bloğu ve bu bloğa ait tüm daireler kalıcı olarak silinecek. Emin misiniz?`,
+        `Dikkat! ${blockName} bloğu ve bu bloğa ait tüm daireler kalıcı olarak silinecek. Emin misiniz?`
       )
     )
       return;
@@ -426,10 +412,8 @@ export default function YonetimPanelPage() {
         });
       await batch.commit();
       alert(`${blockName} bloğu başarıyla silindi!`);
-      if (selectedBlock === blockName) {
-        const remaining = availableBlocks.filter((b) => b !== blockName);
-        setSelectedBlock(remaining[0] || "A");
-      }
+      const remaining = availableBlocks.filter((b) => b !== blockName);
+      setSelectedBlock(remaining[0] || "A");
     } catch (err) {
       console.error(err);
       alert("Blok silinirken hata oluştu.");
@@ -452,7 +436,9 @@ export default function YonetimPanelPage() {
 
     if (
       !confirm(
-        `Dikkat! Mevcut tüm eski bloklar ve daireler tamamen silinecek. Yalnızca (${blocksArray.join(", ")}) blokları ve her birinde ${countPerBlock} daire oluşturulacak. Emin misiniz?`,
+        `Dikkat! Mevcut tüm eski bloklar ve daireler tamamen silinecek. Yalnızca (${blocksArray.join(
+          ", "
+        )}) blokları ve her birinde ${countPerBlock} daire oluşturulacak. Emin misiniz?`
       )
     )
       return;
@@ -482,13 +468,9 @@ export default function YonetimPanelPage() {
         }
       });
       await createBatch.commit();
-
       setDueAmount(configDefaultDue);
       setSelectedBlock(blocksArray[0]);
-
-      alert(
-        "Eski bloklar temizlendi ve yeni site yapılandırması başarıyla oluşturuldu!",
-      );
+      alert("Eski bloklar temizlendi ve yeni site yapılandırması başarıyla oluşturuldu!");
       setActiveTab("units");
     } catch (err) {
       console.error(err);
@@ -502,7 +484,7 @@ export default function YonetimPanelPage() {
     try {
       await updateDoc(doc(db, "units", editingUnit.id), {
         residentName: editingUnit.residentName,
-        phone: editingUnit.phone || "",
+        phone: editingUnit.phone,
         isTenant: editingUnit.isTenant,
         landlordName: editingUnit.isTenant ? editingUnit.landlordName : "",
       });
@@ -517,34 +499,32 @@ export default function YonetimPanelPage() {
     if (!phone) return alert("Telefon numarası kayıtlı değil.");
     const cleanPhone = phone.replace(/\D/g, "");
     const message = encodeURIComponent(
-      `Sayın ${name}, ${currentSiteName} Yönetimi bilgilendirmesi: Güncel borç/aidat tutarınız ${debt.toLocaleString("tr-TR")} ₺'dir.`,
+      `Sayın ${name}, ${currentSiteName} Yönetimi bilgilendirmesi: Güncel borç/aidat tutarınız ${debt.toLocaleString("tr-TR")} ₺'dir.`
     );
     window.open(`https://wa.me/${cleanPhone}?text=${message}`, "_blank");
   };
 
   const getOfficialWarningText = (unit: Unit) => {
     const unitTitle = `${unit.block} Blok No: ${unit.unitNumber}`;
-    return `Sayın ${unit.residentName || "Sakin"}, (${unitTitle})
-Bu ay itibariyle toplam ${unit.debt.toLocaleString("tr-TR")} ₺ aidat/borç bakiyeniz bulunmaktadır. 
-Ödememeniz halinde yasal takibat başlatılacaktır.
-${currentSiteName} Yönetimi`;
+    return `Sayın ${unit.residentName || "Sakin"}, (${unitTitle}) Bu ay itibariyle toplam ${unit.debt.toLocaleString("tr-TR")} ₺ aidat/borç bakiyeniz bulunmaktadır. Ödememeniz halinde yasal takibat başlatılacaktır. ${currentSiteName} Yönetimi`;
   };
 
   const printOfficialWarning = (unit: Unit) => {
     const w = window.open("", "_blank");
     if (!w) return;
     w.document.write(
-      `<html><head><title>İhtar</title></head><body style="font-family:Arial;padding:40px;"><h2>${currentSiteName.toUpperCase()} YÖNETİMİ</h2><p>${getOfficialWarningText(unit)}</p><script>window.print();</script></body></html>`,
+      `<html><head><title>İhtar</title></head><body style="font-family:Arial;padding:40px;"><h2>${currentSiteName.toUpperCase()} YÖNETİMİ</h2><p>${getOfficialWarningText(unit)}</p><script>window.print();</script></body></html>`
     );
     w.document.close();
   };
 
   const exportUnitsToExcel = () => {
-    let htmlContent = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><style>table{border-collapse:collapse;width:100%;font-family:Arial;}th{background:#0b0f19;color:#fff;padding:12px;border:1px solid #000;}td{padding:8px;border:1px solid #ccc;}</style></head><body><table><thead><tr><th>Blok</th><th>No</th><th>Sakin</th><th>Telefon</th><th>Durum</th><th>Borç</th></tr></thead><tbody>`;
+    let htmlContent =
+      '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><style>table{border-collapse:collapse;width:100%;font-family:Arial;}th{background:#0b0f19;color:#fff;padding:12px;border:1px solid #000;}td{padding:8px;border:1px solid #ccc;}</style></head><body><table><thead><tr><th>Blok</th><th>No</th><th>Sakin</th><th>Telefon</th><th>Durum</th><th>Borç</th></tr></thead><tbody>';
     sortedAllUnits.forEach((u) => {
       htmlContent += `<tr><td>${u.block}</td><td>${u.unitNumber}</td><td>${u.residentName}</td><td>${u.phone}</td><td>${u.status}</td><td>${u.debt} ₺</td></tr>`;
     });
-    htmlContent += `</tbody></table></body></html>`;
+    htmlContent += "</tbody></table></body></html>";
     const blob = new Blob([htmlContent], {
       type: "application/vnd.ms-excel;charset=utf-8;",
     });
@@ -555,11 +535,12 @@ ${currentSiteName} Yönetimi`;
   };
 
   const exportTransactionsToExcel = () => {
-    let htmlContent = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><style>table{border-collapse:collapse;width:100%;font-family:Arial;}th{background:#0b0f19;color:#fff;padding:12px;border:1px solid #000;}td{padding:8px;border:1px solid #ccc;}</style></head><body><table><thead><tr><th>Tarih</th><th>Tür</th><th>Kategori</th><th>Açıklama</th><th>Tutar</th></tr></thead><tbody>`;
+    let htmlContent =
+      '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><style>table{border-collapse:collapse;width:100%;font-family:Arial;}th{background:#0b0f19;color:#fff;padding:12px;border:1px solid #000;}td{padding:8px;border:1px solid #ccc;}</style></head><body><table><thead><tr><th>Tarih</th><th>Tür</th><th>Kategori</th><th>Açıklama</th><th>Tutar</th></tr></thead><tbody>';
     transactions.forEach((t) => {
       htmlContent += `<tr><td>${t.date}</td><td>${t.type}</td><td>${t.category}</td><td>${t.title}</td><td>${t.amount} ₺</td></tr>`;
     });
-    htmlContent += `</tbody></table></body></html>`;
+    htmlContent += "</tbody></table></body></html>";
     const blob = new Blob([htmlContent], {
       type: "application/vnd.ms-excel;charset=utf-8;",
     });
@@ -597,7 +578,16 @@ ${currentSiteName} Yönetimi`;
     }
   };
 
+  // YENİ PAKET KISITLAMA KURALLARI:
+  // - Trial (Demo): Sadece 'units' (Bloklar) ve 'directory' (Rehber) açık. Diğerleri kapalı.
+  // - Basic: Kasa ve Raporlar kapalı.
+  // - Pro: Her şey açık.
   const isFeatureRestricted = (tab: string) => {
+    if (currentPackage === "trial") {
+      if (tab === "accounting" || tab === "reports" || tab === "complaints" || tab === "settings") {
+        return true;
+      }
+    }
     if (
       currentPackage === "basic" &&
       (tab === "accounting" || tab === "reports" || tab === "complaints")
@@ -635,7 +625,6 @@ ${currentSiteName} Yönetimi`;
             gap: "16px",
           }}
         >
-          {/* Yönetim Paneli Logo Entegrasyonu */}
           <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
             <img
               src="/mcf-logo.png"
@@ -669,6 +658,7 @@ ${currentSiteName} Yönetimi`;
               </span>
             </div>
           </div>
+
           <div>
             <h1
               style={{
@@ -689,8 +679,8 @@ ${currentSiteName} Yönetimi`;
                     currentPackage === "pro"
                       ? "#0369a1"
                       : currentPackage === "basic"
-                        ? "#b45309"
-                        : "#3b82f6",
+                      ? "#b45309"
+                      : "#3b82f6",
                   color: "#fff",
                   padding: "2px 8px",
                   borderRadius: "10px",
@@ -701,8 +691,8 @@ ${currentSiteName} Yönetimi`;
                 {currentPackage === "pro"
                   ? "Pro Paket"
                   : currentPackage === "basic"
-                    ? "Basic Paket"
-                    : "14 Gün Trial (Demo)"}
+                  ? "Basic Paket"
+                  : "Trial (Demo)"}
               </span>
             </h1>
             <p
@@ -743,7 +733,7 @@ ${currentSiteName} Yönetimi`;
                 color: activeTab === "units" ? "#111827" : "#94a3b8",
               }}
             >
-              🏢 Bloklar
+              Bloklar
             </button>
             <button
               onClick={() => setActiveTab("directory")}
@@ -759,7 +749,7 @@ ${currentSiteName} Yönetimi`;
                 color: activeTab === "directory" ? "#111827" : "#94a3b8",
               }}
             >
-              📖 Rehber
+              Rehber
             </button>
             <button
               onClick={() => setActiveTab("accounting")}
@@ -775,7 +765,7 @@ ${currentSiteName} Yönetimi`;
                 color: activeTab === "accounting" ? "#111827" : "#94a3b8",
               }}
             >
-              💰 Kasa {currentPackage === "basic" && "🔒"}
+              Kasa {currentPackage === "trial" && "🔒"}
             </button>
             <button
               onClick={() => setActiveTab("reports")}
@@ -791,7 +781,7 @@ ${currentSiteName} Yönetimi`;
                 color: activeTab === "reports" ? "#111827" : "#94a3b8",
               }}
             >
-              📊 Raporlar {currentPackage === "basic" && "🔒"}
+              Raporlar {(currentPackage === "basic" || currentPackage === "trial") && "🔒"}
             </button>
             <button
               onClick={() => setActiveTab("complaints")}
@@ -808,8 +798,8 @@ ${currentSiteName} Yönetimi`;
                 position: "relative",
               }}
             >
-              ✉️ Bildirimler {currentPackage === "basic" && "🔒"}
-              {pendingComplaintsCount > 0 && currentPackage !== "basic" && (
+              Bildirimler {currentPackage === "trial" && "🔒"}
+              {pendingComplaintsCount > 0 && currentPackage === "pro" && (
                 <span
                   style={{
                     position: "absolute",
@@ -845,15 +835,13 @@ ${currentSiteName} Yönetimi`;
                 color: activeTab === "settings" ? "#111827" : "#94a3b8",
               }}
             >
-              ⚙️ Site Ayarları
+              Site Ayarları {currentPackage === "trial" && "🔒"}
             </button>
-
             <button
               onClick={handleAdminLogout}
               style={{
                 padding: "10px 14px",
                 borderRadius: "8px",
-                textDecoration: "none",
                 fontWeight: "700",
                 fontSize: "13px",
                 backgroundColor: "#ef4444",
@@ -862,7 +850,7 @@ ${currentSiteName} Yönetimi`;
                 cursor: "pointer",
               }}
             >
-              🚪 Çıkış
+              Çıkış
             </button>
           </nav>
         </div>
@@ -889,7 +877,7 @@ ${currentSiteName} Yönetimi`;
                 margin: "0 0 10px 0",
               }}
             >
-              Pro / Trial Paket Özelliği
+              {currentPackage === "trial" ? "Demo (Trial) Paket Kısıtlaması" : "Pro Paket Özelliği"}
             </h2>
             <p
               style={{
@@ -900,8 +888,9 @@ ${currentSiteName} Yönetimi`;
                 lineHeight: "1.6",
               }}
             >
-              Şu anda Basic paketi kullanıyorsunuz. Kasa, Raporlar ve
-              Bildirimler yalnızca Pro ve Trial (Demo) paketlere özeldir.
+              {currentPackage === "trial"
+                ? "Demo sürümünde yalnızca 'Bloklar' ve 'Rehber' modülleri aktiftir. Kasa, Raporlar, Bildirimler ve Ayarlar için Pro pakete geçmelisiniz."
+                : "Şu anda Basic paketi kullanıyorsunuz. Kasa, Raporlar ve Bildirimler yalnızca Pro pakete özeldir."}
             </p>
           </div>
         ) : (
@@ -981,9 +970,7 @@ ${currentSiteName} Yönetimi`;
                     gap: "20px",
                   }}
                 >
-                  <div
-                    style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}
-                  >
+                  <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
                     <div
                       style={{
                         backgroundColor: "#0b0f19",
@@ -1008,7 +995,7 @@ ${currentSiteName} Yönetimi`;
                           fontSize: "20px",
                         }}
                       >
-                        ⚠️
+                        📌
                       </div>
                       <div>
                         <div
@@ -1031,6 +1018,7 @@ ${currentSiteName} Yönetimi`;
                         </div>
                       </div>
                     </div>
+
                     <div
                       style={{
                         backgroundColor: "#0b0f19",
@@ -1055,7 +1043,7 @@ ${currentSiteName} Yönetimi`;
                           fontSize: "20px",
                         }}
                       >
-                        💳
+                        💰
                       </div>
                       <div>
                         <div
@@ -1123,7 +1111,7 @@ ${currentSiteName} Yönetimi`;
                         cursor: "pointer",
                       }}
                     >
-                      ⚡ Toplu Yansıt
+                      Toplu Yansıt
                     </button>
                     {lastAppliedDue && (
                       <button
@@ -1139,7 +1127,7 @@ ${currentSiteName} Yönetimi`;
                           cursor: "pointer",
                         }}
                       >
-                        ↩️ Geri Al
+                        Geri Al
                       </button>
                     )}
                   </div>
@@ -1255,7 +1243,7 @@ ${currentSiteName} Yönetimi`;
                                 fontWeight: "600",
                               }}
                             >
-                              👤 {unit.residentName || "İsim Yok"}
+                              {unit.residentName || "İsim Yok"}
                             </p>
                             <p
                               style={{
@@ -1264,10 +1252,9 @@ ${currentSiteName} Yönetimi`;
                                 color: "#94a3b8",
                               }}
                             >
-                              📞 {unit.phone || "Tel Yok"}
+                              {unit.phone || "Tel Yok"}
                             </p>
                           </div>
-
                           <div
                             style={{
                               display: "flex",
@@ -1294,8 +1281,8 @@ ${currentSiteName} Yönetimi`;
                               }}
                             >
                               {isDebtor
-                                ? `⚠️ ${unit.debt.toLocaleString("tr-TR")} ₺`
-                                : "✅ Ödendi"}
+                                ? `${unit.debt.toLocaleString("tr-TR")} ₺`
+                                : "Ödendi"}
                             </div>
                             <button
                               onClick={() => setEditingUnit(unit)}
@@ -1338,7 +1325,7 @@ ${currentSiteName} Yönetimi`;
                     margin: "0 0 16px 0",
                   }}
                 >
-                  📖 Sakinler Rehberi
+                  Sakinler Rehberi
                 </h2>
                 <table
                   style={{
@@ -1406,7 +1393,7 @@ ${currentSiteName} Yönetimi`;
                                 fontWeight: "bold",
                               }}
                             >
-                              💬 WhatsApp Gönder
+                              WhatsApp Gönder
                             </button>
                           )}
                         </td>
@@ -1456,6 +1443,7 @@ ${currentSiteName} Yönetimi`;
                       {totalIncome.toLocaleString("tr-TR")} ₺
                     </div>
                   </div>
+
                   <div
                     style={{
                       backgroundColor: "#111827",
@@ -1485,6 +1473,7 @@ ${currentSiteName} Yönetimi`;
                       {totalExpense.toLocaleString("tr-TR")} ₺
                     </div>
                   </div>
+
                   <div
                     style={{
                       backgroundColor: "#111827",
@@ -1526,7 +1515,7 @@ ${currentSiteName} Yönetimi`;
                   }}
                 >
                   <h3 style={{ margin: "0 0 16px 0", color: "#f59e0b" }}>
-                    ➕ Yeni Kasa İşlemi Ekle
+                    Yeni Kasa İşlemi Ekle
                   </h3>
                   <form
                     onSubmit={handleAddTransaction}
@@ -1602,7 +1591,7 @@ ${currentSiteName} Yönetimi`;
                   }}
                 >
                   <h3 style={{ margin: "0 0 16px 0", color: "#f59e0b" }}>
-                    📋 Kasa Geçmişi
+                    Kasa Geçmişi
                   </h3>
                   <table
                     style={{
@@ -1694,7 +1683,7 @@ ${currentSiteName} Yönetimi`;
                 }}
               >
                 <h2 style={{ color: "#f59e0b", marginBottom: "20px" }}>
-                  📊 Raporlar ve Excel Aktarım Merkezi
+                  Raporlar ve Excel Aktarım Merkezi
                 </h2>
                 <div
                   style={{
@@ -1716,7 +1705,7 @@ ${currentSiteName} Yönetimi`;
                       cursor: "pointer",
                     }}
                   >
-                    📥 Sakinler Durumunu Excel&apos;e Aktar
+                    📊 Sakinler Durumunu Excel&apos;e Aktar
                   </button>
                   <button
                     onClick={exportTransactionsToExcel}
@@ -1730,7 +1719,7 @@ ${currentSiteName} Yönetimi`;
                       cursor: "pointer",
                     }}
                   >
-                    📥 Kasa Raporunu Excel&apos;e Aktar
+                    📁 Kasa Raporunu Excel&apos;e Aktar
                   </button>
                 </div>
               </div>
@@ -1753,7 +1742,7 @@ ${currentSiteName} Yönetimi`;
                     margin: "0 0 6px 0",
                   }}
                 >
-                  📬 Sakinlerden Gelen Ödeme Bildirimleri & Şikayetler
+                  Sakinlerden Gelen Ödeme Bildirimleri & Şikayetler
                 </h2>
                 <p
                   style={{
@@ -1762,10 +1751,8 @@ ${currentSiteName} Yönetimi`;
                     margin: "0 0 20px 0",
                   }}
                 >
-                  Sakinlerin portal üzerinden gönderdiği aidat dekont
-                  bildirimleri burada listelenir.
+                  Sakinlerin portal üzerinden gönderdiği aidat dekont bildirimleri burada listelenir.
                 </p>
-
                 {complaints.length === 0 ? (
                   <p
                     style={{
@@ -1839,8 +1826,8 @@ ${currentSiteName} Yönetimi`;
                               }}
                             >
                               {c.status === "resolved"
-                                ? "✅ Çözüldü"
-                                : "🔔 Bekliyor"}
+                                ? "Çözüldü"
+                                : "Bekliyor"}
                             </span>
                           </div>
                           <h4
@@ -1865,7 +1852,6 @@ ${currentSiteName} Yönetimi`;
                             {c.description}
                           </p>
                         </div>
-
                         <div
                           style={{
                             display: "flex",
@@ -1877,9 +1863,12 @@ ${currentSiteName} Yönetimi`;
                             <button
                               onClick={async () => {
                                 try {
-                                  await updateDoc(doc(db, "complaints", c.id), {
-                                    status: "resolved",
-                                  });
+                                  await updateDoc(
+                                    doc(db, "complaints", c.id),
+                                    {
+                                      status: "resolved",
+                                    }
+                                  );
                                 } catch (err) {
                                   console.error(err);
                                 }
@@ -1895,12 +1884,14 @@ ${currentSiteName} Yönetimi`;
                                 cursor: "pointer",
                               }}
                             >
-                              ✅ Okundu İşaretle
+                              Okundu İşaretle
                             </button>
                           )}
                           <button
                             onClick={async () => {
-                              if (!confirm("Silmek istediğinize emin misiniz?"))
+                              if (
+                                !confirm("Silmek istediğinize emin misiniz?")
+                              )
                                 return;
                               try {
                                 await deleteDoc(doc(db, "complaints", c.id));
@@ -1919,7 +1910,7 @@ ${currentSiteName} Yönetimi`;
                               cursor: "pointer",
                             }}
                           >
-                            🗑️ Sil
+                            Sil
                           </button>
                         </div>
                       </div>
@@ -1957,8 +1948,7 @@ ${currentSiteName} Yönetimi`;
                     margin: "0 0 24px 0",
                   }}
                 >
-                  Bu butona bastığınızda eski tüm bloklar tamamen temizlenir ve
-                  sadece buraya yazdığınız bloklar sıfırdan oluşturulur.
+                  Bu butona bastığınızda eski tüm bloklar tamamen temizlenir ve sadece buraya yazdığınız bloklar sıfırdan oluşturulur.
                 </p>
 
                 <form
@@ -1979,13 +1969,13 @@ ${currentSiteName} Yönetimi`;
                         fontWeight: "600",
                       }}
                     >
-                      Blok İsimleri (Virgülle ayırarak yazınız, örn: A)
+                      Blok İsimleri (Virgülle ayırarak yazınız, örn: A, B, C)
                     </label>
                     <input
                       type="text"
                       value={configBlocks}
                       onChange={(e) => setConfigBlocks(e.target.value)}
-                      placeholder="Örn: A"
+                      placeholder="Örn: A, B, C"
                       style={{
                         width: "100%",
                         padding: "14px",
@@ -2073,7 +2063,7 @@ ${currentSiteName} Yönetimi`;
                       marginTop: "10px",
                     }}
                   >
-                    🔄 Eski Blokları Sil ve Sıfırdan Oluştur
+                    Eski Blokları Sil ve Sıfırdan Oluştur
                   </button>
                 </form>
               </div>
@@ -2166,6 +2156,7 @@ ${currentSiteName} Yönetimi`;
                 <option value="owner">Mülk Sahibi</option>
                 <option value="tenant">Kiracı</option>
               </select>
+
               {editingUnit.isTenant && (
                 <input
                   type="text"
@@ -2186,6 +2177,7 @@ ${currentSiteName} Yönetimi`;
                   }}
                 />
               )}
+
               <div style={{ display: "flex", gap: "10px" }}>
                 <button
                   type="button"
@@ -2250,7 +2242,7 @@ ${currentSiteName} Yönetimi`;
             }}
           >
             <h3 style={{ color: "#ef4444", margin: "0 0 10px 0" }}>
-              📜 Resmi İhtar Metni
+              Resmi İhtar Metni
             </h3>
             <div
               style={{
@@ -2296,14 +2288,14 @@ ${currentSiteName} Yönetimi`;
                   cursor: "pointer",
                 }}
               >
-                🖨️ Yazdır
+                Yazdır
               </button>
               <button
                 onClick={() => {
                   openWhatsApp(
                     warningModalUnit.phone,
                     warningModalUnit.residentName,
-                    warningModalUnit.debt,
+                    warningModalUnit.debt
                   );
                   setWarningModalUnit(null);
                 }}
@@ -2318,7 +2310,7 @@ ${currentSiteName} Yönetimi`;
                   fontWeight: "bold",
                 }}
               >
-                💬 WhatsApp ile Gönder
+                WhatsApp ile Gönder
               </button>
             </div>
           </div>
