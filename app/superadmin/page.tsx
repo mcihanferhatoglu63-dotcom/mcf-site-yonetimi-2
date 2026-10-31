@@ -60,7 +60,7 @@ export default function SuperAdminPage() {
     return () => unsubscribe();
   }, [isSuperLoggedIn]);
 
- if (!isSuperLoggedIn) {
+if (!isSuperLoggedIn) {
     return (
       <div
         style={{
@@ -85,25 +85,58 @@ export default function SuperAdminPage() {
             textAlign: "center",
           }}
         >
-          {/* LOGO ENTEGRASYONU */}
-          <div style={{ display: "flex", justifyContent: "center", marginBottom: "16px" }}>
-            <img 
-              src="/mcf-logo.png" 
-              alt="MCF Logo" 
-              style={{ maxWidth: "180px", width: "100%", height: "auto", objectFit: "contain", filter: "drop-shadow(0 4px 12px rgba(245, 158, 11, 0.2))" }} 
-            />
+          {/* MCF Kurumsal Logo Bileşeni */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "14px", marginBottom: "24px" }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                padding: "6px 14px",
+                borderRadius: "12px",
+                background:
+                  "linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(245, 158, 11, 0.15) 100%)",
+                border: "1px solid rgba(245, 158, 11, 0.4)",
+                boxShadow: "0 4px 20px rgba(245, 158, 11, 0.15)",
+              }}
+            >
+              <span
+                style={{
+                  fontSize: "22px",
+                  fontWeight: "900",
+                  letterSpacing: "-1px",
+                  background:
+                    "linear-gradient(135deg, #c084fc 0%, #f59e0b 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  fontFamily: "Inter, sans-serif",
+                }}
+              >
+                MCF
+              </span>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", textAlign: "left" }}>
+              <span
+                style={{
+                  fontSize: "15px",
+                  fontWeight: "800",
+                  color: "#ffffff",
+                  lineHeight: "1.2",
+                }}
+              >
+                MCF TECHNOLOGY
+              </span>
+              <span
+                style={{
+                  fontSize: "10px",
+                  fontWeight: "700",
+                  color: "#f59e0b",
+                  letterSpacing: "0.5px",
+                }}
+              >
+                SÜPERADMIN PANELİ
+              </span>
+            </div>
           </div>
-
-          <p
-            style={{
-              color: "#f59e0b",
-              fontSize: "13px",
-              fontWeight: "700",
-              margin: "0 0 24px 0",
-            }}
-          >
-            Site Takip Yönetim Sistemi (Süperadmin)
-          </p>
 
           <form
             onSubmit={(e) => {
@@ -165,6 +198,7 @@ export default function SuperAdminPage() {
       </div>
     );
   }
+        
 
   const handleAddTenant = async (e: React.FormEvent) => {
     e.preventDefault();
