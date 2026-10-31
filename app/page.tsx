@@ -188,41 +188,44 @@ export default function HomePage() {
           <div
             style={{ display: "flex", flexDirection: "column", gap: "10px" }}
           >
-            {tenants.map((tenant) => (
-              <button
-                key={tenant.id}
-                onClick={() => handleSiteClick(tenant)}
-                style={{
-                  width: "100%",
-                  padding: "14px 16px",
-                  backgroundColor: "#0b0f19",
-                  border: "1px solid #374151",
-                  borderRadius: "10px",
-                  color: "#ffffff",
-                  fontSize: "15px",
-                  fontWeight: "700",
-                  cursor: "pointer",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  transition: "all 0.2s",
-                }}
-              >
-                <span>🏢 {tenant.siteName}</span>
-                <span
+            {tenants.map((tenant) => {
+              const isDemo = tenant.siteName === "Demo-Site";
+              return (
+                <button
+                  key={tenant.id}
+                  onClick={() => handleSiteClick(tenant)}
                   style={{
-                    fontSize: "12px",
-                    color: "#f59e0b",
-                    background: "#1f2937",
-                    padding: "4px 8px",
-                    borderRadius: "6px",
-                    textTransform: "uppercase",
+                    width: "100%",
+                    padding: "14px 16px",
+                    backgroundColor: isDemo ? "rgba(16, 185, 129, 0.15)" : "#0b0f19",
+                    border: isDemo ? "1px solid #10b981" : "1px solid #374151",
+                    borderRadius: "10px",
+                    color: "#ffffff",
+                    fontSize: "15px",
+                    fontWeight: "700",
+                    cursor: "pointer",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    transition: "all 0.2s",
                   }}
                 >
-                  {tenant.packageType || "Pro"}
-                </span>
-              </button>
-            ))}
+                  <span>{isDemo ? "✨" : "🏢"} {tenant.siteName}</span>
+                  <span
+                    style={{
+                      fontSize: "12px",
+                      color: isDemo ? "#10b981" : "#f59e0b",
+                      background: "#1f2937",
+                      padding: "4px 8px",
+                      borderRadius: "6px",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    {tenant.packageType || "Pro"}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         )}
       </div>
