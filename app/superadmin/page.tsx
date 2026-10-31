@@ -85,50 +85,13 @@ export default function SuperAdminPage() {
             textAlign: "center",
           }}
         >
-          {/* MCF Kurumsal Logo Bileşeni */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "14px",
-              marginBottom: "24px",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                padding: "6px 14px",
-                borderRadius: "12px",
-                background:
-                  "linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(245, 158, 11, 0.15) 100%)",
-                border: "1px solid rgba(245, 158, 11, 0.4)",
-                boxShadow: "0 4px 20px rgba(245, 158, 11, 0.15)",
-              }}
-            >
-              <span
-                style={{
-                  fontSize: "22px",
-                  fontWeight: "900",
-                  letterSpacing: "-1px",
-                  background:
-                    "linear-gradient(135deg, #c084fc 0%, #f59e0b 100%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  fontFamily: "Inter, sans-serif",
-                }}
-              >
-                MCF
-              </span>
-            </div>
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                textAlign: "left",
-              }}
-            >
+          <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+            <img
+              src="/mcf-logo.png"
+              alt="MCF Logo"
+              style={{ height: "42px", width: "auto", objectFit: "contain" }}
+            />
+            <div style={{ display: "flex", flexDirection: "column" }}>
               <span
                 style={{
                   fontSize: "15px",
