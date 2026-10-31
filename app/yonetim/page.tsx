@@ -638,7 +638,7 @@ ${currentSiteName} Yönetimi`;
           {/* Yönetim Paneli Logo Entegrasyonu */}
           <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
             <img
-              src="/logo.png"
+              src="/mcf-logo.png"
               alt="MCF Logo"
               style={{
                 height: "48px",
