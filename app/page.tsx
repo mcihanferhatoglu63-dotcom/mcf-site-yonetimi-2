@@ -25,6 +25,9 @@ export default function HomePage() {
   const [showSuperModal, setShowSuperModal] = useState(false);
   const [superPassword, setSuperPassword] = useState("");
 
+  // 🌟 Yeni: Paket Tanıtım ve IBAN Modalı
+  const [showPackagesModal, setShowPackagesModal] = useState(false);
+
   // Firestore'dan kayıtlı siteleri anlık çek
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, "tenants"), (snapshot) => {
@@ -42,24 +45,12 @@ export default function HomePage() {
   // Listeden bir siteye tıklandığında
   const handleSiteClick = (tenant: Tenant) => {
     setSelectedSite(tenant.siteName);
-
-    // Eğer tıklanan site "Demo-Site" ise
-    if (tenant.siteName === "Demo-Site") {
-      sessionStorage.setItem("mcf_site_package", "pro");
-      setShowPortalModal(true);
-    } else {
-      setShowPortalModal(true);
-    }
+    setShowPortalModal(true);
   };
 
   // Yönetim Paneline Yönlendir
   const goToManagement = () => {
-    if (selectedSite === "Demo-Site") {
-      sessionStorage.setItem("mcf_admin_logged", "true");
-      router.push(`/yonetim?site=${encodeURIComponent(selectedSite)}`);
-    } else {
-      router.push(`/yonetim?site=${encodeURIComponent(selectedSite)}`);
-    }
+    router.push(`/yonetim?site=${encodeURIComponent(selectedSite)}`);
   };
 
   // Sakin Portalına Yönlendir
@@ -93,27 +84,50 @@ export default function HomePage() {
         color: "#ffffff",
       }}
     >
-      {/* SAĞ ÜST KÖŞE SÜPER ADMIN BUTONU */}
-      <button
-        onClick={() => setShowSuperModal(true)}
+      {/* SAĞ ÜST KÖŞE BUTONLARI */}
+      <div
         style={{
           position: "absolute",
           top: "24px",
           right: "24px",
-          backgroundColor: "#0284c7",
-          color: "#ffffff",
-          border: "none",
-          padding: "10px 18px",
-          borderRadius: "8px",
-          fontWeight: "700",
-          fontSize: "13px",
-          cursor: "pointer",
-          boxShadow: "0 4px 12px rgba(2, 132, 199, 0.3)",
-          transition: "background 0.2s",
+          display: "flex",
+          gap: "10px",
         }}
       >
-        Süper Admin Paneli
-      </button>
+        <button
+          onClick={() => setShowPackagesModal(true)}
+          style={{
+            backgroundColor: "#10b981",
+            color: "#ffffff",
+            border: "none",
+            padding: "10px 16px",
+            borderRadius: "8px",
+            fontWeight: "700",
+            fontSize: "13px",
+            cursor: "pointer",
+            boxShadow: "0 4px 12px rgba(16, 185, 129, 0.3)",
+          }}
+        >
+          💎 Paketler & IBAN
+        </button>
+
+        <button
+          onClick={() => setShowSuperModal(true)}
+          style={{
+            backgroundColor: "#0284c7",
+            color: "#ffffff",
+            border: "none",
+            padding: "10px 16px",
+            borderRadius: "8px",
+            fontWeight: "700",
+            fontSize: "13px",
+            cursor: "pointer",
+            boxShadow: "0 4px 12px rgba(2, 132, 199, 0.3)",
+          }}
+        >
+          Süper Admin Paneli
+        </button>
+      </div>
 
       {/* Ana Ekran Logo Entegrasyonu */}
       <div style={{ textAlign: "center", marginBottom: "30px" }}>
@@ -197,7 +211,9 @@ export default function HomePage() {
                   style={{
                     width: "100%",
                     padding: "14px 16px",
-                    backgroundColor: isDemo ? "rgba(16, 185, 129, 0.15)" : "#0b0f19",
+                    backgroundColor: isDemo
+                      ? "rgba(16, 185, 129, 0.15)"
+                      : "#0b0f19",
                     border: isDemo ? "1px solid #10b981" : "1px solid #374151",
                     borderRadius: "10px",
                     color: "#ffffff",
@@ -210,7 +226,9 @@ export default function HomePage() {
                     transition: "all 0.2s",
                   }}
                 >
-                  <span>{isDemo ? "✨" : "🏢"} {tenant.siteName}</span>
+                  <span>
+                    {isDemo ? "✨" : "🏢"} {tenant.siteName}
+                  </span>
                   <span
                     style={{
                       fontSize: "12px",
@@ -229,6 +247,296 @@ export default function HomePage() {
           </div>
         )}
       </div>
+
+      {/* 🌟 PAKETLER & IBAN BİLGİLENDİRME MODALI */}
+      {showPackagesModal && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            backgroundColor: "rgba(0,0,0,0.85)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1100,
+            padding: "16px",
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: "#111827",
+              border: "1px solid #374151",
+              borderRadius: "20px",
+              padding: "30px",
+              maxWidth: "650px",
+              width: "100%",
+              boxShadow: "0 25px 50px rgba(0,0,0,0.8)",
+              maxHeight: "90vh",
+              overflowY: "auto",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: "20px",
+                borderBottom: "1px solid #1f2937",
+                paddingBottom: "12px",
+              }}
+            >
+              <h2
+                style={{
+                  margin: 0,
+                  fontSize: "20px",
+                  color: "#f59e0b",
+                  fontWeight: "800",
+                }}
+              >
+                💎 MCF Sistem Paketleri & Ödeme Bilgileri
+              </h2>
+              <button
+                onClick={() => setShowPackagesModal(false)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#94a3b8",
+                  fontSize: "20px",
+                  fontWeight: "bold",
+                  cursor: "pointer",
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* PAKETLER KARTI */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+                gap: "14px",
+                marginBottom: "24px",
+              }}
+            >
+              {/* TRIAL */}
+              <div
+                style={{
+                  backgroundColor: "#0b0f19",
+                  border: "1px solid #374151",
+                  borderRadius: "12px",
+                  padding: "16px",
+                  textAlign: "center",
+                }}
+              >
+                <span
+                  style={{
+                    backgroundColor: "#374151",
+                    color: "#fff",
+                    fontSize: "11px",
+                    fontWeight: "800",
+                    padding: "2px 8px",
+                    borderRadius: "4px",
+                  }}
+                >
+                  TRIAL
+                </span>
+                <h4 style={{ margin: "10px 0 4px 0", color: "#fff" }}>
+                  Deneme Sürümü
+                </h4>
+                <p
+                  style={{
+                    fontSize: "12px",
+                    color: "#94a3b8",
+                    margin: "0 0 10px 0",
+                  }}
+                >
+                  Sistemi test etmeniz için temel yönetim araçları.
+                </p>
+                <span
+                  style={{
+                    fontSize: "12px",
+                    color: "#ef4444",
+                    fontWeight: "bold",
+                  }}
+                >
+                  🔒 Online Bildirim Yok
+                </span>
+              </div>
+
+              {/* BASIC */}
+              <div
+                style={{
+                  backgroundColor: "#0b0f19",
+                  border: "1px solid #b45309",
+                  borderRadius: "12px",
+                  padding: "16px",
+                  textAlign: "center",
+                }}
+              >
+                <span
+                  style={{
+                    backgroundColor: "#b45309",
+                    color: "#fff",
+                    fontSize: "11px",
+                    fontWeight: "800",
+                    padding: "2px 8px",
+                    borderRadius: "4px",
+                  }}
+                >
+                  BASIC (1000₺)
+                </span>
+                <h4 style={{ margin: "10px 0 4px 0", color: "#fff" }}>
+                  Standart Paket
+                </h4>
+                <p
+                  style={{
+                    fontSize: "12px",
+                    color: "#94a3b8",
+                    margin: "0 0 10px 0",
+                  }}
+                >
+                  Orta ölçekli siteler için tam yönetim paneli.
+                </p>
+                <span
+                  style={{
+                    fontSize: "12px",
+                    color: "#ef4444",
+                    fontWeight: "bold",
+                  }}
+                >
+                  🔒 Online Bildirim Yok
+                </span>
+              </div>
+
+              {/* PRO */}
+              <div
+                style={{
+                  backgroundColor: "#0b0f19",
+                  border: "1px solid #0284c7",
+                  borderRadius: "12px",
+                  padding: "16px",
+                  textAlign: "center",
+                  boxShadow: "0 0 15px rgba(2, 132, 199, 0.2)",
+                }}
+              >
+                <span
+                  style={{
+                    backgroundColor: "#0284c7",
+                    color: "#fff",
+                    fontSize: "11px",
+                    fontWeight: "800",
+                    padding: "2px 8px",
+                    borderRadius: "4px",
+                  }}
+                >
+                  PRO (2000₺)
+                </span>
+                <h4 style={{ margin: "10px 0 4px 0", color: "#fff" }}>
+                  Profesyonel
+                </h4>
+                <p
+                  style={{
+                    fontSize: "12px",
+                    color: "#94a3b8",
+                    margin: "0 0 10px 0",
+                  }}
+                >
+                  Sınırsız özellik ve sakinlerden online dekont/bildirim alabilme.
+                </p>
+                <span
+                  style={{
+                    fontSize: "12px",
+                    color: "#10b981",
+                    fontWeight: "bold",
+                  }}
+                >
+                  ✅ Tam Yetki & Bildirimler
+                </span>
+              </div>
+            </div>
+
+            {/* BANKA & IBAN Kutusu */}
+            <div
+              style={{
+                backgroundColor: "#0b0f19",
+                border: "1px solid #f59e0b",
+                borderRadius: "14px",
+                padding: "20px",
+                textAlign: "center",
+              }}
+            >
+              <h3
+                style={{
+                  margin: "0 0 8px 0",
+                  color: "#f59e0b",
+                  fontSize: "16px",
+                  fontWeight: "800",
+                }}
+              >
+                🏦 Kurumsal Ödeme & IBAN Bilgileri
+              </h3>
+              <p
+                style={{
+                  fontSize: "13px",
+                  color: "#94a3b8",
+                  margin: "0 0 14px 0",
+                }}
+              >
+                Abonelik yenileme veya paket yükseltme ödemeleriniz için aşağıdaki
+                hesap bilgilerini kullanabilirsiniz.
+              </p>
+              <div
+                style={{
+                  backgroundColor: "#111827",
+                  padding: "12px",
+                  borderRadius: "8px",
+                  border: "1px dashed #374151",
+                  fontSize: "14px",
+                  fontWeight: "bold",
+                  color: "#fff",
+                  letterSpacing: "0.5px",
+                }}
+              >
+                Banka: <span style={{ color: "#f59e0b" }}>İş Bankası</span>
+                <br />
+                Alıcı: <span style={{ color: "#fff" }}>Mehmet Cihan Ferhatoğlu</span>
+                <br />
+                IBAN: <span style={{ color: "#10b981" }}>TR00 0000 0000 0000 0000 0000 00</span>
+              </div>
+              <p
+                style={{
+                  fontSize: "11px",
+                  color: "#94a3b8",
+                  margin: "12px 0 0 0",
+                }}
+              >
+                Ödeme yaptıktan sonra dekontu süper admine ileterek anında paketinizi aktifleştirebilirsiniz.
+              </p>
+            </div>
+
+            <div style={{ marginTop: "20px", textAlign: "right" }}>
+              <button
+                onClick={() => setShowPackagesModal(false)}
+                style={{
+                  backgroundColor: "#374151",
+                  color: "#fff",
+                  border: "none",
+                  padding: "10px 20px",
+                  borderRadius: "8px",
+                  fontWeight: "700",
+                  cursor: "pointer",
+                }}
+              >
+                Kapat
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* PORTAL SEÇİM MODALI */}
       {showPortalModal && (
@@ -294,8 +602,7 @@ export default function HomePage() {
                   cursor: "pointer",
                 }}
               >
-                🏢 Yönetim Girişi{" "}
-                {selectedSite === "Demo-Site" ? "(Şifresiz)" : ""}
+                🏢 Yönetim Girişi
               </button>
               <button
                 onClick={goToResident}
