@@ -108,7 +108,7 @@ export default function SuperAdminPage() {
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              if (password === "asdf") {
+              if (password === "1923") {
                 setIsSuperLoggedIn(true);
                 sessionStorage.setItem("mcf_super_logged", "true");
               } else {
