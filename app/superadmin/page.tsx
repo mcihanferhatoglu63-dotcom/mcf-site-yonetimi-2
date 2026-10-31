@@ -108,18 +108,18 @@ export default function SuperAdminPage() {
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              if (password === "1923") {
+              if (password === "asdf") {
                 setIsSuperLoggedIn(true);
                 sessionStorage.setItem("mcf_super_logged", "true");
               } else {
-                alert("Hatalı Süperadmin Şifresi! (Şifre: 1923)");
+                alert("Hatalı Süperadmin Şifresi! ");
               }
             }}
             style={{ display: "flex", flexDirection: "column", gap: "14px" }}
           >
             <input
               type="password"
-              placeholder="Şifre (1923)"
+              placeholder="Şifreyi giriniz"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               style={{
