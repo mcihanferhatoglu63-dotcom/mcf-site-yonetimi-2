@@ -25,7 +25,7 @@ export default function HomePage() {
   const [showSuperModal, setShowSuperModal] = useState(false);
   const [superPassword, setSuperPassword] = useState("");
 
-  // 🌟 Paketler & IBAN Modalı
+  // Paketler & IBAN Modalı
   const [showPackagesModal, setShowPackagesModal] = useState(false);
 
   // Firestore'dan kayıtlı siteleri anlık çek
@@ -248,7 +248,7 @@ export default function HomePage() {
         )}
       </div>
 
-      {/* 🌟 GÖNDERDİĞİN RESİMDEKİ TARZA BENZER KARTLI PAKETLER & IBAN MODALI */}
+      {/* 🌟 ABONELİK PAKETLERİ & IBAN MODALI */}
       {showPackagesModal && (
         <div
           style={{
@@ -307,7 +307,7 @@ export default function HomePage() {
                     color: "#94a3b8",
                   }}
                 >
-                  Paket detayları, limitler ve IBAN bilgileri aşağıdadır.
+                  Paket detayları, modül limitleri ve IBAN bilgileri aşağıdadır.
                 </p>
               </div>
               <button
@@ -378,8 +378,11 @@ export default function HomePage() {
                     paddingTop: "12px",
                   }}
                 >
-                  <span>✓ Sınırlı Daire Yönetimi</span>
-                  <span>✓ Temel Finans Takibi</span>
+                  <span>✓ Bloklar</span>
+                  <span>✓ Rehber</span>
+                  <span style={{ color: "#ef4444", fontWeight: "bold" }}>
+                    ✕ Site Düzenlemesi Yok
+                  </span>
                   <span style={{ color: "#ef4444", fontWeight: "bold" }}>
                     ✕ Online Bildirim Kapalı
                   </span>
@@ -430,8 +433,9 @@ export default function HomePage() {
                     paddingTop: "12px",
                   }}
                 >
-                  <span>✓ Standart Daire Kapasitesi</span>
-                  <span>✓ Gelişmiş Raporlama</span>
+                  <span>✓ Bloklar</span>
+                  <span>✓ Rehber</span>
+                  <span>✓ Site Düzenlemesi</span>
                   <span style={{ color: "#ef4444", fontWeight: "bold" }}>
                     ✕ Online Bildirim Kapalı
                   </span>
@@ -483,10 +487,11 @@ export default function HomePage() {
                     paddingTop: "12px",
                   }}
                 >
-                  <span>✓ Sınırsız Daire / Modül</span>
-                  <span>✓ Tam Yetki ve Yönetim</span>
+                  <span>✓ Bloklar</span>
+                  <span>✓ Rehber</span>
+                  <span>✓ Site Düzenlemesi</span>
                   <span style={{ color: "#10b981", fontWeight: "bold" }}>
-                    ✅ Online Dekont / Bildirim
+                    ✅ Hepsi Açık (Online Bildirim Dahil)
                   </span>
                 </div>
               </div>
