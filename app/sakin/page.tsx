@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { db } from "../firebase";
 import {
   collection,
@@ -111,18 +112,16 @@ export default function SakinPanelPage() {
       setCurrentSiteName(siteParam);
     }
 
-    // Site paket türünü tenants koleksiyonundan çekiyoruz
     const fetchSitePackage = async () => {
-      const targetSite = siteParam || 'Bulvar City';
+      const targetSite = siteParam || "Bulvar City";
       
-      // Demo-Site için de artık Pro yapmak yok, trial/basic gibi kısıtlı olsun istiyoruz:
-      if (targetSite === 'Demo-Site') {
-        setCurrentPackage('trial'); // Veya 'basic' yapabilirsin
+      if (targetSite === "Demo-Site") {
+        setCurrentPackage("trial"); 
         return;
       }
 
       try {
-        const q = query(collection(db, 'tenants'), where('siteName', '==', targetSite));
+        const q = query(collection(db, "tenants"), where("siteName", "==", targetSite));
         const querySnapshot = await getDocs(q);
         if (!querySnapshot.empty) {
           const data = querySnapshot.docs[0].data();
@@ -175,7 +174,7 @@ export default function SakinPanelPage() {
           id: doc.id,
           ...doc.data(),
         })) as Complaint[];
-        // Sadece bu siteye ve bu daireye ait şikayetleri filtrele
+        
         const filtered = all.filter(
           (c) =>
             (!c.siteName || c.siteName === currentSiteName) &&
@@ -254,33 +253,33 @@ export default function SakinPanelPage() {
   const handleSubmitComplaint = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // KESİN KONTROL: Sadece PRO paketler bildirim gönderebilir (Demo-Site dahil Trial/Basic engellenir)
-    if (currentPackage !== 'pro') {
-      return alert('Üzgünüz, bulunduğunuz site Pro paket olmadığından online bildirim/şikayet gönderimi yalnızca Pro paket sitelerde aktiftir.');
+    // DEMO-SİTE VEYA TRIAL/BASIC KONTROLÜ: Kesinlikle bildirim/şikayet gönderilemez
+    if (currentPackage !== "pro" || currentSiteName === "Demo-Site") {
+      return alert("Üzgünüz, Trial ve Basic paketlerde ya da Demo-Site'da şikayet/bildirim oluşturma özelliği devre dışıdır. Bu özelliği kullanabilmek için Pro pakete geçmeniz gerekmektedir.");
     }
 
     if (!currentUnit) return;
-    if (!complaintTitle || !complaintDesc) return alert('Lütfen başlık ve açıklama giriniz.');
+    if (!complaintTitle || !complaintDesc) return alert("Lütfen başlık ve açıklama giriniz.");
 
     setSubmitting(true);
     try {
-      await addDoc(collection(db, 'complaints'), {
+      await addDoc(collection(db, "complaints"), {
         siteName: currentSiteName,
         unitInfo: `${currentUnit.block} Blok No: ${currentUnit.unitNumber}`,
         title: complaintTitle,
         description: complaintDesc,
-        status: 'pending',
-        date: new Date().toLocaleDateString('tr-TR'),
+        status: "pending",
+        date: new Date().toLocaleDateString("tr-TR"),
         createdAt: serverTimestamp()
       });
 
-      setComplaintTitle('');
-      setComplaintDesc('');
-      setSuccessMessage('Bildiriminiz / Dekontunuz kendi yönetiminize başarıyla iletildi!');
-      setTimeout(() => setSuccessMessage(''), 5000);
+      setComplaintTitle("");
+      setComplaintDesc("");
+      setSuccessMessage("Bildiriminiz / Dekontunuz kendi yönetiminize başarıyla iletildi!");
+      setTimeout(() => setSuccessMessage(""), 5000);
     } catch (err) {
       console.error(err);
-      alert('Gönderilirken hata oluştu.');
+      alert("Gönderilirken hata oluştu.");
     } finally {
       setSubmitting(false);
     }
@@ -769,7 +768,8 @@ export default function SakinPanelPage() {
                   bildirebilirsiniz.
                 </p>
 
-                {currentPackage !== "pro" && currentSiteName !== "Demo-Site" ? (
+                {/* DEMO-SİTE VEYA TRIAL/BASIC KONTROLÜ İLE FORMU KAPATMA */}
+                {currentPackage !== "pro" || currentSiteName === "Demo-Site" ? (
                   <div
                     style={{
                       backgroundColor: "#78350f",
@@ -781,7 +781,7 @@ export default function SakinPanelPage() {
                       textAlign: "center",
                     }}
                   >
-                    🔒 Bulunduğunuz site (Basic/Trial paket) online bildirim
+                    🔒 Bulunduğunuz site (Demo-Site / Basic / Trial paket) online bildirim
                     gönderimini desteklememektedir. Bu özellik yalnızca Pro
                     paket sitelerde aktiftir.
                   </div>
@@ -1033,59 +1033,53 @@ export default function SakinPanelPage() {
                     backgroundColor: "#0b0f19",
                     border: "1px solid #374151",
                     borderRadius: "12px",
-                    padding: "18px",
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                    gap: "12px",
+                    padding: "16px",
                   }}
                 >
-                  <div>
-                    <span
-                      style={{
-                        fontSize: "11px",
-                        backgroundColor: "#374151",
-                        color: "#fff",
-                        padding: "2px 8px",
-                        borderRadius: "6px",
-                        fontWeight: "700",
-                      }}
-                    >
-                      {h.category}
-                    </span>
-                    <h4
-                      style={{
-                        margin: "10px 0 4px 0",
-                        fontSize: "16px",
-                        color: "#fff",
-                        fontWeight: "800",
-                      }}
-                    >
-                      {h.title}
-                    </h4>
-                    <p
-                      style={{
-                        margin: 0,
-                        fontSize: "14px",
-                        color: "#cbd5e1",
-                        fontWeight: "600",
-                      }}
-                    >
-                      👤 {h.name}
-                    </p>
-                  </div>
+                  <span
+                    style={{
+                      fontSize: "11px",
+                      fontWeight: "700",
+                      backgroundColor: "#1f2937",
+                      color: "#f59e0b",
+                      padding: "2px 8px",
+                      borderRadius: "4px",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    {h.category}
+                  </span>
+                  <h4
+                    style={{
+                      margin: "8px 0 4px 0",
+                      fontSize: "15px",
+                      fontWeight: "800",
+                      color: "#fff",
+                    }}
+                  >
+                    {h.title}
+                  </h4>
+                  <p
+                    style={{
+                      margin: "0 0 10px 0",
+                      fontSize: "13px",
+                      color: "#cbd5e1",
+                    }}
+                  >
+                    {h.name}
+                  </p>
                   <a
                     href={`tel:${h.phone}`}
                     style={{
-                      backgroundColor: "#10b981",
-                      color: "#fff",
-                      textAlign: "center",
-                      padding: "10px",
-                      borderRadius: "8px",
-                      textDecoration: "none",
-                      fontWeight: "800",
-                      fontSize: "14px",
                       display: "block",
+                      textAlign: "center",
+                      backgroundColor: "#0284c7",
+                      color: "#fff",
+                      textDecoration: "none",
+                      padding: "8px",
+                      borderRadius: "8px",
+                      fontWeight: "700",
+                      fontSize: "13px",
                     }}
                   >
                     📞 {h.phone} Ara
@@ -1097,12 +1091,13 @@ export default function SakinPanelPage() {
         )}
       </div>
 
+      {/* ŞİFRE DEĞİŞTİRME MODALI */}
       {showPasswordChangeModal && (
         <div
           style={{
             position: "fixed",
-            top: "0",
-            left: "0",
+            top: 0,
+            left: 0,
             width: "100%",
             height: "100%",
             backgroundColor: "rgba(0,0,0,0.8)",
@@ -1118,73 +1113,81 @@ export default function SakinPanelPage() {
               backgroundColor: "#111827",
               border: "1px solid #374151",
               borderRadius: "16px",
-              padding: "24px",
+              padding: "30px",
+              maxWidth: "380px",
               width: "100%",
-              maxWidth: "400px",
+              textAlign: "center",
             }}
           >
-            <h3 style={{ margin: "0 0 10px 0", color: "#f59e0b" }}>
-              🔑 Daire Şifresini Değiştir
+            <h3
+              style={{
+                margin: "0 0 8px 0",
+                fontSize: "18px",
+                color: "#f59e0b",
+                fontWeight: "800",
+              }}
+            >
+              Daire Şifresini Değiştir
             </h3>
             <p
               style={{
-                fontSize: "13px",
+                fontSize: "12px",
                 color: "#94a3b8",
-                margin: "0 0 16px 0",
+                margin: "0 0 20px 0",
               }}
             >
-              Yeni daire şifrenizi belirleyin.
+              Yeni daire şifrenizi giriniz (En az 4 hane).
             </p>
+
             <form
               onSubmit={handleUpdatePassword}
-              style={{ display: "flex", flexDirection: "column", gap: "12px" }}
+              style={{ display: "flex", flexDirection: "column", gap: "14px" }}
             >
               <input
                 type="password"
-                placeholder="Yeni Şifre (En az 4 hane)"
+                placeholder="Yeni Şifre..."
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 style={{
                   padding: "12px",
-                  borderRadius: "8px",
                   backgroundColor: "#0b0f19",
                   border: "1px solid #374151",
+                  borderRadius: "8px",
                   color: "#fff",
+                  fontSize: "15px",
+                  textAlign: "center",
+                  outline: "none",
                   fontWeight: "bold",
                 }}
               />
-              <div style={{ display: "flex", gap: "10px", marginTop: "6px" }}>
-                <button
-                  type="button"
-                  onClick={() => setShowPasswordChangeModal(false)}
-                  style={{
-                    flex: 1,
-                    padding: "10px",
-                    background: "#374151",
-                    color: "#fff",
-                    border: "none",
-                    borderRadius: "8px",
-                    cursor: "pointer",
-                  }}
-                >
-                  İptal
-                </button>
-                <button
-                  type="submit"
-                  style={{
-                    flex: 1,
-                    padding: "10px",
-                    background: "#f59e0b",
-                    color: "#111827",
-                    border: "none",
-                    borderRadius: "8px",
-                    cursor: "pointer",
-                    fontWeight: "bold",
-                  }}
-                >
-                  Güncelle
-                </button>
-              </div>
+              <button
+                type="submit"
+                style={{
+                  backgroundColor: "#f59e0b",
+                  color: "#111827",
+                  border: "none",
+                  padding: "12px",
+                  borderRadius: "8px",
+                  fontWeight: "800",
+                  cursor: "pointer",
+                }}
+              >
+                Şifreyi Güncelle
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowPasswordChangeModal(false)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#94a3b8",
+                  fontSize: "13px",
+                  cursor: "pointer",
+                  marginTop: "4px",
+                }}
+              >
+                İptal
+              </button>
             </form>
           </div>
         </div>
