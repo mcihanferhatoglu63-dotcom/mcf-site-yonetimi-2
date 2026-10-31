@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { db } from '../firebase';
-import { collection, onSnapshot, addDoc, serverTimestamp, doc, updateDoc } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, query, where, getDocs } from 'firebase/firestore';
 
 interface Unit {
   id: string;
@@ -25,12 +25,21 @@ interface Handyman {
   category: string;
 }
 
+interface Complaint {
+  id: string;
+  unitInfo: string;
+  title: string;
+  description: string;
+  status: 'pending' | 'resolved';
+  date: string;
+}
+
 export default function SakinPanelPage() {
   const [currentSiteName, setCurrentSiteName] = useState('Bulvar City');
   const [units, setUnits] = useState<Unit[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'handymen'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'handymen' | 'my-complaints'>('dashboard');
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [selectedBlock, setSelectedBlock] = useState('');
@@ -45,6 +54,9 @@ export default function SakinPanelPage() {
   const [complaintDesc, setComplaintDesc] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+
+  // Sakinin kendi bildirimleri listesi
+  const [myComplaints, setMyComplaints] = useState<Complaint[]>([]);
 
   const [handymen, setHandymen] = useState<Handyman[]>([
     { id: '1', title: 'Su Tesisatçısı', name: 'Mehmet Usta', phone: '05321112233', category: 'Tesisat' },
@@ -78,6 +90,25 @@ export default function SakinPanelPage() {
     return () => unsubscribeUnits();
   }, []);
 
+  // Aktif daire değiştiğinde o dairenin gönderdiği bildirimleri dinle
+  useEffect(() => {
+    const currentUnit = units.find(u => u.id === activeUnitId);
+    if (!currentUnit) {
+      setMyComplaints([]);
+      return;
+    }
+
+    const unitIdentifier = `${currentUnit.block} Blok No: ${currentUnit.unitNumber}`;
+    const unsubscribeComplaints = onSnapshot(collection(db, 'complaints'), (snapshot) => {
+      const all: Complaint[] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Complaint[];
+      // Sadece bu daireye ait olanları filtrele
+      const filtered = all.filter(c => c.unitInfo === unitIdentifier);
+      setMyComplaints(filtered);
+    });
+
+    return () => unsubscribeComplaints();
+  }, [activeUnitId, units]);
+
   const availableBlocks = Array.from(new Set(units.map(u => u.block))).sort();
   const unitsInSelectedBlock = units
     .filter(u => u.block === selectedBlock)
@@ -109,7 +140,6 @@ export default function SakinPanelPage() {
 
   const currentUnit = units.find(u => u.id === activeUnitId);
 
-  // DÜZELTİLDİ: Çıkış yapıldığında oturumu temizle ve ana sayfaya yönlendir
   const handleLogout = () => {
     setIsLoggedIn(false);
     setActiveUnitId(null);
@@ -246,25 +276,31 @@ export default function SakinPanelPage() {
             <p style={{ fontSize: '13px', color: '#94a3b8', margin: 0 }}>{currentUnit?.block} Blok - No: {currentUnit?.unitNumber} ({currentUnit?.residentName})</p>
           </div>
           
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
             <button 
               onClick={() => setActiveTab('dashboard')} 
-              style={{ backgroundColor: activeTab === 'dashboard' ? '#f59e0b' : '#374151', color: activeTab === 'dashboard' ? '#111827' : '#fff', border: 'none', padding: '10px 14px', borderRadius: '8px', fontWeight: '700', fontSize: '12px', cursor: 'pointer' }}
+              style={{ backgroundColor: activeTab === 'dashboard' ? '#f59e0b' : '#374151', color: activeTab === 'dashboard' ? '#111827' : '#fff', border: 'none', padding: '10px 12px', borderRadius: '8px', fontWeight: '700', fontSize: '12px', cursor: 'pointer' }}
             >
               🏠 Portal
             </button>
             <button 
-              onClick={() => setActiveTab('handymen')} 
-              style={{ backgroundColor: activeTab === 'handymen' ? '#f59e0b' : '#374151', color: activeTab === 'handymen' ? '#111827' : '#fff', border: 'none', padding: '10px 14px', borderRadius: '8px', fontWeight: '700', fontSize: '12px', cursor: 'pointer' }}
+              onClick={() => setActiveTab('my-complaints')} 
+              style={{ backgroundColor: activeTab === 'my-complaints' ? '#f59e0b' : '#374151', color: activeTab === 'my-complaints' ? '#111827' : '#fff', border: 'none', padding: '10px 12px', borderRadius: '8px', fontWeight: '700', fontSize: '12px', cursor: 'pointer', position: 'relative' }}
             >
-              📞 Ustalar & Servis
+              📋 Bildirimlerim ({myComplaints.length})
+            </button>
+            <button 
+              onClick={() => setActiveTab('handymen')} 
+              style={{ backgroundColor: activeTab === 'handymen' ? '#f59e0b' : '#374151', color: activeTab === 'handymen' ? '#111827' : '#fff', border: 'none', padding: '10px 12px', borderRadius: '8px', fontWeight: '700', fontSize: '12px', cursor: 'pointer' }}
+            >
+              📞 Ustalar
             </button>
             {currentSiteName !== 'Demo-Site' && (
-              <button onClick={() => setShowPasswordChangeModal(true)} style={{ backgroundColor: '#374151', color: '#fff', border: 'none', padding: '10px 14px', borderRadius: '8px', fontWeight: '700', fontSize: '12px', cursor: 'pointer' }}>
+              <button onClick={() => setShowPasswordChangeModal(true)} style={{ backgroundColor: '#374151', color: '#fff', border: 'none', padding: '10px 12px', borderRadius: '8px', fontWeight: '700', fontSize: '12px', cursor: 'pointer' }}>
                 🔑 Şifre
               </button>
             )}
-            <button onClick={handleLogout} style={{ backgroundColor: '#ef4444', color: '#fff', border: 'none', padding: '10px 14px', borderRadius: '8px', fontWeight: '700', fontSize: '12px', cursor: 'pointer' }}>
+            <button onClick={handleLogout} style={{ backgroundColor: '#ef4444', color: '#fff', border: 'none', padding: '10px 12px', borderRadius: '8px', fontWeight: '700', fontSize: '12px', cursor: 'pointer' }}>
               🚪 Çıkış
             </button>
           </div>
@@ -326,6 +362,44 @@ export default function SakinPanelPage() {
               </div>
             )}
           </>
+        )}
+
+        {/* SEKME: BİLDİRİMLERİM / AKIBET TAKİBİ */}
+        {activeTab === 'my-complaints' && (
+          <div style={{ backgroundColor: '#111827', borderRadius: '16px', padding: '24px', border: '1px solid #1f2937' }}>
+            <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#f59e0b', margin: '0 0 6px 0' }}>📋 Gönderdiğim Bildirimler & Akıbeti</h3>
+            <p style={{ fontSize: '13px', color: '#94a3b8', margin: '0 0 20px 0' }}>Yönetime ilettiğiniz dekont ve bildirimlerin onay durumunu buradan takip edebilirsiniz.</p>
+
+            {myComplaints.length === 0 ? (
+              <p style={{ color: '#94a3b8', textAlign: 'center', padding: '40px' }}>Henüz gönderilmiş bir bildiriminiz bulunmuyor.</p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                {myComplaints.map((c) => (
+                  <div key={c.id} style={{
+                    backgroundColor: '#0b0f19',
+                    border: '1px solid #374151',
+                    borderRadius: '12px', padding: '18px', display: 'flex', justifyContent: 'space-between',
+                    alignItems: 'flex-start', gap: '16px', flexWrap: 'wrap'
+                  }}>
+                    <div style={{ flex: 1, minWidth: '280px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+                        <span style={{ fontSize: '12px', color: '#94a3b8' }}>{c.date}</span>
+                        <span style={{
+                          fontSize: '11px', fontWeight: '700', padding: '2px 10px', borderRadius: '6px',
+                          backgroundColor: c.status === 'resolved' ? '#065f46' : '#991b1b',
+                          color: '#fff'
+                        }}>
+                          {c.status === 'resolved' ? '✅ Yönetici Onayladı (Çözüldü)' : '🔔 Yönetim İncelemesinde (Bekliyor)'}
+                        </span>
+                      </div>
+                      <h4 style={{ margin: '6px 0', fontSize: '16px', color: '#fff', fontWeight: '800' }}>{c.title}</h4>
+                      <p style={{ margin: 0, fontSize: '14px', color: '#cbd5e1', lineHeight: '1.5', whiteSpace: 'pre-wrap' }}>{c.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         )}
 
         {activeTab === 'handymen' && (
