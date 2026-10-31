@@ -17,27 +17,41 @@ interface Unit {
   residentPassword?: string;
 }
 
+interface Handyman {
+  id: string;
+  title: string;
+  name: string;
+  phone: string;
+  category: string;
+}
+
 export default function SakinPanelPage() {
   const [currentSiteName, setCurrentSiteName] = useState('Bulvar City');
   const [units, setUnits] = useState<Unit[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Giriş State'leri
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'handymen'>('dashboard');
+
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [selectedBlock, setSelectedBlock] = useState('');
   const [selectedUnitNumber, setSelectedUnitNumber] = useState('');
   const [residentPasswordInput, setResidentPasswordInput] = useState('');
   const [activeUnitId, setActiveUnitId] = useState<string | null>(null);
 
-  // Şifre Değiştirme State'leri
   const [showPasswordChangeModal, setShowPasswordChangeModal] = useState(false);
   const [newPassword, setNewPassword] = useState('');
 
-  // Bildirim / Dekont Gönderme State'leri
   const [complaintTitle, setComplaintTitle] = useState('');
   const [complaintDesc, setComplaintDesc] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
+
+  const [handymen, setHandymen] = useState<Handyman[]>([
+    { id: '1', title: 'Su Tesisatçısı', name: 'Mehmet Usta', phone: '05321112233', category: 'Tesisat' },
+    { id: '2', title: 'Elektrik Arıza', name: 'Ahmet Usta', phone: '05334445566', category: 'Elektrik' },
+    { id: '3', title: 'Çilingir / Kapı', name: 'Hasan Usta', phone: '05357778899', category: 'Güvenlik' },
+    { id: '4', title: 'Asansör Bakım', name: '7/24 Asansör Servis', phone: '05360001122', category: 'Teknik' }
+  ]);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -69,7 +83,6 @@ export default function SakinPanelPage() {
     .filter(u => u.block === selectedBlock)
     .sort((a, b) => Number(a.unitNumber) - Number(b.unitNumber));
 
-  // Güvenli veya Demo Giriş İşlemi
   const handleResidentLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedBlock || !selectedUnitNumber) return alert('Lütfen blok ve daire seçiniz.');
@@ -77,14 +90,12 @@ export default function SakinPanelPage() {
     const targetUnit = units.find(u => u.block === selectedBlock && Number(u.unitNumber) === Number(selectedUnitNumber));
     if (!targetUnit) return alert('Daire bulunamadı.');
 
-    // EĞER SİTE "Demo-Site" İSE ŞİFRE İSTEMEDEN DİREKT GİRİŞ YAP
     if (currentSiteName === 'Demo-Site') {
       setIsLoggedIn(true);
       setActiveUnitId(targetUnit.id);
       return;
     }
 
-    // Gerçek siteler için şifre kontrolü
     if (!residentPasswordInput) return alert('Lütfen daire şifrenizi giriniz.');
     const correctPassword = targetUnit.residentPassword || '1234';
 
@@ -97,6 +108,15 @@ export default function SakinPanelPage() {
   };
 
   const currentUnit = units.find(u => u.id === activeUnitId);
+
+  // DÜZELTİLDİ: Çıkış yapıldığında oturumu temizle ve ana sayfaya yönlendir
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setActiveUnitId(null);
+    setResidentPasswordInput('');
+    sessionStorage.removeItem('mcf_admin_logged');
+    window.location.href = '/';
+  };
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -148,7 +168,6 @@ export default function SakinPanelPage() {
     return <div style={{ minHeight: '100vh', backgroundColor: '#0b0f19', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f59e0b', fontWeight: 'bold' }}>Yükleniyor...</div>;
   }
 
-  // GİRİŞ EKRANI
   if (!isLoggedIn) {
     return (
       <div style={{ minHeight: '100vh', backgroundColor: '#0b0f19', fontFamily: 'Inter, system-ui, sans-serif', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
@@ -192,7 +211,6 @@ export default function SakinPanelPage() {
               </select>
             </div>
 
-            {/* SADECE GERÇEK SİTELERDE ŞİFRE İSTENSİN, DEMO SİTEDE İSTENMESİN */}
             {currentSiteName !== 'Demo-Site' && (
               <div>
                 <label style={{ display: 'block', fontSize: '12px', color: '#94a3b8', marginBottom: '6px', fontWeight: '600' }}>Daire Şifresi</label>
@@ -217,81 +235,121 @@ export default function SakinPanelPage() {
     );
   }
 
-  // GİRİŞ YAPILMIŞ PANEL
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0b0f19', fontFamily: 'Inter, system-ui, sans-serif', color: '#ffffff', padding: '24px' }}>
       
       <div style={{ maxWidth: '800px', margin: '0 auto' }}>
         
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px', backgroundColor: '#111827', padding: '20px 24px', borderRadius: '16px', border: '1px solid #1f2937', flexWrap: 'wrap', gap: '14px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', backgroundColor: '#111827', padding: '20px 24px', borderRadius: '16px', border: '1px solid #1f2937', flexWrap: 'wrap', gap: '14px' }}>
           <div>
             <h1 style={{ fontSize: '18px', fontWeight: '800', color: '#f59e0b', margin: '0 0 4px 0' }}>{currentSiteName} Sakin Portalı</h1>
             <p style={{ fontSize: '13px', color: '#94a3b8', margin: 0 }}>{currentUnit?.block} Blok - No: {currentUnit?.unitNumber} ({currentUnit?.residentName})</p>
           </div>
           
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+            <button 
+              onClick={() => setActiveTab('dashboard')} 
+              style={{ backgroundColor: activeTab === 'dashboard' ? '#f59e0b' : '#374151', color: activeTab === 'dashboard' ? '#111827' : '#fff', border: 'none', padding: '10px 14px', borderRadius: '8px', fontWeight: '700', fontSize: '12px', cursor: 'pointer' }}
+            >
+              🏠 Portal
+            </button>
+            <button 
+              onClick={() => setActiveTab('handymen')} 
+              style={{ backgroundColor: activeTab === 'handymen' ? '#f59e0b' : '#374151', color: activeTab === 'handymen' ? '#111827' : '#fff', border: 'none', padding: '10px 14px', borderRadius: '8px', fontWeight: '700', fontSize: '12px', cursor: 'pointer' }}
+            >
+              📞 Ustalar & Servis
+            </button>
             {currentSiteName !== 'Demo-Site' && (
               <button onClick={() => setShowPasswordChangeModal(true)} style={{ backgroundColor: '#374151', color: '#fff', border: 'none', padding: '10px 14px', borderRadius: '8px', fontWeight: '700', fontSize: '12px', cursor: 'pointer' }}>
-                🔑 Şifre Değiştir
+                🔑 Şifre
               </button>
             )}
-            <button onClick={() => { setIsLoggedIn(false); setActiveUnitId(null); setResidentPasswordInput(''); }} style={{ backgroundColor: '#ef4444', color: '#fff', border: 'none', padding: '10px 14px', borderRadius: '8px', fontWeight: '700', fontSize: '12px', cursor: 'pointer' }}>
-              🚪 Çıkış Yap
+            <button onClick={handleLogout} style={{ backgroundColor: '#ef4444', color: '#fff', border: 'none', padding: '10px 14px', borderRadius: '8px', fontWeight: '700', fontSize: '12px', cursor: 'pointer' }}>
+              🚪 Çıkış
             </button>
           </div>
         </div>
 
-        {currentUnit && (
-          <div style={{ backgroundColor: '#111827', borderRadius: '16px', padding: '24px', border: '1px solid', borderColor: currentUnit.status === 'unpaid' ? '#ef4444' : '#10b981', marginBottom: '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
-              <div>
-                <span style={{ fontSize: '12px', color: '#94a3b8', fontWeight: '700' }}>Kişisel Daire Bilgisi</span>
-                <h2 style={{ fontSize: '22px', fontWeight: '800', color: '#fff', margin: '4px 0 0 0' }}>{currentUnit.residentName}</h2>
-              </div>
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: '700' }}>Güncel Borç / Aidat</div>
-                <div style={{ fontSize: '24px', fontWeight: '800', color: currentUnit.status === 'unpaid' ? '#ef4444' : '#10b981' }}>
-                  {currentUnit.status === 'unpaid' ? `${currentUnit.debt.toLocaleString('tr-TR')} ₺` : '0 ₺ (Borç Yok)'}
+        {activeTab === 'dashboard' && (
+          <>
+            {currentUnit && (
+              <div style={{ backgroundColor: '#111827', borderRadius: '16px', padding: '24px', border: '1px solid', borderColor: currentUnit.status === 'unpaid' ? '#ef4444' : '#10b981', marginBottom: '24px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+                  <div>
+                    <span style={{ fontSize: '12px', color: '#94a3b8', fontWeight: '700' }}>Kişisel Daire Bilgisi</span>
+                    <h2 style={{ fontSize: '22px', fontWeight: '800', color: '#fff', margin: '4px 0 0 0' }}>{currentUnit.residentName}</h2>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: '700' }}>Güncel Borç / Aidat</div>
+                    <div style={{ fontSize: '24px', fontWeight: '800', color: currentUnit.status === 'unpaid' ? '#ef4444' : '#10b981' }}>
+                      {currentUnit.status === 'unpaid' ? `${currentUnit.debt.toLocaleString('tr-TR')} ₺` : '0 ₺ (Borç Yok)'}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {currentUnit && (
-          <div style={{ backgroundColor: '#111827', borderRadius: '16px', padding: '24px', border: '1px solid #1f2937' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: '800', color: '#f59e0b', margin: '0 0 6px 0' }}>📨 Ödeme Bildirimi & Dekont Gönder</h3>
-            <p style={{ fontSize: '13px', color: '#94a3b8', margin: '0 0 20px 0' }}>Havale/EFT yaptıysanız dekont bilgisini buradan yönetime bildirebilirsiniz.</p>
-
-            {successMessage && (
-              <div style={{ backgroundColor: '#065f46', color: '#fff', padding: '12px', borderRadius: '8px', marginBottom: '16px', fontWeight: 'bold', fontSize: '14px', textAlign: 'center' }}>
-                {successMessage}
               </div>
             )}
 
-            <form onSubmit={handleSubmitComplaint} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <input 
-                type="text" 
-                placeholder="Bildirim Başlığı (Örn: Aidat Ödemesi)" 
-                value={complaintTitle} 
-                onChange={(e) => setComplaintTitle(e.target.value)} 
-                style={{ width: '100%', padding: '14px', backgroundColor: '#0b0f19', border: '1px solid #374151', borderRadius: '10px', color: '#fff', fontWeight: 'bold' }} 
-              />
-              <textarea 
-                placeholder="Açıklama / Dekont Referans Numarası" 
-                rows={4} 
-                value={complaintDesc} 
-                onChange={(e) => setComplaintDesc(e.target.value)} 
-                style={{ width: '100%', padding: '14px', backgroundColor: '#0b0f19', border: '1px solid #374151', borderRadius: '10px', color: '#fff', fontWeight: 'bold', resize: 'vertical' }} 
-              />
-              <button 
-                type="submit" 
-                disabled={submitting} 
-                style={{ backgroundColor: '#f59e0b', color: '#111827', border: 'none', padding: '14px', borderRadius: '10px', fontWeight: '800', fontSize: '15px', cursor: 'pointer' }}
-              >
-                {submitting ? 'Gönderiliyor...' : 'Bildirimi Yönetime Gönder'}
-              </button>
-            </form>
+            {currentUnit && (
+              <div style={{ backgroundColor: '#111827', borderRadius: '16px', padding: '24px', border: '1px solid #1f2937' }}>
+                <h3 style={{ fontSize: '16px', fontWeight: '800', color: '#f59e0b', margin: '0 0 6px 0' }}>📨 Ödeme Bildirimi & Dekont Gönder</h3>
+                <p style={{ fontSize: '13px', color: '#94a3b8', margin: '0 0 20px 0' }}>Havale/EFT yaptıysanız dekont bilgisini buradan yönetime bildirebilirsiniz.</p>
+
+                {successMessage && (
+                  <div style={{ backgroundColor: '#065f46', color: '#fff', padding: '12px', borderRadius: '8px', marginBottom: '16px', fontWeight: 'bold', fontSize: '14px', textAlign: 'center' }}>
+                    {successMessage}
+                  </div>
+                )}
+
+                <form onSubmit={handleSubmitComplaint} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  <input 
+                    type="text" 
+                    placeholder="Bildirim Başlığı (Örn: Aidat Ödemesi)" 
+                    value={complaintTitle} 
+                    onChange={(e) => setComplaintTitle(e.target.value)} 
+                    style={{ width: '100%', padding: '14px', backgroundColor: '#0b0f19', border: '1px solid #374151', borderRadius: '10px', color: '#fff', fontWeight: 'bold' }} 
+                  />
+                  <textarea 
+                    placeholder="Açıklama / Dekont Referans Numarası" 
+                    rows={4} 
+                    value={complaintDesc} 
+                    onChange={(e) => setComplaintDesc(e.target.value)} 
+                    style={{ width: '100%', padding: '14px', backgroundColor: '#0b0f19', border: '1px solid #374151', borderRadius: '10px', color: '#fff', fontWeight: 'bold', resize: 'vertical' }} 
+                  />
+                  <button 
+                    type="submit" 
+                    disabled={submitting} 
+                    style={{ backgroundColor: '#f59e0b', color: '#111827', border: 'none', padding: '14px', borderRadius: '10px', fontWeight: '800', fontSize: '15px', cursor: 'pointer' }}
+                  >
+                    {submitting ? 'Gönderiliyor...' : 'Bildirimi Yönetime Gönder'}
+                  </button>
+                </form>
+              </div>
+            )}
+          </>
+        )}
+
+        {activeTab === 'handymen' && (
+          <div style={{ backgroundColor: '#111827', borderRadius: '16px', padding: '24px', border: '1px solid #1f2937' }}>
+            <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#f59e0b', margin: '0 0 6px 0' }}>📞 Acil Usta & Servis Rehberi</h3>
+            <p style={{ fontSize: '13px', color: '#94a3b8', margin: '0 0 20px 0' }}>Site sakinlerinin acil ihtiyaç duyabileceği teknik servis ve ustaların iletişim listesi.</p>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '16px' }}>
+              {handymen.map((h) => (
+                <div key={h.id} style={{ backgroundColor: '#0b0f19', border: '1px solid #374151', borderRadius: '12px', padding: '18px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '12px' }}>
+                  <div>
+                    <span style={{ fontSize: '11px', backgroundColor: '#374151', color: '#fff', padding: '2px 8px', borderRadius: '6px', fontWeight: '700' }}>{h.category}</span>
+                    <h4 style={{ margin: '10px 0 4px 0', fontSize: '16px', color: '#fff', fontWeight: '800' }}>{h.title}</h4>
+                    <p style={{ margin: 0, fontSize: '14px', color: '#cbd5e1', fontWeight: '600' }}>👤 {h.name}</p>
+                  </div>
+                  <a 
+                    href={`tel:${h.phone}`} 
+                    style={{ backgroundColor: '#10b981', color: '#fff', textAlign: 'center', padding: '10px', borderRadius: '8px', textDecoration: 'none', fontWeight: '800', fontSize: '14px', display: 'block' }}
+                  >
+                    📞 {h.phone} Ara
+                  </a>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
