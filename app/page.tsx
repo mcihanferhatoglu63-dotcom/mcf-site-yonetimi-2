@@ -490,6 +490,8 @@ export default function HomePage() {
                   <span>✓ Bloklar</span>
                   <span>✓ Rehber</span>
                   <span>✓ Site Düzenlemesi</span>
+                  <span>✓ Kasa Hesaplama</span>
+                  <span>✓ Raporlar</span>
                   <span style={{ color: "#10b981", fontWeight: "bold" }}>
                     ✅ Hepsi Açık (Online Bildirim Dahil)
                   </span>
