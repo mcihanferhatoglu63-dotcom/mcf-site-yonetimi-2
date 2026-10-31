@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { db } from "../firebase";
 import {
   collection,
@@ -112,18 +111,14 @@ export default function SakinPanelPage() {
       setCurrentSiteName(siteParam);
     }
 
+    // Firestore'dan gerçek paket türünü anlık veya sorguyla çekiyoruz
     const fetchSitePackage = async () => {
       const targetSite = siteParam || "Bulvar City";
-
-      if (targetSite === "Demo-Site") {
-        setCurrentPackage("trial");
-        return;
-      }
 
       try {
         const q = query(
           collection(db, "tenants"),
-          where("siteName", "==", targetSite),
+          where("siteName", "==", targetSite)
         );
         const querySnapshot = await getDocs(q);
         if (!querySnapshot.empty) {
@@ -149,7 +144,7 @@ export default function SakinPanelPage() {
       setLoading(false);
 
       const blocks = Array.from(
-        new Set(fetchedUnits.map((u) => u.block)),
+        new Set(fetchedUnits.map((u) => u.block))
       ).sort();
       if (
         blocks.length > 0 &&
@@ -181,10 +176,10 @@ export default function SakinPanelPage() {
         const filtered = all.filter(
           (c) =>
             (!c.siteName || c.siteName === currentSiteName) &&
-            c.unitInfo === unitIdentifier,
+            c.unitInfo === unitIdentifier
         );
         setMyComplaints(filtered);
-      },
+      }
     );
 
     return () => unsubscribeComplaints();
@@ -203,7 +198,7 @@ export default function SakinPanelPage() {
     const targetUnit = units.find(
       (u) =>
         u.block === selectedBlock &&
-        Number(u.unitNumber) === Number(selectedUnitNumber),
+        Number(u.unitNumber) === Number(selectedUnitNumber)
     );
     if (!targetUnit) return alert("Daire bulunamadı.");
 
@@ -256,10 +251,10 @@ export default function SakinPanelPage() {
   const handleSubmitComplaint = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // GÜNCELLENEN KONTROL: Sadece paket Pro değilse engelle (Demo-Site Pro yapılırsa serbest kalır)
+    // KONTROL: Sadece paket Pro değilse engelle (Demo-Site Pro yapılınca otomatik izin verir)
     if (currentPackage !== "pro") {
       return alert(
-        "Üzgünüz, Trial ve Basic paketlerde şikayet/bildirim oluşturma özelliği devre dışıdır. Bu özelliği kullanabilmek için Pro pakete geçmeniz gerekmektedir.",
+        "Üzgünüz, Trial ve Basic paketlerde şikayet/bildirim oluşturma özelliği devre dışıdır. Bu özelliği kullanabilmek için Pro pakete geçmeniz gerekmektedir."
       );
     }
 
@@ -282,7 +277,7 @@ export default function SakinPanelPage() {
       setComplaintTitle("");
       setComplaintDesc("");
       setSuccessMessage(
-        "Bildiriminiz / Dekontunuz kendi yönetiminize başarıyla iletildi!",
+        "Bildiriminiz / Dekontunuz kendi yönetiminize başarıyla iletildi!"
       );
       setTimeout(() => setSuccessMessage(""), 5000);
     } catch (err) {
@@ -776,8 +771,8 @@ export default function SakinPanelPage() {
                   bildirebilirsiniz.
                 </p>
 
-                {/* DEMO-SİTE VEYA TRIAL/BASIC KONTROLÜ İLE FORMU KAPATMA */}
-                {currentPackage !== "pro" || currentSiteName === "Demo-Site" ? (
+                {/* SADECE PRO PAKET KONTROLÜ (Demo-Site Pro yapılınca form direkt açılır) */}
+                {currentPackage !== "pro" ? (
                   <div
                     style={{
                       backgroundColor: "#78350f",
@@ -789,9 +784,9 @@ export default function SakinPanelPage() {
                       textAlign: "center",
                     }}
                   >
-                    🔒 Bulunduğunuz site (Demo-Site / Basic / Trial paket)
-                    online bildirim gönderimini desteklememektedir. Bu özellik
-                    yalnızca Pro paket sitelerde aktiftir.
+                    🔒 Bulunduğunuz site (Basic / Trial paket) online bildirim
+                    gönderimini desteklememektedir. Bu özellik yalnızca Pro
+                    paket sitelerde aktiftir.
                   </div>
                 ) : (
                   <>
