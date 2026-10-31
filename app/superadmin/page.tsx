@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useState, useEffect } from "react";
 import { db } from "../firebase";
 import {
@@ -28,7 +27,6 @@ export default function SuperAdminPage() {
   const [password, setPassword] = useState("");
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [loading, setLoading] = useState(true);
-
   const [siteName, setSiteName] = useState("");
   const [adminName, setAdminName] = useState("");
   const [phone, setPhone] = useState("");
@@ -37,7 +35,6 @@ export default function SuperAdminPage() {
     "pro",
   );
   const [expireDate, setExpireDate] = useState("Süresiz");
-
   const [editingTenant, setEditingTenant] = useState<Tenant | null>(null);
 
   useEffect(() => {
@@ -60,7 +57,7 @@ export default function SuperAdminPage() {
     return () => unsubscribe();
   }, [isSuperLoggedIn]);
 
- if (!isSuperLoggedIn) {
+  if (!isSuperLoggedIn) {
     return (
       <div
         style={{
@@ -86,14 +83,24 @@ export default function SuperAdminPage() {
           }}
         >
           {/* ORİJİNAL GÖRSEL LOGO */}
-          <div style={{ display: "flex", justifyContent: "center", marginBottom: "16px" }}>
-            <img 
-              src="/mcf-logo.png" 
-              alt="MCF Logo" 
-              style={{ maxWidth: "160px", width: "100%", height: "auto", objectFit: "contain" }} 
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              marginBottom: "16px",
+            }}
+          >
+            <img
+              src="/mcf-logo.png"
+              alt="MCF Logo"
+              style={{
+                maxWidth: "160px",
+                width: "100%",
+                height: "auto",
+                objectFit: "contain",
+              }}
             />
           </div>
-
           <p
             style={{
               color: "#f59e0b",
@@ -104,7 +111,6 @@ export default function SuperAdminPage() {
           >
             Site Takip Yönetim Sistemi (Süperadmin)
           </p>
-
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -112,7 +118,7 @@ export default function SuperAdminPage() {
                 setIsSuperLoggedIn(true);
                 sessionStorage.setItem("mcf_super_logged", "true");
               } else {
-                alert("Hatalı Süperadmin Şifresi! ");
+                alert("Hatalı Süperadmin Şifresi!");
               }
             }}
             style={{ display: "flex", flexDirection: "column", gap: "14px" }}
@@ -158,14 +164,13 @@ export default function SuperAdminPage() {
                 marginTop: "6px",
               }}
             >
-              ← Ana Sayfaya Dön
+              Ana Sayfaya Dön
             </a>
           </form>
         </div>
       </div>
     );
   }
-
 
   const handleAddTenant = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -174,7 +179,6 @@ export default function SuperAdminPage() {
         "Lütfen site adı, yönetici adı ve site erişim şifresini doldurunuz.",
       );
     }
-
     try {
       await addDoc(collection(db, "tenants"), {
         siteName,
@@ -195,10 +199,12 @@ export default function SuperAdminPage() {
       alert("Eklenirken hata oluştu.");
     }
   };
+
   const handleSuperLogout = () => {
     setIsSuperLoggedIn(false);
     sessionStorage.removeItem("mcf_super_logged");
   };
+
   // GÜNCELLENEN DÜZENLEME FONKSİYONU
   const handleUpdateTenant = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -206,7 +212,6 @@ export default function SuperAdminPage() {
       alert("Düzenlenecek kayıt bulunamadı.");
       return;
     }
-
     try {
       const tenantRef = doc(db, "tenants", editingTenant.id);
       await updateDoc(tenantRef, {
@@ -235,6 +240,10 @@ export default function SuperAdminPage() {
     }
   };
 
+  // Demo siteyi normal tablodan ayırıp özel yönetmek için filtreler:
+  const demoTenant = tenants.find((t) => t.siteName === "Demo-Site");
+  const regularTenants = tenants.filter((t) => t.siteName !== "Demo-Site");
+
   return (
     <div
       style={{
@@ -252,25 +261,69 @@ export default function SuperAdminPage() {
           boxShadow: "0 4px 20px rgba(0,0,0,0.4)",
         }}
       >
-  {/* SÜPERADMIN PANELİ ÜST BAŞLIK & LOGO */}
-        <div style={{ backgroundColor: '#111827', borderBottom: '1px solid #1f2937', padding: '16px 24px', boxShadow: '0 4px 20px rgba(0,0,0,0.4)', marginBottom: '24px' }}>
-          <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
-            
-            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-              <img 
-                src="/mcf-logo.png" 
-                alt="MCF Logo" 
-                style={{ height: '42px', width: 'auto', objectFit: 'contain' }} 
+        {/* SÜPERADMIN PANELİ ÜST BAŞLIK & LOGO */}
+        <div
+          style={{
+            backgroundColor: "#111827",
+            borderBottom: "1px solid #1f2937",
+            padding: "16px 24px",
+            boxShadow: "0 4px 20px rgba(0,0,0,0.4)",
+            marginBottom: "24px",
+          }}
+        >
+          <div
+            style={{
+              maxWidth: "1280px",
+              margin: "0 auto",
+              display: "flex",
+              flexWrap: "wrap",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: "16px",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+              <img
+                src="/mcf-logo.png"
+                alt="MCF Logo"
+                style={{ height: "42px", width: "auto", objectFit: "contain" }}
               />
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontSize: '15px', fontWeight: '800', color: '#ffffff', lineHeight: '1.2' }}>MCF TECHNOLOGY</span>
-                <span style={{ fontSize: '10px', fontWeight: '700', color: '#f59e0b', letterSpacing: '0.5px' }}>SİTE TAKİP YÖNETİM SİSTEMİ - SÜPERADMIN PANELİ</span>
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <span
+                  style={{
+                    fontSize: "15px",
+                    fontWeight: "800",
+                    color: "#ffffff",
+                    lineHeight: 1.2,
+                  }}
+                >
+                  MCF TECHNOLOGY
+                </span>
+                <span
+                  style={{
+                    fontSize: "10px",
+                    fontWeight: "700",
+                    color: "#f59e0b",
+                    letterSpacing: "0.5px",
+                  }}
+                >
+                  SİTE TAKİP YÖNETİM SİSTEMİ SÜPERADMIN PANELİ
+                </span>
               </div>
             </div>
-
-            <button 
-              onClick={handleSuperLogout} 
-              style={{ backgroundColor: '#ef4444', color: '#fff', border: 'none', padding: '10px 18px', borderRadius: '10px', fontWeight: '800', cursor: 'pointer', fontSize: '14px', boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)' }}
+            <button
+              onClick={handleSuperLogout}
+              style={{
+                backgroundColor: "#ef4444",
+                color: "#fff",
+                border: "none",
+                padding: "10px 18px",
+                borderRadius: "10px",
+                fontWeight: "800",
+                cursor: "pointer",
+                fontSize: "14px",
+                boxShadow: "0 4px 12px rgba(239, 68, 68, 0.3)",
+              }}
             >
               Çıkış Yap
             </button>
@@ -281,6 +334,157 @@ export default function SuperAdminPage() {
       <main
         style={{ maxWidth: "1280px", margin: "24px auto", padding: "0 20px" }}
       >
+        {/* 🌟 DEMO SİTE İÇİN ÖZEL KONTROL WIDGET'I (Normal listeyi kirletmez) */}
+        <div
+          style={{
+            backgroundColor: "#111827",
+            borderRadius: "16px",
+            padding: "20px 24px",
+            marginBottom: "28px",
+            border: "1px solid #f59e0b",
+            boxShadow: "0 4px 15px rgba(245, 158, 11, 0.15)",
+            display: "flex",
+            flexWrap: "wrap",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: "16px",
+          }}
+        >
+          <div>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                marginBottom: "4px",
+              }}
+            >
+              <span
+                style={{
+                  backgroundColor: "#f59e0b",
+                  color: "#111827",
+                  fontSize: "10px",
+                  fontWeight: "900",
+                  padding: "2px 8px",
+                  borderRadius: "4px",
+                }}
+              >
+                ÖZEL TEST ALANI
+              </span>
+              <h3
+                style={{
+                  margin: 0,
+                  fontSize: "16px",
+                  color: "#ffffff",
+                  fontWeight: "800",
+                }}
+              >
+                Demo-Site Paket Yönetimi
+              </h3>
+            </div>
+            <p style={{ margin: 0, fontSize: "13px", color: "#94a3b8" }}>
+              Demo siteden giren kullanıcıların paket testlerini (Trial / Basic /
+              Pro) buradan anlık olarak yönetebilirsiniz.
+            </p>
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            {demoTenant ? (
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "8px" }}
+              >
+                <span
+                  style={{
+                    fontSize: "13px",
+                    fontWeight: "600",
+                    color: "#cbd5e1",
+                  }}
+                >
+                  Aktif Paket:
+                </span>
+                <select
+                  value={demoTenant.packageType}
+                  onChange={async (e) => {
+                    try {
+                      await updateDoc(doc(db, "tenants", demoTenant.id), {
+                        packageType: e.target.value,
+                      });
+                    } catch (err) {
+                      console.error(err);
+                    }
+                  }}
+                  style={{
+                    padding: "8px 14px",
+                    borderRadius: "8px",
+                    border: "1px solid #f59e0b",
+                    fontWeight: "bold",
+                    backgroundColor:
+                      demoTenant.packageType === "pro"
+                        ? "#0369a1"
+                        : demoTenant.packageType === "basic"
+                        ? "#b45309"
+                        : "#374151",
+                    color: "#ffffff",
+                    outline: "none",
+                    cursor: "pointer",
+                  }}
+                >
+                  <option value="trial">Trial</option>
+                  <option value="basic">Basic</option>
+                  <option value="pro">Pro</option>
+                </select>
+                <a
+                  href={`/yonetim?site=${encodeURIComponent("Demo-Site")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    backgroundColor: "#0284c7",
+                    color: "#fff",
+                    textDecoration: "none",
+                    padding: "8px 14px",
+                    borderRadius: "8px",
+                    fontWeight: "700",
+                    fontSize: "13px",
+                  }}
+                >
+                  Demoya Git
+                </a>
+              </div>
+            ) : (
+              <button
+                onClick={async () => {
+                  try {
+                    await addDoc(collection(db, "tenants"), {
+                      siteName: "Demo-Site",
+                      adminName: "Demo Yöneticisi",
+                      phone: "-",
+                      sitePassword: "123",
+                      packageType: "trial",
+                      expireDate: "Süresiz",
+                      createdAt: serverTimestamp(),
+                    });
+                  } catch (err) {
+                    console.error(err);
+                  }
+                }}
+                style={{
+                  backgroundColor: "#f59e0b",
+                  color: "#111827",
+                  border: "none",
+                  padding: "10px 16px",
+                  borderRadius: "8px",
+                  fontWeight: "800",
+                  cursor: "pointer",
+                  fontSize: "13px",
+                }}
+              >
+                + Sistemde Demo-Site Kaydı Oluştur
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* YENİ SİTE EKLEME FORMU */}
         <div
           style={{
             backgroundColor: "#111827",
@@ -299,7 +503,7 @@ export default function SuperAdminPage() {
               fontWeight: "800",
             }}
           >
-            ➕ Yeni Site / Apartman Ekle
+            Yeni Site / Apartman Ekle
           </h3>
           <form
             onSubmit={handleAddTenant}
@@ -383,9 +587,9 @@ export default function SuperAdminPage() {
                 outline: "none",
               }}
             >
-              <option value="trial">🚀 Trial</option>
-              <option value="basic">📦 Basic (1000₺)</option>
-              <option value="pro">💎 Pro (2000₺)</option>
+              <option value="trial">Trial</option>
+              <option value="basic">Basic (1000₺)</option>
+              <option value="pro">Pro (2000₺)</option>
             </select>
             <input
               type="text"
@@ -420,6 +624,7 @@ export default function SuperAdminPage() {
           </form>
         </div>
 
+        {/* NORMAL MÜŞTERİ SİTELERİ TABLOSU (Demo-Site gizlenmiştir) */}
         <div
           style={{
             backgroundColor: "#111827",
@@ -437,18 +642,25 @@ export default function SuperAdminPage() {
               fontWeight: "800",
             }}
           >
-            🏢 Sistemdeki Kayıtlı Siteler ({tenants.length})
+            Sistemdeki Kayıtlı Siteler ({regularTenants.length})
           </h3>
-
           {loading ? (
             <p
-              style={{ textAlign: "center", padding: "40px", color: "#94a3b8" }}
+              style={{
+                textAlign: "center",
+                padding: "40px",
+                color: "#94a3b8",
+              }}
             >
               Yükleniyor...
             </p>
-          ) : tenants.length === 0 ? (
+          ) : regularTenants.length === 0 ? (
             <p
-              style={{ textAlign: "center", padding: "40px", color: "#94a3b8" }}
+              style={{
+                textAlign: "center",
+                padding: "40px",
+                color: "#94a3b8",
+              }}
             >
               Henüz kayıtlı bir site bulunmuyor.
             </p>
@@ -484,7 +696,7 @@ export default function SuperAdminPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {tenants.map((t) => (
+                  {regularTenants.map((t) => (
                     <tr
                       key={t.id}
                       style={{ borderBottom: "1px solid #1f2937" }}
@@ -540,14 +752,14 @@ export default function SuperAdminPage() {
                               t.packageType === "pro"
                                 ? "#0369a1"
                                 : t.packageType === "basic"
-                                  ? "#b45309"
-                                  : "#374151",
+                                ? "#b45309"
+                                : "#374151",
                             color: "#ffffff",
                           }}
                         >
-                          <option value="trial">🚀 Trial</option>
-                          <option value="basic">📦 Basic</option>
-                          <option value="pro">💎 Pro</option>
+                          <option value="trial">Trial</option>
+                          <option value="basic">Basic</option>
+                          <option value="pro">Pro</option>
                         </select>
                       </td>
                       <td
@@ -559,10 +771,11 @@ export default function SuperAdminPage() {
                       >
                         {t.expireDate}
                       </td>
-
                       <td style={{ padding: "12px", textAlign: "center" }}>
                         <a
-                          href={`/yonetim?site=${encodeURIComponent(t.siteName)}`}
+                          href={`/yonetim?site=${encodeURIComponent(
+                            t.siteName,
+                          )}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           style={{
@@ -577,10 +790,9 @@ export default function SuperAdminPage() {
                             boxShadow: "0 2px 6px rgba(2, 132, 199, 0.3)",
                           }}
                         >
-                          🔗 Siteye Git
+                          Siteye Git
                         </a>
                       </td>
-
                       <td style={{ padding: "12px", textAlign: "center" }}>
                         <div
                           style={{
@@ -602,7 +814,7 @@ export default function SuperAdminPage() {
                               fontSize: "12px",
                             }}
                           >
-                            ✏️ Düzenle
+                            Düzenle
                           </button>
                           <button
                             onClick={() => handleDeleteTenant(t.id)}
@@ -617,7 +829,7 @@ export default function SuperAdminPage() {
                               fontSize: "12px",
                             }}
                           >
-                            🗑️ Sil
+                            Sil
                           </button>
                         </div>
                       </td>
@@ -630,6 +842,7 @@ export default function SuperAdminPage() {
         </div>
       </main>
 
+      {/* DÜZENLEME MODAL PENCERESİ */}
       {editingTenant && (
         <div
           style={{
@@ -665,9 +878,8 @@ export default function SuperAdminPage() {
                 fontWeight: "800",
               }}
             >
-              ✏️ Site Bilgilerini Düzenle
+              Site Bilgilerini Düzenle
             </h3>
-
             <form
               onSubmit={handleUpdateTenant}
               style={{ display: "flex", flexDirection: "column", gap: "14px" }}
@@ -833,7 +1045,6 @@ export default function SuperAdminPage() {
                   }}
                 />
               </div>
-
               <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
                 <button
                   type="button"
@@ -858,7 +1069,7 @@ export default function SuperAdminPage() {
                     padding: "12px",
                     background: "#f59e0b",
                     color: "#111827",
-                    border: "none",
+                    border: "1px solid #f59e0b",
                     borderRadius: "8px",
                     cursor: "pointer",
                     fontWeight: "800",

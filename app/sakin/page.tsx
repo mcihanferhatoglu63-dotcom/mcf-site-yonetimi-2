@@ -113,16 +113,16 @@ export default function SakinPanelPage() {
 
     // Site paket türünü tenants koleksiyonundan çekiyoruz
     const fetchSitePackage = async () => {
-      const targetSite = siteParam || "Bulvar City";
-      if (targetSite === "Demo-Site") {
-        setCurrentPackage("pro"); // Demo sitede test edilebilsin diye pro kabul edebiliriz veya trial
+      const targetSite = siteParam || 'Bulvar City';
+      
+      // Demo-Site için de artık Pro yapmak yok, trial/basic gibi kısıtlı olsun istiyoruz:
+      if (targetSite === 'Demo-Site') {
+        setCurrentPackage('trial'); // Veya 'basic' yapabilirsin
         return;
       }
+
       try {
-        const q = query(
-          collection(db, "tenants"),
-          where("siteName", "==", targetSite),
-        );
+        const q = query(collection(db, 'tenants'), where('siteName', '==', targetSite));
         const querySnapshot = await getDocs(q);
         if (!querySnapshot.empty) {
           const data = querySnapshot.docs[0].data();
