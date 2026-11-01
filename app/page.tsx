@@ -73,7 +73,8 @@ export default function HomePage() {
     <div
       style={{
         minHeight: "100vh",
-        backgroundColor: "#0b0f19",
+        backgroundColor: "#064e3b", // Şık, modern koyu turkuaz/çam yeşili tonu
+        backgroundImage: "linear-gradient(135deg, #042f2e 0%, #0f766e 100%)", // Turkuaz gradyan geçişi
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -84,7 +85,7 @@ export default function HomePage() {
         color: "#ffffff",
       }}
     >
-      {/* SAĞ ÜST KÖŞE SABİT BUTONLAR (Logoyla çakışmayacak şekilde güvenli mesafede) */}
+      {/* SAĞ ÜST KÖŞE SABİT BUTONLAR */}
       <div
         style={{
           position: "absolute",
@@ -98,7 +99,7 @@ export default function HomePage() {
         <button
           onClick={() => setShowPackagesModal(true)}
           style={{
-            backgroundColor: "#10b981",
+            backgroundColor: "#059669",
             color: "#ffffff",
             border: "none",
             padding: "8px 14px",
@@ -106,7 +107,7 @@ export default function HomePage() {
             fontWeight: "700",
             fontSize: "12px",
             cursor: "pointer",
-            boxShadow: "0 4px 12px rgba(16, 185, 129, 0.3)",
+            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.3)",
           }}
         >
           💎 Paketler & IBAN
@@ -123,7 +124,7 @@ export default function HomePage() {
             fontWeight: "700",
             fontSize: "12px",
             cursor: "pointer",
-            boxShadow: "0 4px 12px rgba(2, 132, 199, 0.3)",
+            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.3)",
           }}
         >
           Süper Admin Paneli
@@ -139,7 +140,7 @@ export default function HomePage() {
             maxWidth: "280px",
             width: "100%",
             height: "auto",
-            filter: "drop-shadow(0 8px 24px rgba(245, 158, 11, 0.25))",
+            filter: "drop-shadow(0 8px 24px rgba(0, 0, 0, 0.4))",
             borderRadius: "12px",
           }}
         />
@@ -151,14 +152,14 @@ export default function HomePage() {
           style={{
             fontSize: "32px",
             fontWeight: "800",
-            color: "#f59e0b",
+            color: "#fbbf24",
             margin: "0 0 8px 0",
             letterSpacing: "-0.5px",
           }}
         >
           MCF Teknoloji & Site Yönetim Sistemi
         </h1>
-        <p style={{ fontSize: "14px", color: "#94a3b8", margin: 0 }}>
+        <p style={{ fontSize: "14px", color: "#ccfbf1", margin: 0 }}>
           Lütfen giriş yapmak istediğiniz siteyi seçiniz
         </p>
       </div>
@@ -166,8 +167,8 @@ export default function HomePage() {
       {/* KAYITLI SİTELER LİSTESİ (KUTU) */}
       <div
         style={{
-          backgroundColor: "#111827",
-          border: "1px solid #1f2937",
+          backgroundColor: "rgba(4, 47, 46, 0.85)",
+          border: "1px solid #14b8a6",
           borderRadius: "16px",
           padding: "28px",
           width: "100%",
@@ -181,7 +182,7 @@ export default function HomePage() {
         <h3
           style={{
             fontSize: "14px",
-            color: "#94a3b8",
+            color: "#99f6e4",
             margin: "0 0 16px 0",
             fontWeight: "700",
             textTransform: "uppercase",
@@ -192,11 +193,11 @@ export default function HomePage() {
         </h3>
 
         {loadingTenants ? (
-          <p style={{ color: "#94a3b8", fontSize: "14px", padding: "20px 0" }}>
+          <p style={{ color: "#99f6e4", fontSize: "14px", padding: "20px 0" }}>
             Siteler yükleniyor...
           </p>
         ) : tenants.length === 0 ? (
-          <p style={{ color: "#94a3b8", fontSize: "14px", padding: "20px 0" }}>
+          <p style={{ color: "#99f6e4", fontSize: "14px", padding: "20px 0" }}>
             Henüz kayıtlı site bulunmuyor.
           </p>
         ) : (
@@ -213,9 +214,9 @@ export default function HomePage() {
                     width: "100%",
                     padding: "14px 16px",
                     backgroundColor: isDemo
-                      ? "rgba(16, 185, 129, 0.15)"
-                      : "#0b0f19",
-                    border: isDemo ? "1px solid #10b981" : "1px solid #374151",
+                      ? "rgba(16, 185, 129, 0.25)"
+                      : "#042f2e",
+                    border: isDemo ? "1px solid #34d399" : "1px solid #0d9488",
                     borderRadius: "10px",
                     color: "#ffffff",
                     fontSize: "15px",
@@ -233,8 +234,8 @@ export default function HomePage() {
                   <span
                     style={{
                       fontSize: "12px",
-                      color: isDemo ? "#10b981" : "#f59e0b",
-                      background: "#1f2937",
+                      color: isDemo ? "#34d399" : "#fbbf24",
+                      background: "#0f766e",
                       padding: "4px 8px",
                       borderRadius: "6px",
                       textTransform: "uppercase",
@@ -249,7 +250,7 @@ export default function HomePage() {
         )}
       </div>
 
-      {/* ABONELİK PAKETLERİ & IBAN MODALI (Eksiksiz İçerik) */}
+      {/* ABONELİK PAKETLERİ & IBAN MODALI */}
       {showPackagesModal && (
         <div
           style={{
@@ -268,8 +269,8 @@ export default function HomePage() {
         >
           <div
             style={{
-              backgroundColor: "#111827",
-              border: "1px solid #1f2937",
+              backgroundColor: "#042f2e",
+              border: "1px solid #14b8a6",
               borderRadius: "20px",
               padding: "30px",
               maxWidth: "750px",
@@ -285,7 +286,7 @@ export default function HomePage() {
                 justifyContent: "space-between",
                 alignItems: "flex-start",
                 marginBottom: "20px",
-                borderBottom: "1px solid #1f2937",
+                borderBottom: "1px solid #0f766e",
                 paddingBottom: "14px",
               }}
             >
@@ -294,7 +295,7 @@ export default function HomePage() {
                   style={{
                     margin: "0 0 4px 0",
                     fontSize: "20px",
-                    color: "#f59e0b",
+                    color: "#fbbf24",
                     fontWeight: "800",
                   }}
                 >
@@ -304,7 +305,7 @@ export default function HomePage() {
                   style={{
                     margin: 0,
                     fontSize: "13px",
-                    color: "#94a3b8",
+                    color: "#99f6e4",
                   }}
                 >
                   Paket detayları, modül limitleri ve IBAN bilgileri aşağıdadır.
@@ -315,7 +316,7 @@ export default function HomePage() {
                 style={{
                   background: "none",
                   border: "none",
-                  color: "#94a3b8",
+                  color: "#99f6e4",
                   fontSize: "20px",
                   fontWeight: "bold",
                   cursor: "pointer",
@@ -337,8 +338,8 @@ export default function HomePage() {
               {/* 1. Trial */}
               <div
                 style={{
-                  backgroundColor: "#0b0f19",
-                  border: "1px solid #374151",
+                  backgroundColor: "#064e3b",
+                  border: "1px solid #0f766e",
                   borderRadius: "14px",
                   padding: "20px",
                   display: "flex",
@@ -360,7 +361,7 @@ export default function HomePage() {
                   <span
                     style={{
                       fontSize: "14px",
-                      color: "#94a3b8",
+                      color: "#99f6e4",
                       fontWeight: "700",
                     }}
                   >
@@ -373,17 +374,17 @@ export default function HomePage() {
                     flexDirection: "column",
                     gap: "6px",
                     fontSize: "13px",
-                    color: "#cbd5e1",
-                    borderTop: "1px solid #1f2937",
+                    color: "#ccfbf1",
+                    borderTop: "1px solid #0f766e",
                     paddingTop: "12px",
                   }}
                 >
                   <span>✓ Bloklar</span>
                   <span>✓ Rehber</span>
-                  <span style={{ color: "#ef4444", fontWeight: "bold" }}>
+                  <span style={{ color: "#fca5a5", fontWeight: "bold" }}>
                     ✕ Site Düzenlemesi Yok
                   </span>
-                  <span style={{ color: "#ef4444", fontWeight: "bold" }}>
+                  <span style={{ color: "#fca5a5", fontWeight: "bold" }}>
                     ✕ Online Bildirim Kapalı
                   </span>
                 </div>
@@ -392,8 +393,8 @@ export default function HomePage() {
               {/* 2. Basic */}
               <div
                 style={{
-                  backgroundColor: "#0b0f19",
-                  border: "1px solid #b45309",
+                  backgroundColor: "#064e3b",
+                  border: "1px solid #d97706",
                   borderRadius: "14px",
                   padding: "20px",
                   display: "flex",
@@ -415,7 +416,7 @@ export default function HomePage() {
                   <span
                     style={{
                       fontSize: "16px",
-                      color: "#f59e0b",
+                      color: "#fbbf24",
                       fontWeight: "800",
                     }}
                   >
@@ -428,15 +429,15 @@ export default function HomePage() {
                     flexDirection: "column",
                     gap: "6px",
                     fontSize: "13px",
-                    color: "#cbd5e1",
-                    borderTop: "1px solid #1f2937",
+                    color: "#ccfbf1",
+                    borderTop: "1px solid #0f766e",
                     paddingTop: "12px",
                   }}
                 >
                   <span>✓ Bloklar</span>
                   <span>✓ Rehber</span>
                   <span>✓ Site Düzenlemesi</span>
-                  <span style={{ color: "#ef4444", fontWeight: "bold" }}>
+                  <span style={{ color: "#fca5a5", fontWeight: "bold" }}>
                     ✕ Online Bildirim Kapalı
                   </span>
                 </div>
@@ -445,14 +446,14 @@ export default function HomePage() {
               {/* 3. Pro */}
               <div
                 style={{
-                  backgroundColor: "#0b0f19",
-                  border: "1px solid #f59e0b",
+                  backgroundColor: "#064e3b",
+                  border: "1px solid #fbbf24",
                   borderRadius: "14px",
                   padding: "20px",
                   display: "flex",
                   flexDirection: "column",
                   gap: "12px",
-                  boxShadow: "0 4px 20px rgba(245, 158, 11, 0.15)",
+                  boxShadow: "0 4px 20px rgba(251, 191, 36, 0.15)",
                 }}
               >
                 <div>
@@ -460,7 +461,7 @@ export default function HomePage() {
                     style={{
                       margin: "0 0 4px 0",
                       fontSize: "16px",
-                      color: "#f59e0b",
+                      color: "#fbbf24",
                       fontWeight: "800",
                     }}
                   >
@@ -469,7 +470,7 @@ export default function HomePage() {
                   <span
                     style={{
                       fontSize: "16px",
-                      color: "#f59e0b",
+                      color: "#fbbf24",
                       fontWeight: "800",
                     }}
                   >
@@ -482,8 +483,8 @@ export default function HomePage() {
                     flexDirection: "column",
                     gap: "6px",
                     fontSize: "13px",
-                    color: "#cbd5e1",
-                    borderTop: "1px solid #1f2937",
+                    color: "#ccfbf1",
+                    borderTop: "1px solid #0f766e",
                     paddingTop: "12px",
                   }}
                 >
@@ -492,7 +493,7 @@ export default function HomePage() {
                   <span>✓ Site Düzenlemesi</span>
                   <span>✓ Kasa Hesaplama</span>
                   <span>✓ Raporlar</span>
-                  <span style={{ color: "#10b981", fontWeight: "bold" }}>
+                  <span style={{ color: "#34d399", fontWeight: "bold" }}>
                     ✅ Hepsi Açık (Online Bildirim Dahil)
                   </span>
                 </div>
@@ -502,8 +503,8 @@ export default function HomePage() {
             {/* IBAN BİLGİLERİ */}
             <div
               style={{
-                backgroundColor: "#0b0f19",
-                border: "1px solid #1f2937",
+                backgroundColor: "#064e3b",
+                border: "1px solid #0f766e",
                 borderRadius: "14px",
                 padding: "20px",
               }}
@@ -512,7 +513,7 @@ export default function HomePage() {
                 style={{
                   fontSize: "12px",
                   fontWeight: "800",
-                  color: "#f59e0b",
+                  color: "#fbbf24",
                   letterSpacing: "0.5px",
                   display: "block",
                   marginBottom: "8px",
@@ -534,7 +535,7 @@ export default function HomePage() {
               <div
                 style={{
                   fontSize: "13px",
-                  color: "#94a3b8",
+                  color: "#99f6e4",
                   fontWeight: "600",
                 }}
               >
@@ -546,7 +547,7 @@ export default function HomePage() {
               <button
                 onClick={() => setShowPackagesModal(false)}
                 style={{
-                  backgroundColor: "#374151",
+                  backgroundColor: "#0f766e",
                   color: "#fff",
                   border: "none",
                   padding: "10px 20px",
@@ -581,8 +582,8 @@ export default function HomePage() {
         >
           <div
             style={{
-              backgroundColor: "#111827",
-              border: "1px solid #374151",
+              backgroundColor: "#042f2e",
+              border: "1px solid #14b8a6",
               borderRadius: "16px",
               padding: "32px",
               maxWidth: "400px",
@@ -594,7 +595,7 @@ export default function HomePage() {
               style={{
                 margin: "0 0 6px 0",
                 fontSize: "20px",
-                color: "#f59e0b",
+                color: "#fbbf24",
                 fontWeight: "800",
               }}
             >
@@ -603,7 +604,7 @@ export default function HomePage() {
             <p
               style={{
                 fontSize: "13px",
-                color: "#94a3b8",
+                color: "#99f6e4",
                 margin: "0 0 24px 0",
               }}
             >
@@ -616,8 +617,8 @@ export default function HomePage() {
               <button
                 onClick={goToManagement}
                 style={{
-                  backgroundColor: "#f59e0b",
-                  color: "#111827",
+                  backgroundColor: "#fbbf24",
+                  color: "#042f2e",
                   border: "none",
                   padding: "14px",
                   borderRadius: "10px",
@@ -648,7 +649,7 @@ export default function HomePage() {
                 style={{
                   background: "none",
                   border: "none",
-                  color: "#94a3b8",
+                  color: "#99f6e4",
                   fontSize: "13px",
                   cursor: "pointer",
                   marginTop: "8px",
@@ -680,8 +681,8 @@ export default function HomePage() {
         >
           <div
             style={{
-              backgroundColor: "#111827",
-              border: "1px solid #374151",
+              backgroundColor: "#042f2e",
+              border: "1px solid #14b8a6",
               borderRadius: "16px",
               padding: "30px",
               maxWidth: "380px",
@@ -693,7 +694,7 @@ export default function HomePage() {
               style={{
                 margin: "0 0 8px 0",
                 fontSize: "18px",
-                color: "#f59e0b",
+                color: "#fbbf24",
                 fontWeight: "800",
               }}
             >
@@ -702,7 +703,7 @@ export default function HomePage() {
             <p
               style={{
                 fontSize: "12px",
-                color: "#94a3b8",
+                color: "#99f6e4",
                 margin: "0 0 20px 0",
               }}
             >
@@ -720,8 +721,8 @@ export default function HomePage() {
                 onChange={(e) => setSuperPassword(e.target.value)}
                 style={{
                   padding: "12px",
-                  backgroundColor: "#0b0f19",
-                  border: "1px solid #374151",
+                  backgroundColor: "#064e3b",
+                  border: "1px solid #0f766e",
                   borderRadius: "8px",
                   color: "#fff",
                   fontSize: "15px",
@@ -750,7 +751,7 @@ export default function HomePage() {
                 style={{
                   background: "none",
                   border: "none",
-                  color: "#94a3b8",
+                  color: "#99f6e4",
                   fontSize: "13px",
                   cursor: "pointer",
                   marginTop: "4px",
