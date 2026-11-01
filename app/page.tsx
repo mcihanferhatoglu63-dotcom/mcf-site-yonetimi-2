@@ -77,21 +77,22 @@ export default function HomePage() {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        justifyContent: "center",
+        justifyContent: "flex-start",
         fontFamily: "Inter, system-ui, sans-serif",
         position: "relative",
-        padding: "20px",
+        padding: "24px 20px 40px 20px",
         color: "#ffffff",
       }}
     >
-      {/* SAĞ ÜST KÖŞE BUTONLARI */}
+      {/* ÜST HEADER ALANI (Butonların Logoyla Çakışmaması İçin) */}
       <div
         style={{
-          position: "absolute",
-          top: "24px",
-          right: "24px",
+          width: "100%",
+          maxWidth: "500px",
           display: "flex",
+          justifyContent: "flex-end",
           gap: "10px",
+          marginBottom: "10px",
         }}
       >
         <button
@@ -100,10 +101,10 @@ export default function HomePage() {
             backgroundColor: "#10b981",
             color: "#ffffff",
             border: "none",
-            padding: "10px 16px",
+            padding: "8px 14px",
             borderRadius: "8px",
             fontWeight: "700",
-            fontSize: "13px",
+            fontSize: "12px",
             cursor: "pointer",
             boxShadow: "0 4px 12px rgba(16, 185, 129, 0.3)",
           }}
@@ -117,10 +118,10 @@ export default function HomePage() {
             backgroundColor: "#0284c7",
             color: "#ffffff",
             border: "none",
-            padding: "10px 16px",
+            padding: "8px 14px",
             borderRadius: "8px",
             fontWeight: "700",
-            fontSize: "13px",
+            fontSize: "12px",
             cursor: "pointer",
             boxShadow: "0 4px 12px rgba(2, 132, 199, 0.3)",
           }}
@@ -130,12 +131,12 @@ export default function HomePage() {
       </div>
 
       {/* Ana Ekran Logo Entegrasyonu */}
-      <div style={{ textAlign: "center", marginBottom: "30px" }}>
+      <div style={{ textAlign: "center", marginBottom: "20px" }}>
         <img
           src="/mcf-logo.png"
           alt="MCF Technology & Software Solutions"
           style={{
-            maxWidth: "280px",
+            maxWidth: "240px",
             width: "100%",
             height: "auto",
             filter: "drop-shadow(0 8px 24px rgba(245, 158, 11, 0.25))",
@@ -145,13 +146,13 @@ export default function HomePage() {
       </div>
 
       {/* ANA BAŞLIK */}
-      <div style={{ textAlign: "center", marginBottom: "30px" }}>
+      <div style={{ textAlign: "center", marginBottom: "24px" }}>
         <h1
           style={{
-            fontSize: "32px",
+            fontSize: "28px",
             fontWeight: "800",
             color: "#f59e0b",
-            margin: "0 0 8px 0",
+            margin: "0 0 6px 0",
             letterSpacing: "-0.5px",
           }}
         >
@@ -168,7 +169,7 @@ export default function HomePage() {
           backgroundColor: "#111827",
           border: "1px solid #1f2937",
           borderRadius: "16px",
-          padding: "28px",
+          padding: "24px",
           width: "100%",
           maxWidth: "440px",
           boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.5)",
@@ -248,7 +249,7 @@ export default function HomePage() {
         )}
       </div>
 
-      {/* 🌟 ABONELİK PAKETLERİ & IBAN MODALI */}
+      {/* ABONELİK PAKETLERİ & IBAN MODALI */}
       {showPackagesModal && (
         <div
           style={{
@@ -278,7 +279,6 @@ export default function HomePage() {
               overflowY: "auto",
             }}
           >
-            {/* Üst Başlık ve Kapatma Butonu */}
             <div
               style={{
                 display: "flex",
@@ -325,7 +325,7 @@ export default function HomePage() {
               </button>
             </div>
 
-            {/* 3'LÜ KART YERLEŞİMİ (TRIAL - BASIC - PRO) */}
+            {/* 3'LÜ KART YERLEŞİMİ */}
             <div
               style={{
                 display: "grid",
@@ -334,7 +334,7 @@ export default function HomePage() {
                 marginBottom: "24px",
               }}
             >
-              {/* 1. Trial Sürüm */}
+              {/* 1. Trial */}
               <div
                 style={{
                   backgroundColor: "#0b0f19",
@@ -389,7 +389,7 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* 2. Basic Paket */}
+              {/* 2. Basic */}
               <div
                 style={{
                   backgroundColor: "#0b0f19",
@@ -442,7 +442,7 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* 3. Pro Paket (Vurgulu Çerçeve) */}
+              {/* 3. Pro */}
               <div
                 style={{
                   backgroundColor: "#0b0f19",
@@ -490,8 +490,6 @@ export default function HomePage() {
                   <span>✓ Bloklar</span>
                   <span>✓ Rehber</span>
                   <span>✓ Site Düzenlemesi</span>
-                  <span>✓ Kasa Hesaplama</span>
-                  <span>✓ Raporlar</span>
                   <span style={{ color: "#10b981", fontWeight: "bold" }}>
                     ✅ Hepsi Açık (Online Bildirim Dahil)
                   </span>
@@ -499,7 +497,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* BANKA HESAP (IBAN) BİLGİLERİ KUTUSU */}
+            {/* IBAN BİLGİLERİ */}
             <div
               style={{
                 backgroundColor: "#0b0f19",
