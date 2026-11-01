@@ -77,22 +77,22 @@ export default function HomePage() {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        justifyContent: "flex-start",
+        justifyContent: "center",
         fontFamily: "Inter, system-ui, sans-serif",
         position: "relative",
-        padding: "24px 20px 40px 20px",
+        padding: "40px 20px",
         color: "#ffffff",
       }}
     >
-      {/* ÜST HEADER ALANI (Butonların Logoyla Çakışmaması İçin) */}
+      {/* SAĞ ÜST KÖŞE SABİT BUTONLAR (Logoyla çakışmayacak şekilde güvenli mesafede) */}
       <div
         style={{
-          width: "100%",
-          maxWidth: "500px",
+          position: "absolute",
+          top: "20px",
+          right: "24px",
           display: "flex",
-          justifyContent: "flex-end",
           gap: "10px",
-          marginBottom: "10px",
+          zIndex: 10,
         }}
       >
         <button
@@ -131,12 +131,12 @@ export default function HomePage() {
       </div>
 
       {/* Ana Ekran Logo Entegrasyonu */}
-      <div style={{ textAlign: "center", marginBottom: "20px" }}>
+      <div style={{ textAlign: "center", marginBottom: "30px" }}>
         <img
           src="/mcf-logo.png"
           alt="MCF Technology & Software Solutions"
           style={{
-            maxWidth: "240px",
+            maxWidth: "280px",
             width: "100%",
             height: "auto",
             filter: "drop-shadow(0 8px 24px rgba(245, 158, 11, 0.25))",
@@ -146,13 +146,13 @@ export default function HomePage() {
       </div>
 
       {/* ANA BAŞLIK */}
-      <div style={{ textAlign: "center", marginBottom: "24px" }}>
+      <div style={{ textAlign: "center", marginBottom: "30px" }}>
         <h1
           style={{
-            fontSize: "28px",
+            fontSize: "32px",
             fontWeight: "800",
             color: "#f59e0b",
-            margin: "0 0 6px 0",
+            margin: "0 0 8px 0",
             letterSpacing: "-0.5px",
           }}
         >
@@ -169,7 +169,7 @@ export default function HomePage() {
           backgroundColor: "#111827",
           border: "1px solid #1f2937",
           borderRadius: "16px",
-          padding: "24px",
+          padding: "28px",
           width: "100%",
           maxWidth: "440px",
           boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.5)",
@@ -249,7 +249,7 @@ export default function HomePage() {
         )}
       </div>
 
-      {/* ABONELİK PAKETLERİ & IBAN MODALI */}
+      {/* ABONELİK PAKETLERİ & IBAN MODALI (Eksiksiz İçerik) */}
       {showPackagesModal && (
         <div
           style={{
@@ -490,6 +490,8 @@ export default function HomePage() {
                   <span>✓ Bloklar</span>
                   <span>✓ Rehber</span>
                   <span>✓ Site Düzenlemesi</span>
+                  <span>✓ Kasa Hesaplama</span>
+                  <span>✓ Raporlar</span>
                   <span style={{ color: "#10b981", fontWeight: "bold" }}>
                     ✅ Hepsi Açık (Online Bildirim Dahil)
                   </span>
